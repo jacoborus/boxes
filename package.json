@@ -1,0 +1,27 @@
+{
+  "name": "boxes",
+  "version": "0.0.1",
+  "description": "Another predictable state container for JavaScript apps inspired by Redux",
+  "main": "boxes.js",
+  "scripts": {
+    "linter": "eslint src test",
+    "test": "node --harmony_default_parameters --harmony_destructuring ./test/tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jacoborus/boxes.git"
+  },
+  "keywords": [
+    "containers"
+  ],
+  "author": "Jacobo Tabernero - jacobo@xarope.eu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jacoborus/boxes/issues"
+  },
+  "homepage": "https://github.com/jacoborus/boxes",
+  "devDependencies": {
+    "eslint": "^1.10.3",
+    "tape": "^4.4.0"
+  }
+}

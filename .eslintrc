@@ -8,6 +8,7 @@
       "expect": true,
       "module": true,
       "exports": true,
+      "console": true,
       "require": true
     },
     "ecmaFeatures": {

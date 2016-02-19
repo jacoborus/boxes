@@ -9,17 +9,18 @@ function getStory (parent, key) {
   return { parent, res }
 }
 
-function dispatch (link, obj, old) {
-  Object.keys(obj).forEach(k => {
-    if (obj[k] !== old[k]) {
-      if (link.has(k)) {
-        link.get(k).forEach(f => f(obj))
-      }
+// delete all subscriptions of a given object
+function unlinkInside (target) {
+  Object.keys(target).forEach(k => {
+    if (typeof target[k] === 'object') {
+      subscriptions.delete(target[k])
+      unlinkInside(target[k])
+      delete target[k]
     }
   })
 }
 
-module.exports = function (name, store = {}) {
+function createBox (name, store = {}) {
   if (!name) throw new Error('boxes needs a name')
 
   globalState[name] = store
@@ -31,23 +32,25 @@ module.exports = function (name, store = {}) {
     res
   }]
 
-  function getState (prop) {
+  function get (prop) {
     if (prop) return globalState[name][prop]
     return globalState[name]
   }
 
-  function update (obj, target = globalState, key = name) {
+  function set (key, value) {
+    if (!key || typeof key !== 'string') {
+      throw new Error('setAt requires a string key')
+    }
+    let target = globalState[name]
     history.push(getStory(target, key))
     hIndex++
-    let old = target[key]
-    let newObject = Object.assign({}, old, obj)
-    if (subscriptions.has(old)) {
-      let link = subscriptions.set(newObject, subscriptions.get(old)).get(newObject)
-      subscriptions.delete(old)
-      dispatch(link, newObject, old)
-      target[key] = newObject
-    } else {
-      target[key] = newObject
+    target[key] = value
+    let link = subscriptions.get(target)
+    if (link && link.has(key)) {
+      link.get(key).forEach(f => f(target))
+      if (typeof value !== 'object') {
+        unlinkInside(target)
+      }
     }
   }
 
@@ -77,5 +80,15 @@ module.exports = function (name, store = {}) {
     return () => link.delete(action)
   }
 
-  return { update, prevState, nextState, subscribe, getState }
+  return { get: get, set: set, prevState, nextState, subscribe }
 }
+
+function has (boxName) {
+  return globalState[boxName] ? true : false
+}
+
+function remove (boxName) {
+  delete globalState[boxName]
+}
+
+module.exports = { createBox, has, remove }

@@ -18,21 +18,23 @@ function createBox (name, store = {}) {
     return globalState[name]
   }
 
-  function set (key, value) {
-    if (!key || typeof key !== 'string') {
-      throw new Error('setAt requires a string key')
-    }
-    let target = globalState[name]
+  function applySet (target, key, value) {
     if (target[key] !== value) {
       history.push(getStory(target, key, value))
       hIndex++
-
       target[key] = value
       let link = subscriptions.get(target)
       if (link && link.has(key)) {
         link.get(key).forEach(f => f(target))
       }
     }
+  }
+
+  function set (key, value) {
+    if (!key || typeof key !== 'string') {
+      throw new Error('setAt requires a string key')
+    }
+    applySet(globalState[name], key, value)
   }
 
   function setIn (target, key, value) {
@@ -42,16 +44,7 @@ function createBox (name, store = {}) {
     if (!target || typeof target !== 'object') {
       throw new Error('setIn requires a object target')
     }
-    if (target[key] !== value) {
-      history.push(getStory(target, key, value))
-      hIndex++
-
-      target[key] = value
-      let link = subscriptions.get(target)
-      if (link && link.has(key)) {
-        link.get(key).forEach(f => f(target))
-      }
-    }
+    applySet(target, key, value)
   }
 
   function prevState () {

@@ -4,9 +4,7 @@ const subscriptions = new Map()
 let globalState = {}
 
 function getStory (parent, key) {
-  let res = {}
-  res[key] = parent[key]
-  return { parent, res }
+  return { parent, key, value: parent[key] }
 }
 
 // delete all subscriptions of a given object
@@ -24,13 +22,8 @@ function createBox (name, store = {}) {
   if (!name) throw new Error('boxes needs a name')
 
   globalState[name] = store
-  let res = {}
-  res[name] = store
+  let history = []
   let hIndex = 0
-  let history = [{
-    parent: globalState,
-    res
-  }]
 
   function get (prop) {
     if (prop) return globalState[name][prop]
@@ -42,40 +35,42 @@ function createBox (name, store = {}) {
       throw new Error('setAt requires a string key')
     }
     let target = globalState[name]
-    history.push(getStory(target, key))
-    hIndex++
-    target[key] = value
-    let link = subscriptions.get(target)
-    if (link && link.has(key)) {
-      link.get(key).forEach(f => f(target))
-      if (typeof value !== 'object') {
-        unlinkInside(target)
+    if (target[key] !== value) {
+      history.push(getStory(target, key))
+      hIndex++
+      target[key] = value
+      let link = subscriptions.get(target)
+      if (link && link.has(key)) {
+        link.get(key).forEach(f => f(target))
+        if (typeof value !== 'object') {
+          unlinkInside(target)
+        }
       }
     }
   }
 
   function prevState () {
     if (hIndex) {
-      let story = history[hIndex--]
-      story.parent = Object.assign(story.parent, story.res)
+      let story = history[--hIndex]
+      story.parent[story.key] = story.value
     }
   }
 
   function nextState () {
-    if (history[hIndex + 1]) {
-      let story = history[++hIndex]
+    if (history[hIndex]) {
+      let story = history[hIndex++]
       story.parent = Object.assign(story.parent, story.res)
     }
   }
 
   function subscribe (target, key, action) {
-    let links
-    if (subscriptions.has(target)) {
-      links = subscriptions.get(target)
+    let map = subscriptions.get(target) || subscriptions.set(target, new Map()).get(target)
+    let link
+    if (typeof target[key] === 'object') {
+      link = map.get('__') || map.set('__', new Set()).get('__')
     } else {
-      links = subscriptions.set(target, new Map()).get(target)
+      link = map.get(key) || map.set(key, new Set()).get(key)
     }
-    let link = links.get(key) || links.set(key, new Set()).get(key)
     link.add(action)
     return () => link.delete(action)
   }

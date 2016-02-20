@@ -3,31 +3,7 @@
 const test = require('tape')
 const boxes = require('../boxes.js')
 
-// test('create box', t => {
-//   let box = createBox('mybox', {a: 1})
-//   t.is(box.get('a'), 1, 'set initial state')
-//   box.update({b: 2})
-//   t.is(box.get('b'), 2, 'basic update')
-//   let control = 0
-//   box.subscribe(box.get(), 'c', () => control++)
-//   box.update({c: 3})
-//   box.update({c: 4})
-//   box.update({c: 3})
-//   t.is(box.get('c'), 3, 'multiple update')
-//   t.is(control, 3, 'subscribe')
-//   box.prevState()
-//   box.prevState()
-//   box.prevState()
-//   t.notOk(box.get('c'), 'prevState')
-//   t.is(box.get('b'), 2, 'prevState')
-//   box.nextState()
-//   box.nextState()
-//   box.nextState()
-//   t.is(box.get('c'), 4, 'nextState')
-//   t.end()
-// })
-
-// boxes
+// BOXES
 test('boxes', t => {
   let obj = {a: 1}
   let basicBox = boxes.createBox('basicBox', obj)
@@ -49,6 +25,7 @@ test('boxes', t => {
   t.end()
 })
 
+// SET
 test('set', t => {
   let control = 0
   let box = boxes.createBox('mybox', {})
@@ -61,5 +38,7 @@ test('set', t => {
   t.is(control, 1, 'unsubscribe')
   box.prevState()
   t.is(box.get('a'), 1, 'prevState')
+  box.nextState()
+  t.is(box.get('a'), 5, 'nextState')
   t.end()
 })

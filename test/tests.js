@@ -28,7 +28,7 @@ test('boxes', t => {
 // SET
 test('set', t => {
   let control = 0
-  let box = boxes.createBox('mybox', {})
+  let box = boxes.createBox('setbox', {})
   let unsubscribe = box.subscribe(box.get(), 'a', o => control = o.a)
   box.set('a', 1)
   t.is(box.get().a, 1, 'basic set')
@@ -41,5 +41,28 @@ test('set', t => {
   t.is(box.get().a, 1, 'prevState')
   box.nextState()
   t.is(box.get().a, 5, 'nextState')
+  t.end()
+  boxes.remove('setbox')
+})
+
+// SET IN
+test('set in', t => {
+  let control = 0
+  let box = boxes.createBox('setinbox', {o: {a: 99}})
+  let unsubscribe = box.subscribe(box.get().o, 'a', o => control = o.a)
+  box.setIn(box.get().o, 'a', 1)
+  t.is(box.get().o.a, 1, 'basic set')
+  t.is(control, 1, 'subscribe')
+  unsubscribe()
+  box.setIn(box.get().o, 'a', 5)
+  t.is(box.get().o.a, 5, 'basic set')
+  t.is(control, 1, 'unsubscribe')
+  box.prevState()
+  t.is(box.get().o.a, 1, 'prevState')
+  box.prevState()
+  t.is(box.get().o.a, 99, 'prevState')
+  box.nextState()
+  t.is(box.get().o.a, 1, 'nextState')
+  boxes.remove('setinbox')
   t.end()
 })

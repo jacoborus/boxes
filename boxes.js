@@ -35,6 +35,25 @@ function createBox (name, store = {}) {
     }
   }
 
+  function setIn (target, key, value) {
+    if (!key || typeof key !== 'string') {
+      throw new Error('setIn requires a string key')
+    }
+    if (!target || typeof target !== 'object') {
+      throw new Error('setIn requires a object target')
+    }
+    if (target[key] !== value) {
+      history.push(getStory(target, key, value))
+      hIndex++
+
+      target[key] = value
+      let link = subscriptions.get(target)
+      if (link && link.has(key)) {
+        link.get(key).forEach(f => f(target))
+      }
+    }
+  }
+
   function prevState () {
     if (hIndex) {
       let story = history[--hIndex]
@@ -56,7 +75,7 @@ function createBox (name, store = {}) {
     return () => link.delete(action)
   }
 
-  return { get: get, set: set, prevState, nextState, subscribe }
+  return { get: get, set: set, setIn, prevState, nextState, subscribe }
 }
 
 function has (boxName) {

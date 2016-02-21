@@ -3,8 +3,45 @@
 const subscriptions = new Map()
 let globalState = {}
 
-function getStory (parent, key, fresh) {
-  return { parent, key, old: parent[key], fresh }
+function trigger (target, keys) {
+  let link = subscriptions.get(target)
+  if (link) {
+    keys.forEach(k => link.has(k) && link.get(k).forEach(f => f(target)))
+  }
+}
+
+let undoActions = {
+  set (story) {
+    story.target[story.key] = story.old
+  },
+  update (story) {
+    let stack = story.stack,
+        target = story.target
+    stack.forEach((val, k) => {
+      if (val[0] !== null) {
+        target[k] = val[0]
+      } else if (k in target) {
+        delete target[k]
+      }
+    })
+  }
+}
+
+let redoActions = {
+  set (story) {
+    story.target[story.key] = story.fresh
+  },
+  update (story) {
+    let stack = story.stack,
+        target = story.target
+    stack.forEach((val, k) => {
+      if (val[1] !== null) {
+        target[k] = val[1]
+      } else if (k in target) {
+        delete target[k]
+      }
+    })
+  }
 }
 
 function createBox (name, store = {}) {
@@ -18,15 +55,16 @@ function createBox (name, store = {}) {
     return globalState[name]
   }
 
-  function applySet (target, key, value) {
-    if (target[key] !== value) {
-      history.push(getStory(target, key, value))
-      hIndex++
-      target[key] = value
-      let link = subscriptions.get(target)
-      if (link && link.has(key)) {
-        link.get(key).forEach(f => f(target))
+  function applySet (target, key, fresh) {
+    if (target[key] !== fresh) {
+      history[hIndex++] = {
+        target, key, fresh,
+        old: target[key],
+        operation: 'set',
+        keys: new Set().add(key)
       }
+      target[key] = fresh
+      trigger(target, [key])
     }
   }
 
@@ -47,17 +85,51 @@ function createBox (name, store = {}) {
     applySet(target, key, value)
   }
 
+  function update (props) {
+    updateIn(globalState[name], props)
+  }
+
+  function updateIn (target, props) {
+    if (typeof target !== 'object') throw new Error('update requires a object target')
+    if (typeof props !== 'object') throw new Error('update requires a object props')
+
+    let stack = new Map(),
+        keys = new Set()
+    Object.keys(props).forEach(k => {
+      let fresh = props[k],
+          old = target[k]
+      if (old !== fresh) {
+        if (fresh !== null) {
+          stack.set(k, [old, fresh])
+          keys.add(k)
+          target[k] = fresh
+        } else if (k in target) {
+          stack.set(k, [old, fresh])
+          keys.add(k)
+          delete target[k]
+        }
+      }
+    })
+
+    if (stack.size) {
+      history[hIndex++] = { target, stack, keys, operation: 'update' }
+      trigger(target, keys)
+    }
+  }
+
   function prevState () {
     if (hIndex) {
       let story = history[--hIndex]
-      story.parent[story.key] = story.old
+      undoActions[story.operation](story)
+      trigger(story.target, story.keys)
     }
   }
 
   function nextState () {
     if (history[hIndex]) {
       let story = history[hIndex++]
-      story.parent[story.key] = story.fresh
+      redoActions[story.operation](story)
+      trigger(story.target, story.keys)
     }
   }
 
@@ -68,7 +140,7 @@ function createBox (name, store = {}) {
     return () => link.delete(action)
   }
 
-  return { get: get, set: set, setIn, prevState, nextState, subscribe }
+  return { get: get, set: set, setIn, update, updateIn, prevState, nextState, subscribe }
 }
 
 function has (boxName) {

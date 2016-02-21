@@ -66,3 +66,23 @@ test('set in', t => {
   boxes.remove('setinbox')
   t.end()
 })
+
+// UPDATE && UPDATE IN
+test('update', t => {
+  let control = 0
+  let box = boxes.createBox('updatebox', {})
+  let unsubscribe = box.subscribe(box.get(), 'a', o => control = o.a)
+  box.update({a: 1})
+  t.is(box.get().a, 1, 'basic set')
+  t.is(control, 1, 'subscribe')
+  unsubscribe()
+  box.update({a: 5, b: 2})
+  t.is(box.get().a, 5, 'basic set')
+  t.is(control, 1, 'unsubscribe')
+  box.prevState()
+  t.is(box.get().a, 1, 'prevState')
+  box.nextState()
+  t.is(box.get().a, 5, 'nextState')
+  t.end()
+  boxes.remove('updatebox')
+})

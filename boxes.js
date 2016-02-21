@@ -44,7 +44,7 @@ let redoActions = {
   }
 }
 
-function createBox (name, store = {}) {
+function createStore (name, store = {}) {
   if (!name) throw new Error('boxes needs a name')
 
   globalState[name] = store
@@ -60,7 +60,7 @@ function createBox (name, store = {}) {
       history[hIndex++] = {
         target, key, fresh,
         old: target[key],
-        operation: 'set',
+        action: 'set',
         keys: new Set().add(key)
       }
       target[key] = fresh
@@ -111,8 +111,8 @@ function createBox (name, store = {}) {
       }
     })
 
-    if (stack.size) {
-      history[hIndex++] = { target, stack, keys, operation: 'update' }
+    if (keys.size) {
+      history[hIndex++] = { target, stack, keys, action: 'update' }
       trigger(target, keys)
     }
   }
@@ -120,7 +120,7 @@ function createBox (name, store = {}) {
   function prevState () {
     if (hIndex) {
       let story = history[--hIndex]
-      undoActions[story.operation](story)
+      undoActions[story.action](story)
       trigger(story.target, story.keys)
     }
   }
@@ -128,7 +128,7 @@ function createBox (name, store = {}) {
   function nextState () {
     if (history[hIndex]) {
       let story = history[hIndex++]
-      redoActions[story.operation](story)
+      redoActions[story.action](story)
       trigger(story.target, story.keys)
     }
   }
@@ -151,4 +151,4 @@ function remove (boxName) {
   delete globalState[boxName]
 }
 
-module.exports = { createBox, has, remove }
+module.exports = { createStore, has, remove }

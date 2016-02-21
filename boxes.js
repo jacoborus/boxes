@@ -140,15 +140,30 @@ function createStore (name, store = {}) {
     return () => link.delete(action)
   }
 
-  return { get: get, set: set, setIn, update, updateIn, prevState, nextState, subscribe }
+  function getBox (target) {
+    return {
+      get () {
+        return target
+      },
+      set (key, value) {
+        if (!key || typeof key !== 'string') {
+          throw new Error('set requires a string key')
+        }
+        applySet(target, key, value)
+      },
+      setIn, update, updateIn, prevState, nextState, subscribe
+    }
+  }
+
+  return { get: get, set: set, setIn, update, updateIn, getBox, prevState, nextState, subscribe }
 }
 
-function has (boxName) {
-  return globalState[boxName] ? true : false
+function has (store) {
+  return globalState[store] ? true : false
 }
 
-function remove (boxName) {
-  delete globalState[boxName]
+function remove (store) {
+  delete globalState[store]
 }
 
 module.exports = { createStore, has, remove }

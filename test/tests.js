@@ -87,10 +87,29 @@ test('update', t => {
   boxes.remove('updatebox')
 })
 
+// GET BOX
+test('set through box', t => {
+  let control = 0
+  let store = boxes.createStore('setbox', {o: {a: 1, b: 2, c: 3}})
+  let box = store.getBox(store.get())
+  let unsubscribe = box.subscribe(box.get(), 'a', o => control = o.a)
+  box.set('a', 1)
+  t.is(box.get().a, 1, 'basic set')
+  t.is(control, 1, 'subscribe')
+  unsubscribe()
+  box.set('a', 5)
+  t.is(box.get().a, 5, 'basic set')
+  t.is(control, 1, 'unsubscribe')
+  box.prevState()
+  t.is(box.get().a, 1, 'prevState')
+  box.nextState()
+  t.is(box.get().a, 5, 'nextState')
+  t.end()
+  boxes.remove('setbox')
+})
+
 test.skip('stash store') // useful when you need to save subscriptions
 
-// test subscribe, unsubscribe, prev and next state
-// in every one of the following tests
 test.skip('remove in obj')
 test.skip('clear obj')
 test.skip('update obj')

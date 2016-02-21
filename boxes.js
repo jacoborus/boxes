@@ -151,7 +151,7 @@ function createStore (name, store = {}) {
         }
         applySet(target, key, value)
       },
-      setIn, update, updateIn, prevState, nextState, subscribe
+      setIn, update, updateIn, prevState, nextState, subscribe, getBox
     }
   }
 

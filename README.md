@@ -3,6 +3,12 @@ Boxes
 
 Predictable state container for JavaScript apps
 
+- [boxes api](#boxes-api)
+- [store api](#store-api)
+- [box api](#box-api)
+
+
+<a name="boxes-api"></a>
 boxes API
 ---------
 
@@ -11,7 +17,7 @@ boxes API
 - [boxes.remove](#boxes-remove)
 
 
-<a name="boxes-creatStore"></a>
+<a name="boxes-createStore"></a>
 ### createStore (name, content)
 
 Create a box in the top level of boxes with a independent history
@@ -56,6 +62,7 @@ boxes.has('mystore') // => false
 ```
 
 
+<a name="store-api"></a>
 store API
 ---------
 
@@ -209,6 +216,7 @@ console.log(box)
 ```
 
 
+<a name="box-api"></a>
 box API
 -------
 
@@ -283,3 +291,9 @@ Same as [store.subscribe](#store-subscribe)
 ### getBox (target)
 
 Same as [store.getBox](#store-getBox)
+
+<br><br>
+
+---
+
+© 2016 [Jacobo Tabernero](https://github.com/jacoborus) - Released under [MIT License](https://raw.github.com/jacoborus/boxes/master/LICENSE)

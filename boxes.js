@@ -151,7 +151,10 @@ function createStore (name, store = {}) {
         }
         applySet(target, key, value)
       },
-      setIn, update, updateIn, prevState, nextState, subscribe, getBox
+      update (props) {
+        updateIn(target, props)
+      },
+      setIn, updateIn, subscribe, getBox
     }
   }
 

@@ -29,7 +29,7 @@ test('boxes', t => {
 test('set', t => {
   let control = 0
   let store = boxes.createStore('setbox', {a: 0})
-  let unsubscribe = store.subscribe(store.get(), 'a', o => control = o.a)
+  let unsubscribe = store.subscribe(store.get(), 'a', a => control = a)
 
   store.set('a', 1)
   t.is(store.get().a, 1, 'basic set')
@@ -67,7 +67,7 @@ test('set', t => {
 test('set in', t => {
   let control = 0
   let store = boxes.createStore('setinbox', {o: {a: 99}})
-  let unsubscribe = store.subscribe(store.get().o, 'a', o => control = o.a)
+  let unsubscribe = store.subscribe(store.get().o, 'a', a => control = a)
 
   store.setIn(store.get().o, 'a', 1)
   t.is(store.get().o.a, 1, 'basic set')
@@ -105,10 +105,8 @@ test('set in', t => {
 test('update', t => {
   let control = {}
   let store = boxes.createStore('updatebox', {})
-  let unsubscribe = store.subscribe(store.get(), 'a', o => {
-    control.a = o.a
-    control.b = o.b
-  })
+  let unsubscribeA = store.subscribe(store.get(), 'a', a => control.a = a)
+  let unsubscribeB = store.subscribe(store.get(), 'b', b => control.b = b)
 
   store.update({a: 1})
   t.is(store.get().a, 1, 'basic update')
@@ -130,7 +128,8 @@ test('update', t => {
   t.is(control.a, 5, 'subscribe')
   t.is(control.b, 2, 'subscribe')
 
-  unsubscribe()
+  unsubscribeA()
+  unsubscribeB()
   store.update({a: 'xxx', b: 'yyy'})
   t.is(control.a, 5, 'unsubscribe')
   t.is(control.b, 2, 'subscribe')
@@ -142,7 +141,7 @@ test('update', t => {
 test('clear obj', t => {
   let control = true
   let store = boxes.createStore('clearObj', {o: {a: 99}})
-  let unsubscribe = store.subscribe(store.get().o, 'a', o => control = o.a)
+  let unsubscribe = store.subscribe(store.get().o, 'a', a => control = a)
   t.ok(control, 'pre control')
   t.ok(Object.keys(store.get().o).length, ' pre clear')
 
@@ -175,7 +174,7 @@ test('set through box', t => {
   let control = 0
   let store = boxes.createStore('setbox', {o: {a: 1, b: 2, c: 3}})
   let box = store.getBox(store.get())
-  let unsubscribe = box.subscribe(box.get(), 'a', o => control = o.a)
+  let unsubscribe = box.subscribe(box.get(), 'a', a => control = a)
   box.set('a', 1)
   t.is(box.get().a, 1, 'basic set')
   t.is(control, 1, 'subscribe')

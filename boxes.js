@@ -6,7 +6,7 @@ let globalState = {}
 function trigger (target, stack) {
   let link = subscriptions.get(target)
   if (link) {
-    stack.forEach((v, k) => link.has(k) && link.get(k).forEach(f => f(target)))
+    stack.forEach((v, k) => link.has(k) && link.get(k).forEach(f => f(target[k])))
   }
 }
 

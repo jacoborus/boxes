@@ -3,17 +3,15 @@
 const subscriptions = new Map()
 let globalState = {}
 
-function trigger (target, keys) {
+function trigger (target, stack) {
   let link = subscriptions.get(target)
   if (link) {
-    keys.forEach(k => link.has(k) && link.get(k).forEach(f => f(target)))
+    stack.forEach((v, k) => link.has(k) && link.get(k).forEach(f => f(target)))
   }
 }
 
+// TODO: remove set from undo/redo actions (use update instead)
 let undoActions = {
-  set (story) {
-    story.target[story.key] = story.old
-  },
   update (story) {
     let stack = story.stack,
         target = story.target
@@ -28,9 +26,6 @@ let undoActions = {
 }
 
 let redoActions = {
-  set (story) {
-    story.target[story.key] = story.fresh
-  },
   update (story) {
     let stack = story.stack,
         target = story.target
@@ -57,14 +52,11 @@ function createStore (name, store = {}) {
 
   function applySet (target, key, fresh) {
     if (target[key] !== fresh) {
-      history[hIndex++] = {
-        target, key, fresh,
-        old: target[key],
-        action: 'set',
-        keys: new Set().add(key)
-      }
+      let old = key in target ? target[key] : null
+      let stack = new Map().set(key, [old, fresh])
+      history[hIndex++] = { target, stack, action: 'update' }
       target[key] = fresh
-      trigger(target, [key])
+      trigger(target, stack)
     }
   }
 
@@ -93,27 +85,44 @@ function createStore (name, store = {}) {
     if (typeof target !== 'object') throw new Error('update requires a object target')
     if (typeof props !== 'object') throw new Error('update requires a object props')
 
-    let stack = new Map(),
-        keys = new Set()
+    let stack = new Map()
     Object.keys(props).forEach(k => {
       let fresh = props[k],
           old = target[k]
       if (old !== fresh) {
         if (fresh !== null) {
           stack.set(k, [old, fresh])
-          keys.add(k)
           target[k] = fresh
         } else if (k in target) {
           stack.set(k, [old, fresh])
-          keys.add(k)
           delete target[k]
         }
       }
     })
 
-    if (keys.size) {
-      history[hIndex++] = { target, stack, keys, action: 'update' }
-      trigger(target, keys)
+    if (stack.size) {
+      history[hIndex++] = { target, stack, action: 'update' }
+      trigger(target, stack)
+    }
+  }
+
+  function clear (prop) {
+    clearIn(globalState[name], prop)
+  }
+
+  function clearIn (target, prop) {
+    let obj = target[prop]
+    let stack = new Map()
+    if (obj) {
+      Object.keys(obj).forEach(k => {
+        stack.set(k, [obj[k], null])
+        delete obj[k]
+      })
+    }
+
+    if (stack.size) {
+      history[hIndex++] = { target: obj, stack, action: 'update' }
+      trigger(obj, stack)
     }
   }
 
@@ -121,7 +130,7 @@ function createStore (name, store = {}) {
     if (hIndex) {
       let story = history[--hIndex]
       undoActions[story.action](story)
-      trigger(story.target, story.keys)
+      trigger(story.target, story.stack)
     }
   }
 
@@ -129,7 +138,7 @@ function createStore (name, store = {}) {
     if (history[hIndex]) {
       let story = history[hIndex++]
       redoActions[story.action](story)
-      trigger(story.target, story.keys)
+      trigger(story.target, story.stack)
     }
   }
 
@@ -158,7 +167,14 @@ function createStore (name, store = {}) {
     }
   }
 
-  return { get: get, set: set, setIn, update, updateIn, getBox, prevState, nextState, subscribe }
+  return {
+    get: get,
+    set: set, setIn,
+    update, updateIn,
+    clear, clearIn,
+    getBox,
+    prevState, nextState,
+    subscribe }
 }
 
 function has (store) {

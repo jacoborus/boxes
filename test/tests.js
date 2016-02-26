@@ -199,7 +199,7 @@ test('update', t => {
 })
 
 // GET BOX
-test.skip('setIn through box', t => {
+test('setIn through box', t => {
   let control = 0
   let store = boxes.createStore('setbox', {o: {a: 1, b: 2, c: 3}})
   let box = store.getBox(store.get())

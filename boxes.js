@@ -61,13 +61,13 @@ function createStore (name, store = {}) {
     applySet(value, key, target)
   }
 
-  function update (props) {
-    updateIn(globalState[name], props)
-  }
-
-  function updateIn (target, props) {
-    if (typeof target !== 'object') throw new Error('update requires a object target')
-    if (typeof props !== 'object') throw new Error('update requires a object props')
+  function update (props, target) {
+    if (!props || typeof props !== 'object') throw new Error('update requires a object props')
+    if (!(1 in arguments)) {
+      target = globalState[name]
+    } else if (typeof target !== 'object') {
+      throw new Error('update requires a object target')
+    }
 
     let stack = new Map()
     Object.keys(props).forEach(k => {
@@ -118,28 +118,26 @@ function createStore (name, store = {}) {
     return () => link.delete(action)
   }
 
-  function getBox (target) {
+  function getBox (scope) {
     return {
       get () {
-        return target
+        return scope
       },
-      setIn (value, key) {
-        if (!key || typeof key !== 'string') {
-          throw new Error('set requires a string key')
-        }
-        applySet(value, key, target)
+      set (value, key) {
+        applySet(value, key, scope)
       },
-      update (props) {
-        updateIn(target, props)
+      update (props, target) {
+        if (!(1 in arguments)) target = scope
+        update(target, props)
       },
-      updateIn, subscribe, getBox
+      subscribe, getBox
     }
   }
 
   return {
     get: get,
     set: set,
-    update, updateIn,
+    update,
     getBox,
     prevState, nextState,
     subscribe, subscribeToStore }

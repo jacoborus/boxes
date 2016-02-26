@@ -52,7 +52,7 @@ function createStore (name, store = {}) {
     applySet(globalState[name], key, value)
   }
 
-  function setIn (target, key, value) {
+  function setIn (value, key, target) {
     if (!key || typeof key !== 'string') {
       throw new Error('setIn requires a string key')
     }

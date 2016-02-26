@@ -68,7 +68,6 @@ store API
 
 - [store.get](#store-get)
 - [store.set](#store-set)
-- [store.setIn](#store-setIn)
 - [store.update](#store-update)
 - [store.updateIn](#store-updateIn)
 - [store.subscribe](#store-subscribe)
@@ -91,33 +90,24 @@ store.get() // => {a: 1, o: {x: 99}}
 
 
 <a name="store-set"></a>
-### set (key, content)
+### set (value [,key [,target]])
 
 Set new content in store property
 
 **Parameters:**
-- **key** *string*: property name
-- **content** *whatever*: new content
+- **value** *whatever*: new content
+- **key** *string*: property name. Optional, if key is not passed value will replace the actual store
+- **target** *string*: property name. Optional: if only target is missing a prop in store will be replaced
 
 ```js
-store.set('a', 2)
+store.set(2, 'a')
 store.get() // => {a: 2, o: {x: 99}}
-```
 
+store.set(88, x, store.get().o)
+store.get() // => {a: 2, o: {x: 88}}
 
-<a name="store-setIn"></a>
-### setIn (target, key, content)
-
-Set new content in target property
-
-**Parameters:**
-- **target** *object*: box that will be changed
-- **key** *string*: property name of new content
-- **content** *whatever*: new content
-
-```js
-store.setIn(store.get().o, 'x', 55)
-store.get() // => {a: 2, o: {x: 55}
+store.set({a: 1, o: {x: 99}})
+store.get() // => {a: 1, o: {x: 99}
 ```
 
 

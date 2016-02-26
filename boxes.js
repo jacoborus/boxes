@@ -11,27 +11,13 @@ function trigger (target, stack) {
 }
 
 // TODO: remove set from undo/redo actions (use update instead)
-let undoActions = {
-  update (story) {
+let undoRedo = {
+  update (story, i) {
     let stack = story.stack,
         target = story.target
     stack.forEach((val, k) => {
-      if (val[0] !== null) {
-        target[k] = val[0]
-      } else if (k in target) {
-        delete target[k]
-      }
-    })
-  }
-}
-
-let redoActions = {
-  update (story) {
-    let stack = story.stack,
-        target = story.target
-    stack.forEach((val, k) => {
-      if (val[1] !== null) {
-        target[k] = val[1]
+      if (val[i] !== null) {
+        target[k] = val[i]
       } else if (k in target) {
         delete target[k]
       }
@@ -129,7 +115,7 @@ function createStore (name, store = {}) {
   function prevState () {
     if (hIndex) {
       let story = history[--hIndex]
-      undoActions[story.action](story)
+      undoRedo[story.action](story, 0)
       trigger(story.target, story.stack)
     }
   }
@@ -137,7 +123,7 @@ function createStore (name, store = {}) {
   function nextState () {
     if (history[hIndex]) {
       let story = history[hIndex++]
-      redoActions[story.action](story)
+      undoRedo[story.action](story, 1)
       trigger(story.target, story.stack)
     }
   }

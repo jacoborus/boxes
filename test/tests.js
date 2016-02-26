@@ -192,11 +192,11 @@ test('set through box', t => {
 
 test.skip('merge obj')
 
+test.skip('push array')
 test.skip('set in array')
 test.skip('update array')
 test.skip('remove in array')
 test.skip('clear array')
-test.skip('push array')
 test.skip('pop array')
 test.skip('shift array')
 test.skip('unshift array')

@@ -37,55 +37,66 @@ test('boxes createStore: array', t => {
   t.end()
 })
 
-// SET
-test('set', t => {
+// REPLACE
+test('replace', t => {
   let control = 0
-  let store = boxes.createStore('setbox', {a: 0})
-  let unsubscribe = store.subscribe(store.get(), 'a', a => control = a)
+  let store = boxes.createStore('replaceBox', {a: 0})
+  let unsubscribe = store.subscribeToStore(s => control = s)
 
-  store.set('a', 1)
-  t.is(store.get().a, 1, 'basic set')
-  t.is(control, 1, 'subscribe')
+  // t.throws(function () {
+  //   store.set(1)
+  // }, 'trying to replace a box with a non object value', 'requires object')
 
-  store.set('a', 5)
-  t.is(store.get().a, 5, 'basic set')
-  t.is(control, 5, 'subscribe')
+  // t.throws(function () {
+  //   store.set([])
+  // }, 'replace requires same kind of store', 'requires same type of store')
+
+  store.set({b: 2})
+  t.is(store.get().b, 2, 'basic set')
+  t.is(control.b, 2, 'subscribe')
+
+  store.set({b: 5})
+  t.is(store.get().b, 5, 'basic set')
+  t.is(control.b, 5, 'subscribe')
 
   store.prevState()
-  t.is(store.get().a, 1, 'prevState')
-  t.is(control, 1, 'subscribe')
+  t.is(store.get().b, 2, 'prevState')
+  t.is(control.b, 2, 'subscribe')
 
   store.prevState()
   t.is(store.get().a, 0, 'prevState')
-  t.is(control, 0, 'subscribe')
+  t.is(control.a, 0, 'subscribe')
 
   store.nextState()
-  t.is(store.get().a, 1, 'nextState')
-  t.is(control, 1, 'subscribe')
+  t.is(store.get().b, 2, 'nextState')
+  t.is(control.b, 2, 'subscribe')
 
   store.nextState()
-  t.is(store.get().a, 5, 'nextState')
-  t.is(control, 5, 'subscribe')
+  t.is(store.get().b, 5, 'nextState')
+  t.is(control.b, 5, 'subscribe')
 
   unsubscribe()
-  store.set('a', 99)
-  t.is(control, 5, 'unsubscribe')
-  t.is(store.get().a, 99, 'unsubscribe')
-  boxes.remove('setbox')
+  store.set({c: 99})
+  t.is(control.b, 5, 'unsubscribe')
+  t.notOk(control.c, 'unsubscribe')
+  t.is(store.get().c, 99, 'unsubscribe')
+  boxes.remove('replaceBox')
   t.end()
 })
 
 // SET IN KEY
-test('set in key', t => {
+test('setIn', t => {
   let control = 0
   let store = boxes.createStore('setbox', {a: 0})
-  let unsubscribe = store.subscribe(store.get(), 'a', a => control = a)
+  let unsubscribe = store.subscribe(store.get(), 'a', a => {
+    control = a
+  })
 
-  store.set('a', 1)
+  store.set(1, 'a')
   t.is(store.get().a, 1, 'basic set')
   t.is(control, 1, 'subscribe')
 
-  store.set('a', 5)
+  store.set(5, 'a')
   t.is(store.get().a, 5, 'basic set')
   t.is(control, 5, 'subscribe')
 
@@ -106,7 +117,7 @@ test('set in key', t => {
   t.is(control, 5, 'subscribe')
 
   unsubscribe()
-  store.set('a', 99)
+  store.set(99, 'a')
   t.is(control, 5, 'unsubscribe')
   t.is(store.get().a, 99, 'unsubscribe')
   boxes.remove('setbox')
@@ -119,13 +130,13 @@ test('set in target', t => {
   let store = boxes.createStore('setinbox', {o: {a: 99}})
   let unsubscribe = store.subscribe(store.get().o, 'a', a => control = a)
 
-  store.setIn(1, 'a', store.get().o)
+  store.set(1, 'a', store.get().o)
   t.is(store.get().o.a, 1, 'basic set')
   t.is(control, 1, 'subscribe')
 
-  store.setIn(5, 'a', store.get().o)
-  t.is(store.get().o.a, 5, 'basic setIn')
-  t.is(control, 5, 'subscribe setIn')
+  store.set(5, 'a', store.get().o)
+  t.is(store.get().o.a, 5, 'basic set')
+  t.is(control, 5, 'subscribe set')
 
   store.prevState()
   t.is(store.get().o.a, 1, 'prevState')
@@ -144,7 +155,7 @@ test('set in target', t => {
   t.is(control, 5, 'subscribe nextState')
 
   unsubscribe()
-  store.setIn('xxx', 'a', store.get().o)
+  store.set('xxx', 'a', store.get().o)
   t.is(control, 5, 'unsubscribe')
 
   boxes.remove('setinbox')
@@ -187,49 +198,17 @@ test('update', t => {
   t.end()
 })
 
-// CLEAR OBJ
-test('clear obj', t => {
-  let control = true
-  let store = boxes.createStore('clearObj', {o: {a: 99}})
-  let unsubscribe = store.subscribe(store.get().o, 'a', a => control = a)
-  t.ok(control, 'pre control')
-  t.ok(Object.keys(store.get().o).length, ' pre clear')
-
-  store.clear('o')
-  t.notOk(Object.keys(store.get().o).length, 'clear')
-  t.notOk(control, 'subcribe')
-
-  store.setIn('hello', 'a', store.get().o)
-  t.is(store.get().o.a, 'hello')
-  t.is(control, 'hello', 'subcribe')
-
-  store.prevState()
-  t.notOk(Object.keys(store.get().o).length, 'clear')
-  t.notOk(control, 'susbcribe')
-
-  store.prevState()
-  t.ok(Object.keys(store.get().o).length, 'prevState')
-  t.is(control, 99, 'prevState subscription')
-
-  unsubscribe()
-  store.clear('o')
-  t.is(control, 99, 'prevState subscription')
-
-  boxes.remove('clearObj')
-  t.end()
-})
-
 // GET BOX
-test('set through box', t => {
+test.skip('setIn through box', t => {
   let control = 0
   let store = boxes.createStore('setbox', {o: {a: 1, b: 2, c: 3}})
   let box = store.getBox(store.get())
   let unsubscribe = box.subscribe(box.get(), 'a', a => control = a)
-  box.set('a', 1)
+  box.set(1, 'a')
   t.is(box.get().a, 1, 'basic set')
   t.is(control, 1, 'subscribe')
   unsubscribe()
-  box.set('a', 5)
+  box.set(5, 'a')
   t.is(box.get().a, 5, 'basic set')
   t.is(control, 1, 'unsubscribe')
   store.prevState()
@@ -243,15 +222,11 @@ test('set through box', t => {
 test.skip('merge obj')
 
 test.skip('push array')
-test.skip('set in array')
-test.skip('update array')
 test.skip('remove in array')
 test.skip('clear array')
 test.skip('pop array')
 test.skip('shift array')
 test.skip('unshift array')
 test.skip('sort array')
-test.skip('concat array')
 test.skip('reverse array')
 test.skip('splice array')
-test.skip('splice into array')

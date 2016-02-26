@@ -10,7 +10,6 @@ function trigger (target, stack) {
   }
 }
 
-// TODO: remove set from undo/redo actions (use update instead)
 function undoRedo (story, i) {
   let stack = story.stack,
       target = story.target
@@ -35,7 +34,7 @@ function createStore (name, store = {}) {
     return globalState[name]
   }
 
-  function applySet (target, key, fresh) {
+  function applySet (fresh, key = name, target = globalState) {
     if (target[key] !== fresh) {
       let old = key in target ? target[key] : null
       let stack = new Map().set(key, [old, fresh])
@@ -45,21 +44,21 @@ function createStore (name, store = {}) {
     }
   }
 
-  function set (key, value) {
-    if (!key || typeof key !== 'string') {
-      throw new Error('setAt requires a string key')
+  function set (value, key, target) {
+    if (1 in arguments) {
+      if (!(typeof key === 'string' || typeof key === 'number')) {
+        throw new Error('setIn requires a string or number key')
+      }
+      if (!target) {
+        target = globalState[name]
+      }
     }
-    applySet(globalState[name], key, value)
-  }
-
-  function setIn (value, key, target) {
-    if (!key || typeof key !== 'string') {
-      throw new Error('setIn requires a string key')
+    if (target) {
+      if (typeof target !== 'object') {
+        throw new Error('setIn requires a object target')
+      }
     }
-    if (!target || typeof target !== 'object') {
-      throw new Error('setIn requires a object target')
-    }
-    applySet(target, key, value)
+    applySet(value, key, target)
   }
 
   function update (props) {
@@ -79,7 +78,7 @@ function createStore (name, store = {}) {
           stack.set(k, [old, fresh])
           target[k] = fresh
         } else if (k in target) {
-          stack.set(k, [old, fresh])
+          stack.setIn(k, [old, fresh])
           delete target[k]
         }
       }
@@ -88,26 +87,6 @@ function createStore (name, store = {}) {
     if (stack.size) {
       history[hIndex++] = { target, stack, action: 'update' }
       trigger(target, stack)
-    }
-  }
-
-  function clear (prop) {
-    clearIn(globalState[name], prop)
-  }
-
-  function clearIn (target, prop) {
-    let obj = target[prop]
-    let stack = new Map()
-    if (obj) {
-      Object.keys(obj).forEach(k => {
-        stack.set(k, [obj[k], null])
-        delete obj[k]
-      })
-    }
-
-    if (stack.size) {
-      history[hIndex++] = { target: obj, stack, action: 'update' }
-      trigger(obj, stack)
     }
   }
 
@@ -132,32 +111,38 @@ function createStore (name, store = {}) {
     return () => link.delete(action)
   }
 
+  function subscribeToStore (action) {
+    let map = subscriptions.get(globalState) || subscriptions.set(globalState, new Map()).get(globalState)
+    let link = map.get(name) || map.set(name, new Set()).get(name)
+    link.add(action)
+    return () => link.delete(action)
+  }
+
   function getBox (target) {
     return {
       get () {
         return target
       },
-      set (key, value) {
+      setIn (value, key) {
         if (!key || typeof key !== 'string') {
           throw new Error('set requires a string key')
         }
-        applySet(target, key, value)
+        applySet(value, key, target)
       },
       update (props) {
         updateIn(target, props)
       },
-      setIn, updateIn, subscribe, getBox
+      updateIn, subscribe, getBox
     }
   }
 
   return {
     get: get,
-    set: set, setIn,
+    set: set,
     update, updateIn,
-    clear, clearIn,
     getBox,
     prevState, nextState,
-    subscribe }
+    subscribe, subscribeToStore }
 }
 
 function has (store) {

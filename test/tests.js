@@ -149,7 +149,7 @@ test('set in target', t => {
   t.end()
 })
 
-test('update', t => {
+test('update simple', t => {
   let control = {}
   let store = boxes.createStore('updatebox', {})
   let unsubscribeA = store.subscribe(store.get(), 'a', a => control.a = a)
@@ -181,6 +181,43 @@ test('update', t => {
   t.is(control.a, 5, 'unsubscribe')
   t.is(control.b, 2, 'subscribe')
   boxes.remove('updatebox')
+  t.end()
+})
+
+test('update in key', t => {
+  let control = {}
+  let store = boxes.createStore('updateinkey', {o: {a: 'x'}})
+  let unsubscribeA = store.subscribe(store.get().o, 'a', a => control.a = a)
+  let unsubscribeB = store.subscribe(store.get().o, 'b', b => control.b = b)
+
+  store.update({a: 1}, 'o')
+  t.is(store.get().o.a, 1, 'basic update')
+  t.is(control.a, 1, 'subscribe')
+  t.notOk(control.b, 'subscribe')
+
+  store.update({a: 5, b: 2}, 'o')
+  t.is(store.get().o.a, 5, 'multiple update')
+  t.is(store.get().o.b, 2, 'multiple update')
+  t.is(control.a, 5, 'subscribe')
+  t.is(control.b, 2, 'subscribe')
+
+  store.prevState()
+  t.is(store.get().o.a, 1, 'prevState')
+  t.notOk(store.get().o.b, 'prevState')
+  t.is(control.a, 1, 'subscribe')
+  t.notOk(control.b, 'subscribe')
+
+  store.nextState()
+  t.is(store.get().o.a, 5, 'nextState')
+  t.is(control.a, 5, 'subscribe')
+  t.is(control.b, 2, 'subscribe')
+
+  unsubscribeA()
+  unsubscribeB()
+  store.update({a: 'xxx', b: 'yyy'}, 'o')
+  t.is(control.a, 5, 'unsubscribe')
+  t.is(control.b, 2, 'subscribe')
+  boxes.remove('updateinkey')
   t.end()
 })
 

@@ -111,20 +111,24 @@ store.get() // => {a: 1, o: {x: 99}
 
 
 <a name="store-update"></a>
-### update (props [,target])
+### update (props [,key [,target]])
 
 Set multiple properties in `target`. If a value is null the property will be deleted
 
 **Parameters:**
 - **props** *objec*: a list with properties and values
-- **target** *objec*: object which properties will be updated. Optional: store will be updated if no target is passed
+- **key** *String|Number*: Optional: use for update a prop in store
+- **target** *objec*: object for update its `key` properties
 
 ```js
 store.update({a: null, b: true})
 store.get() // => {b: true, o: {x: 99}}
 
-store.update({x: null, z: 42}, 'o')
-store.get() // => {b: true, o: {z: 42}}
+store.update({x: null, z: {a: 1}}, 'o')
+store.get() // => {b: true, o: {z: {a: 1}}}
+
+store.update({a: 'hey'}, 'z', store.get().o)
+store.get() // => {b: true, o: {z: {a: 'hey'}}}
 ```
 
 

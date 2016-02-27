@@ -61,10 +61,12 @@ function createStore (name, store = {}) {
     applySet(value, key, target)
   }
 
-  function update (props, target) {
+  function update (props, key, target) {
     if (!props || typeof props !== 'object') throw new Error('update requires a object props')
     if (!(1 in arguments)) {
       target = globalState[name]
+    } else if (!target) {
+      target = globalState[name][key]
     } else if (typeof target !== 'object') {
       throw new Error('update requires a object target')
     }

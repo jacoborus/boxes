@@ -69,7 +69,6 @@ store API
 - [store.get](#store-get)
 - [store.set](#store-set)
 - [store.update](#store-update)
-- [store.updateIn](#store-updateIn)
 - [store.subscribe](#store-subscribe)
 - [store.prevState](#store-prevState)
 - [store.nextState](#store-nextState)
@@ -112,30 +111,19 @@ store.get() // => {a: 1, o: {x: 99}
 
 
 <a name="store-update"></a>
-### update (props)
-
-Set multiple properties in store. If a value is null the property will be deleted
-
-**Parameters:**
-- **props** *objec*: a list with properties and vales
-
-```js
-store.update({a: null, b: true})
-store.get() // => {b: true, o: {x: 99}}
-```
-
-
-<a name="store-updateIn"></a>
-### updateIn (target, props)
+### update (props [,target])
 
 Set multiple properties in `target`. If a value is null the property will be deleted
 
 **Parameters:**
-- **target** *objec*: object which properties will be updated
-- **props** *objec*: a list with properties and vales
+- **props** *objec*: a list with properties and values
+- **target** *objec*: object which properties will be updated. Optional: store will be updated if no target is passed
 
 ```js
-store.updateIn(store.get().o, {x: null, z: 42})
+store.update({a: null, b: true})
+store.get() // => {b: true, o: {x: 99}}
+
+store.update({x: null, z: 42}, 'o')
 store.get() // => {b: true, o: {z: 42}}
 ```
 

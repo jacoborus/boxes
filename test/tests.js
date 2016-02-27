@@ -3,7 +3,6 @@
 const test = require('tape')
 const boxes = require('../boxes.js')
 
-// CREATE STORE: OBJECT
 test('boxes createStore: object', t => {
   let obj = {a: 1}
   let basicStore = boxes.createStore('basicStore', obj)
@@ -25,7 +24,6 @@ test('boxes createStore: object', t => {
   t.end()
 })
 
-// CREATE STORE: ARRAY
 test('boxes createStore: array', t => {
   let arr = [{a: 1}, {a: 2}]
   let basicStore = boxes.createStore('arrayStore', arr)
@@ -37,19 +35,10 @@ test('boxes createStore: array', t => {
   t.end()
 })
 
-// REPLACE
 test('replace', t => {
   let control = 0
   let store = boxes.createStore('replaceBox', {a: 0})
   let unsubscribe = store.subscribeToStore(s => control = s)
-
-  // t.throws(function () {
-  //   store.set(1)
-  // }, 'trying to replace a box with a non object value', 'requires object')
-
-  // t.throws(function () {
-  //   store.set([])
-  // }, 'replace requires same kind of store', 'requires same type of store')
 
   store.set({b: 2})
   t.is(store.get().b, 2, 'basic set')
@@ -84,7 +73,6 @@ test('replace', t => {
   t.end()
 })
 
-// SET IN KEY
 test('setIn', t => {
   let control = 0
   let store = boxes.createStore('setbox', {a: 0})
@@ -124,7 +112,6 @@ test('setIn', t => {
   t.end()
 })
 
-// SET IN TARGET
 test('set in target', t => {
   let control = 0
   let store = boxes.createStore('setinbox', {o: {a: 99}})
@@ -162,7 +149,6 @@ test('set in target', t => {
   t.end()
 })
 
-// UPDATE && UPDATE IN
 test('update', t => {
   let control = {}
   let store = boxes.createStore('updatebox', {})
@@ -198,8 +184,7 @@ test('update', t => {
   t.end()
 })
 
-// GET BOX
-test('setIn through box', t => {
+test('getBox', t => {
   let control = 0
   let store = boxes.createStore('setbox', {o: {a: 1, b: 2, c: 3}})
   let box = store.getBox(store.get())

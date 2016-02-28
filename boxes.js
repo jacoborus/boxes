@@ -63,32 +63,38 @@ function createStore (name, store = {}) {
 
   function update (props, key, target) {
     if (!props || typeof props !== 'object') throw new Error('update requires a object props')
-    if (!(1 in arguments)) {
-      target = globalState[name]
-    } else if (!target) {
-      target = globalState[name][key]
+
+    if (!target) {
+      if (!(1 in arguments)) {
+        key = name
+        target = globalState
+      } else {
+        target = globalState[name]
+      }
     } else if (typeof target !== 'object') {
       throw new Error('update requires a object target')
     }
 
-    let stack = new Map()
+    let scope = target[key],
+        stack = new Map()
+
     Object.keys(props).forEach(k => {
       let fresh = props[k],
-          old = target[k]
+          old = scope[k]
       if (old !== fresh) {
         if (fresh !== null) {
           stack.set(k, [old, fresh])
-          target[k] = fresh
-        } else if (k in target) {
-          stack.setIn(k, [old, fresh])
-          delete target[k]
+          scope[k] = fresh
+        } else if (k in scope) {
+          stack.set(k, [old, fresh])
+          delete scope[k]
         }
       }
     })
 
     if (stack.size) {
-      history[hIndex++] = { target, stack, action: 'update' }
-      trigger(target, stack)
+      history[hIndex++] = { target: scope, stack, action: 'update' }
+      trigger(scope, stack)
     }
   }
 
@@ -106,34 +112,80 @@ function createStore (name, store = {}) {
     }
   }
 
-  function subscribe (target, key, action) {
+  function applySubscribe (action, key, target) {
     let map = subscriptions.get(target) || subscriptions.set(target, new Map()).get(target)
     let link = map.get(key) || map.set(key, new Set()).get(key)
     link.add(action)
     return () => link.delete(action)
   }
 
-  function subscribeToStore (action) {
-    let map = subscriptions.get(globalState) || subscriptions.set(globalState, new Map()).get(globalState)
-    let link = map.get(name) || map.set(name, new Set()).get(name)
-    link.add(action)
-    return () => link.delete(action)
+  function subscribe (action, key, target) {
+    if (!target) {
+      if (!(1 in arguments)) {
+        key = name
+        target = globalState
+      } else {
+        target = globalState[name]
+      }
+    }
+    return applySubscribe(action, key, target)
   }
 
-  function getBox (scope) {
-    return {
+  function getBox (prop, parent) {
+    let scope
+    if (!parent) {
+      if (!(0 in arguments)) {
+        prop = name
+        parent = globalState
+        scope = globalState[name]
+      } else {
+        parent = globalState[name]
+        scope = parent[prop]
+      }
+    }
+
+    let box = {
       get () {
         return scope
       },
-      set (value, key) {
-        applySet(value, key, scope)
+      set (value, key, target) {
+        if (!target) {
+          if (!(1 in arguments)) {
+            key = prop
+            target = parent
+          } else {
+            target = scope
+          }
+        }
+        applySet(value, key, target)
       },
-      update (props, target) {
+      update (props, key, target) {
         if (!(1 in arguments)) target = scope
         update(target, props)
       },
-      subscribe, getBox
+      subscribe (action, key, target) {
+        if (!target) {
+          if (!(1 in arguments)) {
+            key = prop
+            target = parent
+          } else {
+            target = scope
+          }
+        }
+        return applySubscribe(action, key, target)
+      },
+      getBox (key, target) {
+        if (!target) {
+          if (!(0 in arguments)) {
+            return box
+          } else {
+            target = scope
+          }
+        }
+        getBox(key, target)
+      }
     }
+    return box
   }
 
   return {
@@ -142,7 +194,8 @@ function createStore (name, store = {}) {
     update,
     getBox,
     prevState, nextState,
-    subscribe, subscribeToStore }
+    subscribe
+  }
 }
 
 function has (store) {

@@ -89,7 +89,7 @@ store.get() // => {a: 1, o: {x: 99}}
 
 
 <a name="store-set"></a>
-### set (value [,key [,target]])
+### set (value [, key [, target]])
 
 Set new content in store property
 
@@ -111,7 +111,7 @@ store.get() // => {a: 1, o: {x: 99}
 
 
 <a name="store-update"></a>
-### update (props [,key [,target]])
+### update (props [, key [, target]])
 
 Set multiple properties in `target`. If a value is null the property will be deleted
 
@@ -133,14 +133,14 @@ store.get() // => {b: true, o: {z: {a: 'hey'}}}
 
 
 <a name="store-subscribe"></a>
-### subscribe (target, prop, action)
+### subscribe (action [, prop [, target]])
 
 Subscribe an `action` to a `target` `property`
 
 **Parameters:**
-- **target** *objec*: object which property will be watched
-- **prop** *string*: property name
 - **action** *function*: triggered with target as argument when prop changes
+- **prop** *string*: Optional. Property name
+- **target** *object*: Optional. Object which property will be watched
 
 ```js
 store.subscribe(store.get(), 'b', target => console.log(target.b))
@@ -190,8 +190,6 @@ console.log(box)
   { get: [Function: get],
     set: [Function: set],
     update: [Function: update],
-    setIn: [Function: setIn],
-    updateIn: [Function: updateIn],
     subscribe: [Function: subscribe],
     getBox: [Function: getBox] }
 */
@@ -236,13 +234,6 @@ box.set('s', 2)
 box.get() // => {z: 2}}
 ```
 
-
-<a name="box-setIn"></a>
-### setIn (target, key, content)
-
-Same as [store.setIn](#store-setIn)
-
-
 <a name="box-update"></a>
 ### update (props)
 
@@ -255,12 +246,6 @@ Set multiple properties in box content. If a value is null the property will be 
 box.update({z: null, b: true})
 box.get() // => {b: true}
 ```
-
-
-<a name="box-updateIn"></a>
-### updateIn (target, props)
-
-Same as [store.updateIn](#store-updateIn)
 
 
 <a name="box-subscribe"></a>

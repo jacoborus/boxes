@@ -38,7 +38,7 @@ test('boxes createStore: array', t => {
 test('replace', t => {
   let control = 0
   let store = boxes.createStore('replaceBox', {a: 0})
-  let unsubscribe = store.subscribeToStore(s => control = s)
+  let unsubscribe = store.subscribe(s => control = s)
 
   store.set({b: 2})
   t.is(store.get().b, 2, 'basic set')
@@ -76,9 +76,7 @@ test('replace', t => {
 test('setIn', t => {
   let control = 0
   let store = boxes.createStore('setbox', {a: 0})
-  let unsubscribe = store.subscribe(store.get(), 'a', a => {
-    control = a
-  })
+  let unsubscribe = store.subscribe(a => control = a, 'a')
 
   store.set(1, 'a')
   t.is(store.get().a, 1, 'basic set')
@@ -115,7 +113,7 @@ test('setIn', t => {
 test('set in target', t => {
   let control = 0
   let store = boxes.createStore('setinbox', {o: {a: 99}})
-  let unsubscribe = store.subscribe(store.get().o, 'a', a => control = a)
+  let unsubscribe = store.subscribe(a => control = a, 'a', store.get().o)
 
   store.set(1, 'a', store.get().o)
   t.is(store.get().o.a, 1, 'basic set')
@@ -152,8 +150,8 @@ test('set in target', t => {
 test('update simple', t => {
   let control = {}
   let store = boxes.createStore('updatebox', {})
-  let unsubscribeA = store.subscribe(store.get(), 'a', a => control.a = a)
-  let unsubscribeB = store.subscribe(store.get(), 'b', b => control.b = b)
+  let unsubscribeA = store.subscribe(a => control.a = a, 'a')
+  let unsubscribeB = store.subscribe(b => control.b = b, 'b')
 
   store.update({a: 1})
   t.is(store.get().a, 1, 'basic update')
@@ -187,8 +185,8 @@ test('update simple', t => {
 test('update in key', t => {
   let control = {}
   let store = boxes.createStore('updateinkey', {o: {a: 'x'}})
-  let unsubscribeA = store.subscribe(store.get().o, 'a', a => control.a = a)
-  let unsubscribeB = store.subscribe(store.get().o, 'b', b => control.b = b)
+  let unsubscribeA = store.subscribe(a => control.a = a, 'a', store.get().o)
+  let unsubscribeB = store.subscribe(b => control.b = b, 'b', store.get().o)
 
   store.update({a: 1}, 'o')
   t.is(store.get().o.a, 1, 'basic update')
@@ -224,31 +222,19 @@ test('update in key', t => {
 test('getBox', t => {
   let control = 0
   let store = boxes.createStore('setbox', {o: {a: 1, b: 2, c: 3}})
-  let box = store.getBox(store.get())
-  let unsubscribe = box.subscribe(box.get(), 'a', a => control = a)
-  box.set(1, 'a')
-  t.is(box.get().a, 1, 'basic set')
-  t.is(control, 1, 'subscribe')
+  let box = store.getBox('o')
+  let unsubscribe = box.subscribe(a => control = a, 'a')
+  box.set(99, 'a')
+  t.is(box.get().a, 99, 'basic set')
+  t.is(control, 99, 'subscribe')
   unsubscribe()
   box.set(5, 'a')
   t.is(box.get().a, 5, 'basic set')
-  t.is(control, 1, 'unsubscribe')
+  t.is(control, 99, 'unsubscribe')
   store.prevState()
-  t.is(box.get().a, 1, 'prevState')
+  t.is(box.get().a, 99, 'prevState')
   store.nextState()
   t.is(box.get().a, 5, 'nextState')
   t.end()
   boxes.remove('setbox')
 })
-
-test.skip('merge obj')
-
-test.skip('push array')
-test.skip('remove in array')
-test.skip('clear array')
-test.skip('pop array')
-test.skip('shift array')
-test.skip('unshift array')
-test.skip('sort array')
-test.skip('reverse array')
-test.skip('splice array')

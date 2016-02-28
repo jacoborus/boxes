@@ -202,9 +202,7 @@ box API
 
 - [box.get](#box-get)
 - [box.set](#box-set)
-- [box.setIn](#box-setIn)
 - [box.update](#box-update)
-- [box.updateIn](#box-updateIn)
 - [box.subscribe](#box-subscribe)
 - [box.getBox](#box-getBox)
 

@@ -65,11 +65,11 @@ function createStore (name, store = {}) {
     if (!props || typeof props !== 'object') throw new Error('update requires a object props')
 
     if (!target) {
-      if (!(1 in arguments)) {
+      if (1 in arguments) {
+        target = globalState[name]
+      } else {
         key = name
         target = globalState
-      } else {
-        target = globalState[name]
       }
     } else if (typeof target !== 'object') {
       throw new Error('update requires a object target')
@@ -121,11 +121,11 @@ function createStore (name, store = {}) {
 
   function subscribe (action, key, target) {
     if (!target) {
-      if (!(1 in arguments)) {
+      if (1 in arguments) {
+        target = globalState[name]
+      } else {
         key = name
         target = globalState
-      } else {
-        target = globalState[name]
       }
     }
     return applySubscribe(action, key, target)
@@ -134,13 +134,13 @@ function createStore (name, store = {}) {
   function getBox (prop, parent) {
     let scope
     if (!parent) {
-      if (!(0 in arguments)) {
+      if (0 in arguments) {
+        parent = globalState[name]
+        scope = parent[prop]
+      } else {
         prop = name
         parent = globalState
         scope = globalState[name]
-      } else {
-        parent = globalState[name]
-        scope = parent[prop]
       }
     }
 
@@ -150,11 +150,11 @@ function createStore (name, store = {}) {
       },
       set (value, key, target) {
         if (!target) {
-          if (!(1 in arguments)) {
+          if (1 in arguments) {
+            target = scope
+          } else {
             key = prop
             target = parent
-          } else {
-            target = scope
           }
         }
         applySet(value, key, target)
@@ -165,21 +165,21 @@ function createStore (name, store = {}) {
       },
       subscribe (action, key, target) {
         if (!target) {
-          if (!(1 in arguments)) {
+          if (1 in arguments) {
+            target = scope
+          } else {
             key = prop
             target = parent
-          } else {
-            target = scope
           }
         }
         return applySubscribe(action, key, target)
       },
       getBox (key, target) {
         if (!target) {
-          if (!(0 in arguments)) {
-            return box
-          } else {
+          if (0 in arguments) {
             target = scope
+          } else {
+            return box
           }
         }
         getBox(key, target)

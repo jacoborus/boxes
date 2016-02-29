@@ -22,7 +22,7 @@ boxes (initialState)
 
 Create and return a new store from a given object or array (`initialState`).
 
-A store is a box with a independent history. Stores has same properties as boxes plus `prevState` and `nextState`
+A store is a box with a independent history. Stores has same properties as boxes plus `prevState` and `nextState`. All boxes inside a store will share same history line
 
 ```js
 let scope = {o: {a: 1, b: 2}}

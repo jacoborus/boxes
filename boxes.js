@@ -4,15 +4,13 @@ const subscriptions = new Map()
 
 function trigger (target) {
   let set = subscriptions.get(target)
-  if (set) {
-    set.forEach(f => f(target))
-  }
+  if (set) set.forEach(f => f(target))
 }
 
 function applySubscribe (action, target) {
-  let set = subscriptions.get(target) || subscriptions.set(target, new Set()).get(target)
+  let set = subscriptions.get(target) || subscriptions.set(target, new Set()).get(target),
+      subscribed = true
   set.add(action)
-  let subscribed = true
   return () => {
     if (subscribed) {
       set.delete(action)
@@ -49,7 +47,7 @@ function boxes (rootState = {}) {
     }
   }
 
-  function getBox (scope) {
+  function createBox (scope) {
     return {
       get () {
         return scope
@@ -69,13 +67,13 @@ function boxes (rootState = {}) {
         } else {
           target = scope
         }
-        return getBox(target)
+        return createBox(target)
       }
     }
   }
 
-  let box = getBox(rootState)
-  let store = {
+  let box = createBox(rootState)
+  return {
     get: box.get,
     save: box.save,
     onChange: box.onChange,
@@ -86,8 +84,6 @@ function boxes (rootState = {}) {
       box.getBox(target)
     }
   }
-
-  return store
 }
 
 module.exports = boxes

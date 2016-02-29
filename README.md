@@ -3,259 +3,133 @@ Boxes
 
 Predictable state container for JavaScript apps
 
-- [boxes api](#boxes-api)
-- [store api](#store-api)
-- [box api](#box-api)
+*Work in progress*
+
+**Requires harmony flags:** `--harmony_default_parameters --harmony_destructuring`
+
+- [boxes](#boxes-api)
+- [box.getBox](#box-getBox-api)
+- [box.get](#box-get-api)
+- [box.save](#box-save-api)
+- [box.onChange](#box-onChange-api)
+- [store.prevState](#store-prevState-api)
+- [store.nextState](#store-nextState-api)
 
 
 <a name="boxes-api"></a>
-boxes API
----------
+boxes (initialState)
+--------------------
 
-- [boxes.createStore](#boxes-createStore)
-- [boxes.has](#boxes-has)
-- [boxes.remove](#boxes-remove)
+Create and return a new store from a given object or array (`initialState`).
 
-
-<a name="boxes-createStore"></a>
-### createStore (name, content)
-
-Create a box in the top level of boxes with a independent history
-
-**Parameters:**
-- **name** *string*: name for the store
-- **content** *object*: initial state for the store
-
-**Returns** store *object*
+A store is a box with a independent history. Stores has same properties as boxes plus `prevState` and `nextState`
 
 ```js
-let store = boxes.createStore('mystore', {a: 1, b: 2})
+let scope = {o: {a: 1, b: 2}}
+let store = boxes(scope)
 ```
 
 
-<a name="boxes-has"></a>
-### has (name)
+<a name="box-getBox-api"></a>
+box.getBox (target)
+-------------------
 
-check if there is a store with `name`
-
-**parameters:**
-- **name** *string*: name of the store
-
-**returns** *boolean*
+Create and return a box from a object or array (`target`)
 
 ```js
-boxes.has('mystore') // => true
-```
-
-
-<a name="boxes-remove"></a>
-### remove (name)
-
-Remove a store
-
-**Parameters:**
-- **name** *string*: name of the store
-
-```js
-boxes.remove('mystore') // => true
-boxes.has('mystore') // => false
-```
-
-
-<a name="store-api"></a>
-store API
----------
-
-- [store.get](#store-get)
-- [store.set](#store-set)
-- [store.update](#store-update)
-- [store.subscribe](#store-subscribe)
-- [store.prevState](#store-prevState)
-- [store.nextState](#store-nextState)
-- [store.getBox](#store-getBox)
-
-
-<a name="store-get"></a>
-### get ()
-
-Get the content of the store
-
-**returns** *object*
-
-```js
-let store = boxes.createStore('mystore', {a: 1, o: {x: 99}})
-store.get() // => {a: 1, o: {x: 99}}
-```
-
-
-<a name="store-set"></a>
-### set (value [, key [, target]])
-
-Set new content in store property
-
-**Parameters:**
-- **value** *whatever*: new content
-- **key** *string*: property name. Optional, if key is not passed value will replace the actual store
-- **target** *string*: property name. Optional: if only target is missing a prop in store will be replaced
-
-```js
-store.set(2, 'a')
-store.get() // => {a: 2, o: {x: 99}}
-
-store.set(88, x, store.get().o)
-store.get() // => {a: 2, o: {x: 88}}
-
-store.set({a: 1, o: {x: 99}})
-store.get() // => {a: 1, o: {x: 99}
-```
-
-
-<a name="store-update"></a>
-### update (props [, key [, target]])
-
-Set multiple properties in `target`. If a value is null the property will be deleted
-
-**Parameters:**
-- **props** *objec*: a list with properties and values
-- **key** *String|Number*: Optional: use for update a prop in store
-- **target** *objec*: object for update its `key` properties
-
-```js
-store.update({a: null, b: true})
-store.get() // => {b: true, o: {x: 99}}
-
-store.update({x: null, z: {a: 1}}, 'o')
-store.get() // => {b: true, o: {z: {a: 1}}}
-
-store.update({a: 'hey'}, 'z', store.get().o)
-store.get() // => {b: true, o: {z: {a: 'hey'}}}
-```
-
-
-<a name="store-subscribe"></a>
-### subscribe (action [, prop [, target]])
-
-Subscribe an `action` to a `target` `property`
-
-**Parameters:**
-- **action** *function*: triggered with target as argument when prop changes
-- **prop** *string*: Optional. Property name
-- **target** *object*: Optional. Object which property will be watched
-
-```js
-store.subscribe(store.get(), 'b', target => console.log(target.b))
-store.set('b', false)
-// console prints `false`
-```
-
-
-<a name="store-prevState"></a>
-### prevState ()
-
-Undo last change in store
-
-```js
-store.get() //=> {b: true, o: {z: 42}}
-store.set('b', false)
-store.get() //=> {b: false, o: {z: 42}}
-store.prevState()
-store.get() //=> {b: true, o: {z: 42}}
-```
-
-<a name="store-nextState"></a>
-### nextState ()
-
-Redo change in store
-
-```js
-store.get() //=> {b: true, o: {z: 42}}
-store.nextState()
-store.get() //=> {b: false, o: {z: 42}}
-```
-
-
-<a name="store-getBox"></a>
-### getBox (target)
-
-Get a box from a target
-
-**Parameters:**
-- **target** *objec*: object which property will be watched
-
-```js
-let box = store.getBox(store.get().o)
-box.get() //=> {z: 42}
+let box = store.getBox(scope.o) // stores have same methods as boxes
 console.log(box)
 /* console prints:
   { get: [Function: get],
-    set: [Function: set],
-    update: [Function: update],
-    subscribe: [Function: subscribe],
-    getBox: [Function: getBox] }
+    getBox: [Function: getBox],
+    onChange: [Function: onChange],
+    save: [Function: save]}
 */
 ```
 
 
-<a name="box-api"></a>
-box API
--------
+<a name="box-get-api"></a>
+box.get ()
+----------
 
-- [box.get](#box-get)
-- [box.set](#box-set)
-- [box.update](#box-update)
-- [box.subscribe](#box-subscribe)
-- [box.getBox](#box-getBox)
-
-<a name="box-get"></a>
-### get ()
-
-Get the content of the box
-
-**returns** *object*
+Returns the content of the box
 
 ```js
-box.get() //=> {z: 42}
+box.get() //=> {a: 1, b: 2}
 ```
 
 
-<a name="box-set"></a>
-### set (key, content)
+<a name="box-save-api"></a>
+box.save ()
+-----------
 
-Set new content in content property
-
-**Parameters:**
-- **key** *string*: property name
-- **content** *whatever*: new content
+Save the state of the box in history
 
 ```js
-box.set('s', 2)
-box.get() // => {z: 2}}
-```
-
-<a name="box-update"></a>
-### update (props)
-
-Set multiple properties in box content. If a value is null the property will be deleted
-
-**Parameters:**
-- **props** *objec*: a list with properties and vales
-
-```js
-box.update({z: null, b: true})
-box.get() // => {b: true}
+box.save()
 ```
 
 
-<a name="box-subscribe"></a>
-### subscribe (target, prop, action)
+<a name="box-onChange-api"></a>
+box.onChange (action)
+---------------------
 
-Same as [store.subscribe](#store-subscribe)
+Trigger the function `action` when saving state  
+
+```js
+box.onChange(scope => console.log(scope))
+box.get().a = 99
+box.save()
+// console will print: {a: 99, b: 2}
+  
+```
 
 
-<a name="box-getBox"></a>
-### getBox (target)
+<a name="store-prevState-api"></a>
+prevState ()
+------------
 
-Same as [store.getBox](#store-getBox)
+Undo last change in store
+
+
+```js
+let scope = {a: 1}
+let store = boxes(scope)
+
+delete scope.a
+scope.b = 99
+store.save()
+
+store.prevState()
+scope.a === 1 // true
+scope.b === undefined // true
+```
+
+
+
+<a name="store-nextState-api"></a>
+nextState ()
+------------
+
+Redo change in store
+
+
+```js
+let scope = {a: 1}
+let store = boxes(scope)
+
+delete scope.a
+scope.b = 99
+store.save()
+
+store.prevState()
+scope.a === 1 // true
+scope.b === undefined // true
+
+store.nextState()
+scope.a === undefined // true
+scope.b === 99 // true
+```
 
 <br><br>
 

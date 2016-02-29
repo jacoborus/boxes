@@ -4,7 +4,9 @@ const subscriptions = new Map()
 
 function trigger (target) {
   let set = subscriptions.get(target)
-  if (set) set.forEach(f => f(target))
+  if (set) {
+    set.forEach(f => f(target))
+  }
 }
 
 function applySubscribe (action, target) {
@@ -15,6 +17,7 @@ function applySubscribe (action, target) {
     if (subscribed) {
       set.delete(action)
       subscribed = false
+      if (!set.size) subscriptions.delete(target)
     }
   }
 }
@@ -31,6 +34,7 @@ function boxes (rootState = {}) {
     .forEach(k => delete target[k])
     // assign properties
     keys.forEach(k => target[k] = state[k])
+    trigger(target)
   }
 
   function prevState () {
@@ -50,12 +54,14 @@ function boxes (rootState = {}) {
       get () {
         return scope
       },
-      subscribe (action, target) {
+      onChange (action, target) {
         target = target || scope
         return applySubscribe(action, target)
       },
-      next () {
+      save () {
+        history.splice(hIndex + 1)
         history[++hIndex] = [Object.assign({}, scope), scope]
+        trigger(scope)
       },
       getBox (target) {
         if (target) {
@@ -71,8 +77,8 @@ function boxes (rootState = {}) {
   let box = getBox(rootState)
   let store = {
     get: box.get,
-    next: box.next,
-    subscribe: box.subscribe,
+    save: box.save,
+    onChange: box.onChange,
     prevState: prevState,
     nextState: nextState,
     getBox: function (target) {

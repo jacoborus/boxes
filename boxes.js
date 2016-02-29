@@ -81,7 +81,7 @@ function boxes (rootState = {}) {
     nextState: nextState,
     getBox: function (target) {
       target = target || rootState
-      box.getBox(target)
+      return box.getBox(target)
     }
   }
 }

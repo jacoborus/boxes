@@ -1,11 +1,13 @@
 {
   "name": "boxes",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Another predictable state container for JavaScript apps",
   "main": "boxes.js",
+  "jsnext:main": "boxes.es6.js",
   "scripts": {
     "linter": "eslint src test",
-    "test": "node --harmony_default_parameters --harmony_destructuring ./test/tests.js"
+    "test": "node --harmony_default_parameters --harmony_destructuring ./test/tests.js",
+    "postinstall": "rm boxes.es6.js -f && cp boxes.js boxes.es6.js && sed -i '$d' boxes.es6.js && echo 'export default boxes' >> boxes.es6.js"
   },
   "repository": {
     "type": "git",

@@ -61,7 +61,6 @@ function boxes (state = {}) {
   }
 
   function applyStory (link) {
-    link.post.push(link.pre.pop())
     let pre = link.pre[link.pre.length - 1]
     let scope = link.scope
     let keys = Object.keys(pre)
@@ -76,15 +75,24 @@ function boxes (state = {}) {
 
   function prevState () {
     if (hIndex - 1) {
-      let story = history[--hIndex]
-      story.forEach(link => applyStory(link))
+      history[--hIndex].forEach(link => {
+        link.post.push(link.pre.pop())
+        applyStory(link)
+      })
+      return true
     }
+    return false
   }
 
   function nextState () {
     if (history[hIndex]) {
-      history[hIndex++].forEach(link => applyStory(link))
+      history[hIndex++].forEach(link => {
+        link.pre.push(link.post.pop())
+        applyStory(link)
+      })
+      return true
     }
+    return false
   }
 
   save(state)

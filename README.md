@@ -66,7 +66,7 @@ scope.a = 99
 box.save()
 // console will print: {a: 99, o: {x: true}}
 
-box.subscribe(value => console.log(value.x), scope.o)
+box.subscribe(console.log, scope.o)
 scope.o.x = false
 box.save(scope.o)
 // console will print: {x: false}

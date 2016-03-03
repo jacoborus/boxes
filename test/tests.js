@@ -3,54 +3,71 @@
 const test = require('tape')
 const boxes = require('../boxes.js')
 
-test('create default store', t => {
-  let store = boxes()
-  t.ok(store, 'create store')
-  t.is(typeof store.get(), 'object', 'use default empty object')
-  t.notOk(Object.keys(store.get()).length, 'use default empty object')
-  t.end()
-})
+test('create default box', t => {
+  let a = 0
+  let x = 0
+  let box = boxes()
+  t.is(typeof box, 'object')
 
-test('create store with given scope', t => {
-  let scope = {a: 1}
-  let control = 0
-  let store = boxes(scope)
-  t.is(store.get(), scope, 'use given scope')
+  let scope = box.get()
+  // {}
+  t.is(typeof scope, 'object')
+  t.is(Object.keys(scope).length, 0)
 
-  let unsubscribe = store.onChange(val => control = val.a)
-  scope.a = 2
-  store.save()
-  t.is(control, 2, 'subscribe')
+  box.subscribe(obj => a = obj.a)
+  scope.a = 1
+  scope.o = {x: 'x'}
+  box.save()
+  // {a: 1, o: {x: 'x'}}
+  t.is(a, 1, 'basic subscribe')
+
+  box.subscribe(obj => x = obj.x, scope.o)
+  scope.o.x = 99
+  box.save(scope.o)
+  // {a: 1, {x: 99}
+  t.is(x, 99, 'subscribe inside object')
 
   delete scope.a
-  scope.b = 'boxes!'
-  store.save()
-  t.is(control, undefined, 'subscribe')
+  box.save()
+  // {o: {x: 99}}
+  t.is(a, undefined)
+  t.is(x, 99)
 
-  store.prevState()
-  t.is(scope.a, 2, 'first prevState')
-  t.notOk(scope.b, 'first prevState')
-  t.is(control, 2, 'subscribe')
+  box.prevState()
+  // {a: 1, o: {x: 99}
+  t.is(a, 1)
+  t.is(scope.a, 1, 'subscribe prevState')
 
-  store.prevState()
-  t.is(scope.a, 1, 'second prevState')
-  t.notOk(scope.b, 'second prevState')
-  t.is(control, 1, 'subscribe')
+  box.prevState()
+  // {a: 1, o: {x: 'x'}}
+  t.is(x, 'x')
+  t.is(scope.o.x, 'x', 'subscribe prevState')
 
-  store.nextState()
-  t.is(scope.a, 2, 'first nextState')
-  t.notOk(scope.b, 'first nextState')
-  t.is(control, 2, 'subscribe')
+  box.prevState()
+  // {}
+  t.is(scope.a, undefined)
+  t.is(a, undefined)
 
-  store.nextState()
-  t.notOk(scope.a, 'second nextState')
-  t.is(scope.b, 'boxes!', 'second nextState')
-  t.is(control, undefined, 'subscribe')
+  box.nextState()
+  // {a: 1, o: {x: 'x'}}
+  t.is(x, 'x')
+  t.is(scope.o.x, 'x', 'subscribe prevState')
+  t.is(a, 1)
+  t.is(scope.a, 1, 'subscribe prevState')
 
-  unsubscribe()
-  scope.a = 99
-  store.save()
-  t.is(control, undefined, 'subscribe')
+  box.nextState()
+  // {a: 1, o: {x: 99}
+  t.is(a, 1)
+  t.is(scope.a, 1, 'subscribe prevState')
+  t.is(x, 99)
+  t.is(scope.o.x, 99, 'subscribe prevState')
+
+  box.nextState()
+  // {o: {x: 99}}
+  t.is(a, undefined)
+  t.is(scope.a, undefined)
+  t.is(x, 99)
+  t.is(scope.o.x, 99)
 
   t.end()
 })

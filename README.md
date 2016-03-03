@@ -3,48 +3,29 @@ Boxes
 
 Predictable state container for JavaScript apps
 
-*Work in progress*
+*Work in progress* **API may change**
 
 **Requires harmony flags:** `--harmony_default_parameters --harmony_destructuring`
 
 - [boxes](#boxes-api)
-- [box.getBox](#box-getBox-api)
 - [box.get](#box-get-api)
 - [box.save](#box-save-api)
 - [box.onChange](#box-onChange-api)
-- [store.prevState](#store-prevState-api)
-- [store.nextState](#store-nextState-api)
+- [box.prevState](#box-prevState-api)
+- [box.nextState](#box-nextState-api)
 
 
 <a name="boxes-api"></a>
 boxes (initialState)
 --------------------
 
-Create and return a new store from a given object or array (`initialState`).
+Create and return a new box from a given object (`initialState`).
 
-A store is a box with a independent history. Stores has same properties as boxes plus `prevState` and `nextState`. All boxes inside a store will share same history line
-
-```js
-let scope = {o: {a: 1, b: 2}}
-let store = boxes(scope)
-```
-
-
-<a name="box-getBox-api"></a>
-box.getBox (target)
--------------------
-
-Create and return a box from a object or array (`target`)
+Every box has its independent history.
 
 ```js
-let box = store.getBox(scope.o) // stores have same methods as boxes
-console.log(box)
-/* console prints:
-  { get: [Function: get],
-    getBox: [Function: getBox],
-    onChange: [Function: onChange],
-    save: [Function: save]}
-*/
+let scope = {a:1, o: {x: true}}
+let box = boxes(scope)
 ```
 
 
@@ -55,78 +36,85 @@ box.get ()
 Returns the content of the box
 
 ```js
-box.get() //=> {a: 1, b: 2}
+box.get() //=> {a:1, o: {x: true}}
 ```
 
 
 <a name="box-save-api"></a>
-box.save ()
------------
+box.save (target)
+-----------------
 
-Save the state of the box in history
+Save the state of the `target` or box in history. Default `target` is main scope
 
 ```js
+// save main scope
 box.save()
+// save custom scope
+box.save(scope.o)
 ```
 
 
-<a name="box-onChange-api"></a>
-box.onChange (action)
----------------------
+<a name="box-subscribe-api"></a>
+box.subscribe (action[, target])
+--------------------------------
 
-Trigger the function `action` when saving state  
+Trigger the function `action` when saving state of `target`. Default target is main scope 
 
 ```js
-box.onChange(scope => console.log(scope))
-box.get().a = 99
+box.subscribe(console.log)
+scope.a = 99
 box.save()
-// console will print: {a: 99, b: 2}
-  
+// console will print: {a: 99, o: {x: true}}
+
+box.subscribe(value => console.log(value.x), scope.o)
+scope.o.x = false
+box.save(scope.o)
+// console will print: {x: false}
 ```
 
 
-<a name="store-prevState-api"></a>
+<a name="box-prevState-api"></a>
 prevState ()
 ------------
 
-Undo last change in store
+Undo last change in box
 
 
 ```js
 let scope = {a: 1}
-let store = boxes(scope)
+let box = boxes(scope)
 
 delete scope.a
 scope.b = 99
-store.save()
+box.save()
 
-store.prevState()
+box.prevState()
 scope.a === 1 // true
 scope.b === undefined // true
 ```
 
 
 
-<a name="store-nextState-api"></a>
+<a name="box-nextState-api"></a>
 nextState ()
 ------------
 
-Redo change in store
+Redo change in box
 
 
 ```js
 let scope = {a: 1}
-let store = boxes(scope)
+let box = boxes(scope)
 
 delete scope.a
 scope.b = 99
-store.save()
+box.save()
 
-store.prevState()
+box.prevState()
 scope.a === 1 // true
 scope.b === undefined // true
 
-store.nextState()
+box.nextState()
 scope.a === undefined // true
 scope.b === 99 // true
 ```

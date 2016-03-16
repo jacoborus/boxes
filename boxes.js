@@ -21,6 +21,8 @@ function boxes (state = {}) {
       scope = state
     } else if (typeof scope !== 'object') {
       throw new Error('subscribe requires a object as scope argumnent')
+    } else if (!links.has(scope)) {
+      throw new Error('cannot subscribe to a scope outside the box')
     }
     let link = links.get(scope),
         subscribed = true

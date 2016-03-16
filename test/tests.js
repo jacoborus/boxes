@@ -71,3 +71,9 @@ test('create default box', t => {
 
   t.end()
 })
+
+test('throw when subscribing to a object a scope that is not in the box', t => {
+  let box = boxes()
+  t.throws(() => box.subscribe(() => 1, {}), 'throws error when subscribing to scope outside the box')
+  t.end()
+})

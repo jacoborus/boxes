@@ -56,10 +56,23 @@ function boxes (state = {}) {
       }
     })
     link.pre.push(cp)
-    if (link.bindings.size) {
-      link.bindings.forEach(f => f(scope))
-    }
+    applyTrigger(scope)
     return [link]
+  }
+
+  function applyTrigger (scope) {
+    let bindings = links.get(scope).bindings
+    if (bindings.size) {
+      bindings.forEach(f => f(scope))
+    }
+  }
+
+  function trigger (scope) {
+    if (!scope) return applyTrigger(state)
+    if (!links.has(scope)) {
+      throw new Error('Cannot trigger a scope outside the box')
+    }
+    applyTrigger(scope)
   }
 
   function applyStory (link) {
@@ -101,7 +114,7 @@ function boxes (state = {}) {
 
   return {
     get: () => state,
-    save, subscribe, prevState, nextState
+    save, trigger, subscribe, prevState, nextState
   }
 }
 

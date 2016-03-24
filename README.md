@@ -11,6 +11,7 @@ Predictable state container for JavaScript apps
 - [box.get](#box-get-api)
 - [box.save](#box-save-api)
 - [box.onChange](#box-onChange-api)
+- [box.trigger](#box-trigger-api)
 - [box.prevState](#box-prevState-api)
 - [box.nextState](#box-nextState-api)
 
@@ -58,7 +59,7 @@ box.save(scope.o)
 box.subscribe (action[, target])
 --------------------------------
 
-Trigger the function `action` when saving state of `target`. Default target is main scope 
+Call the `action` when saving or triggering `target`. Default target is main scope (state)
 
 ```js
 box.subscribe(console.log)
@@ -70,6 +71,21 @@ box.subscribe(console.log, scope.o)
 scope.o.x = false
 box.save(scope.o)
 // console will print: {x: false}
+```
+
+
+<a name="box-trigger-api"></a>
+box.trigger (target)
+--------------------
+
+Call `target` subscriptions. Default `target` is main scope
+
+```js
+// subscribe to a target
+box.subscribe(myAction, scope.o)
+// save custom scope
+box.trigger(scope.o)
+// will call `myAction`
 ```
 
 

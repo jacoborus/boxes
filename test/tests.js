@@ -77,3 +77,15 @@ test('throw when subscribing to a object a scope that is not in the box', t => {
   t.throws(() => box.subscribe(() => 1, {}), 'throws error when subscribing to scope outside the box')
   t.end()
 })
+
+test('trigger', t => {
+  let control = 0
+  let scope = {
+    a: 1
+  }
+  let box = boxes(scope)
+  box.subscribe(s => control = s.a)
+  box.trigger()
+  t.is(control, 1)
+  t.end()
+})

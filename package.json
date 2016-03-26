@@ -1,6 +1,6 @@
 {
   "name": "boxes",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Another predictable state container for JavaScript apps",
   "main": "boxes.js",
   "jsnext:main": "boxes.es6.js",

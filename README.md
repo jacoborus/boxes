@@ -78,7 +78,7 @@ box.save(scope.o)
 box.trigger (target)
 --------------------
 
-Call `target` subscriptions. Default `target` is main scope
+Trigger actions subscribed to a `scope`. Default `target` is main scope
 
 ```js
 // subscribe to a target

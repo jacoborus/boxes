@@ -12,8 +12,8 @@ Predictable state container for JavaScript apps
 - [box.save](#box-save-api)
 - [box.onChange](#box-onChange-api)
 - [box.trigger](#box-trigger-api)
-- [box.prevState](#box-prevState-api)
-- [box.nextState](#box-nextState-api)
+- [box.undo](#box-undo-api)
+- [box.redo](#box-redo-api)
 
 
 <a name="boxes-api"></a>
@@ -89,9 +89,9 @@ box.trigger(scope.o)
 ```
 
 
-<a name="box-prevState-api"></a>
-prevState ()
-------------
+<a name="box-undo-api"></a>
+undo ()
+-------
 
 Undo last change in box
 
@@ -104,15 +104,15 @@ delete scope.a
 scope.b = 99
 box.save()
 
-box.prevState()
+box.undo()
 scope.a === 1 // true
 scope.b === undefined // true
 ```
 
 
 
-<a name="box-nextState-api"></a>
-nextState ()
+<a name="box-redo-api"></a>
+redo ()
 ------------
 
 Redo change in box
@@ -126,11 +126,11 @@ delete scope.a
 scope.b = 99
 box.save()
 
-box.prevState()
+box.undo()
 scope.a === 1 // true
 scope.b === undefined // true
 
-box.nextState()
+box.redo()
 scope.a === undefined // true
 scope.b === 99 // true
 ```

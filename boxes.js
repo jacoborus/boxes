@@ -114,7 +114,7 @@ function boxes (state = {}) {
     link.bindings.forEach(f => f(scope))
   }
 
-  function prevState () {
+  function undo () {
     if (hIndex - 1) {
       history[--hIndex].forEach(link => {
         link.post.push(link.pre.pop())
@@ -125,7 +125,7 @@ function boxes (state = {}) {
     return false
   }
 
-  function nextState () {
+  function redo () {
     if (history[hIndex]) {
       history[hIndex++].forEach(link => {
         link.pre.push(link.post.pop())
@@ -141,7 +141,7 @@ function boxes (state = {}) {
 
   return {
     get: () => state,
-    save, trigger, subscribe, prevState, nextState
+    save, trigger, subscribe, undo, redo
   }
 }
 

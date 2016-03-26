@@ -33,36 +33,36 @@ test('create default box', t => {
   t.is(a, undefined)
   t.is(x, 99)
 
-  box.prevState()
+  box.undo()
   // {a: 1, o: {x: 99}
   t.is(a, 1)
-  t.is(scope.a, 1, 'subscribe prevState')
+  t.is(scope.a, 1, 'subscribe undo')
 
-  box.prevState()
+  box.undo()
   // {a: 1, o: {x: 'x'}}
   t.is(x, 'x')
-  t.is(scope.o.x, 'x', 'subscribe prevState')
+  t.is(scope.o.x, 'x', 'subscribe undo')
 
-  box.prevState()
+  box.undo()
   // {}
   t.is(scope.a, undefined)
   t.is(a, undefined)
 
-  box.nextState()
+  box.redo()
   // {a: 1, o: {x: 'x'}}
   t.is(x, 'x')
-  t.is(scope.o.x, 'x', 'subscribe prevState')
+  t.is(scope.o.x, 'x', 'subscribe undo')
   t.is(a, 1)
-  t.is(scope.a, 1, 'subscribe prevState')
+  t.is(scope.a, 1, 'subscribe undo')
 
-  box.nextState()
+  box.redo()
   // {a: 1, o: {x: 99}
   t.is(a, 1)
-  t.is(scope.a, 1, 'subscribe prevState')
+  t.is(scope.a, 1, 'subscribe undo')
   t.is(x, 99)
-  t.is(scope.o.x, 99, 'subscribe prevState')
+  t.is(scope.o.x, 99, 'subscribe undo')
 
-  box.nextState()
+  box.redo()
   // {o: {x: 99}}
   t.is(a, undefined)
   t.is(scope.a, undefined)

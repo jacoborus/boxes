@@ -9,14 +9,13 @@
 function boxes (state = {}) {
   const links = new Map()
   const history = []
-
-  let hIndex = 0
+  let now = 0
 
   function deleteFutureStories () {
-    if (hIndex < history.length) {
+    if (now < history.length) {
       // get future stories
-      const toClean = history.splice(hIndex + 1)
-      // reset `post` property in every link in every future story
+      const toClean = history.splice(now + 1)
+      // reset `post` property in every link in of future stories
       toClean.forEach(story => story.forEach(link => link.post = []))
     }
   }
@@ -54,18 +53,28 @@ function boxes (state = {}) {
 
   function save (scope) {
     if (!scope) {
+      // use state as default scope
       scope = state
     } else if (typeof scope !== 'object') {
       throw new Error('save argument has to be a object or undefined')
     }
     // assure we can add new stories after old ones
     deleteFutureStories()
-    // add story to history and increase hIndex
-    history[hIndex++] = applySave(scope)
+    // add story to history and increase now
+    history[now++] = applySave(scope)
+  }
+
+  function getNewLink (scope) {
+    return links.set(scope, {
+      scope,
+      pre: [],
+      post: [],
+      bindings: new Set()
+    }).get(scope)
   }
 
   function applySave (scope) {
-    const link = links.get(scope) || links.set(scope, {scope, pre: [], post: [], bindings: new Set()}).get(scope)
+    const link = links.get(scope) || getNewLink(scope)
     const cp = Array.isArray(scope) ? [] : {}
     Object.keys(scope).forEach(k => {
       const val = scope[k]
@@ -115,8 +124,8 @@ function boxes (state = {}) {
   }
 
   function undo () {
-    if (hIndex - 1) {
-      history[--hIndex].forEach(link => {
+    if (now - 1) {
+      history[--now].forEach(link => {
         link.post.push(link.pre.pop())
         applyStory(link)
       })
@@ -126,8 +135,8 @@ function boxes (state = {}) {
   }
 
   function redo () {
-    if (history[hIndex]) {
-      history[hIndex++].forEach(link => {
+    if (history[now]) {
+      history[now++].forEach(link => {
         link.pre.push(link.post.pop())
         applyStory(link)
       })

@@ -1,26 +1,26 @@
 Boxes
 =====
 
-Predictable state container for JavaScript apps
+Mutable state containers with time travelling for JavaScript apps
+
+The lib is written in vanilla ES6, so maybe you want to transpile it before using it.
 
 *Work in progress* **API may change**
 
-**Requires harmony flags:** `--harmony_default_parameters --harmony_destructuring`
 
 - [boxes](#boxes-api)
 - [box.get](#box-get-api)
 - [box.save](#box-save-api)
 - [box.onChange](#box-onChange-api)
 - [box.trigger](#box-trigger-api)
-- [box.undo](#box-undo-api)
-- [box.redo](#box-redo-api)
+- [box.undo and box.redo](#box-undo-redo-api)
+
 
 
 <a name="boxes-api"></a>
-boxes (initialState)
---------------------
+## boxes(state)
 
-Create and return a new box from a given object (`initialState`).
+Create and return a new box from a given object (`state`).
 
 Every box has its independent history.
 
@@ -30,36 +30,36 @@ let box = boxes(scope)
 ```
 
 
-<a name="box-get-api"></a>
-box.get ()
-----------
 
-Returns the content of the box
+<a name="box-get-api"></a>
+## box.get()
+
+Returns the state of the box
 
 ```js
 box.get() //=> {a:1, o: {x: true}}
 ```
 
 
-<a name="box-save-api"></a>
-box.save (target)
------------------
 
-Save the state of the `target` or box in history. Default `target` is main scope
+<a name="box-save-api"></a>
+## box.save(scope)
+
+Save the state of the `scope` or box in history. `scope` is `state` by default
 
 ```js
-// save main scope
+// save state scope
 box.save()
-// save custom scope
+// save picked scope
 box.save(scope.o)
 ```
 
 
-<a name="box-subscribe-api"></a>
-box.subscribe (action[, target])
---------------------------------
 
-Call the `action` when saving or triggering `target`. Default target is main scope (state)
+<a name="box-subscribe-api"></a>
+## box.subscribe(action[, scope])
+
+Call the `action` when saving or triggering `scope`. `scope` is `state` by default
 
 ```js
 box.subscribe(console.log)
@@ -74,14 +74,14 @@ box.save(scope.o)
 ```
 
 
-<a name="box-trigger-api"></a>
-box.trigger (target)
---------------------
 
-Trigger actions subscribed to a `scope`. Default `target` is main scope
+<a name="box-trigger-api"></a>
+## box.trigger(scope)
+
+Trigger actions subscribed to a `scope`. `scope` is `state` by default
 
 ```js
-// subscribe to a target
+// subscribe to a scope
 box.subscribe(myAction, scope.o)
 // save custom scope
 box.trigger(scope.o)
@@ -89,34 +89,11 @@ box.trigger(scope.o)
 ```
 
 
-<a name="box-undo-api"></a>
-undo ()
--------
 
-Undo last change in box
+<a name="box-undo-redo-api"></a>
+## box.undo() and box.redo()
 
-
-```js
-let scope = {a: 1}
-let box = boxes(scope)
-
-delete scope.a
-scope.b = 99
-box.save()
-
-box.undo()
-scope.a === 1 // true
-scope.b === undefined // true
-```
-
-
-
-<a name="box-redo-api"></a>
-redo ()
-------------
-
-Redo change in box
-
+Undo and redo changes in box
 
 ```js
 let scope = {a: 1}

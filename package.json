@@ -1,12 +1,12 @@
 {
   "name": "boxes",
-  "version": "0.8.2",
-  "description": "Mutable state container with time travelling",
+  "version": "0.9.0",
+  "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "jsnext:main": "boxes.es6.js",
   "scripts": {
     "linter": "eslint src test",
-    "test": "node --harmony_default_parameters --harmony_destructuring ./test/tests.js",
+    "test": "node ./test/tests.js",
     "postinstall": "rm boxes.es6.js -f && cp boxes.js boxes.es6.js && sed -i '$d' boxes.es6.js && echo 'export default boxes' >> boxes.es6.js"
   },
   "repository": {

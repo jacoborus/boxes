@@ -6,7 +6,14 @@
  * @param {object} state = {} inital state
  * @returns {object} a new box
  */
-function boxes (state = {}) {
+function boxes (state) {
+  if (state) {
+    if (typeof state !== 'object') {
+      throw new Error('state should be a object')
+    }
+  } else {
+    state = {}
+  }
   const links = new Map()
   const history = []
   let now = 0
@@ -117,14 +124,21 @@ function boxes (state = {}) {
 
   function applyStory (link) {
     const pre = link.pre[link.pre.length - 1],
-          scope = link.scope,
-          keys = Object.keys(pre)
-    // delete properties
-    Object.keys(scope)
-    .filter(i => keys.indexOf(i) < 0)
-    .forEach(k => delete scope[k])
-    // assign properties
-    keys.forEach(k => {scope[k] = pre[k]})
+          scope = link.scope
+    if (Array.isArray(scope)) {
+      // remove extra length
+      scope.splice(pre.length)
+      // assign properties
+      pre.forEach((el, i) => {scope[i] = el})
+    } else {
+      let keys = Object.keys(pre)
+      // delete properties
+      Object.keys(scope)
+      .filter(i => keys.indexOf(i) < 0)
+      .forEach(k => delete scope[k])
+      // assign properties
+      keys.forEach(k => {scope[k] = pre[k]})
+    }
     link.bindings.forEach(f => f(scope))
   }
 

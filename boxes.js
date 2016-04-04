@@ -16,7 +16,7 @@ function boxes (state = {}) {
       // get future stories
       const toClean = history.splice(now + 1)
       // reset `post` property in every link in of future stories
-      toClean.forEach(story => story.forEach(link => link.post = []))
+      toClean.forEach(story => story.forEach(link => {link.post = []}))
     }
   }
 
@@ -51,19 +51,6 @@ function boxes (state = {}) {
     }
   }
 
-  function save (scope) {
-    if (!scope) {
-      // use state as default scope
-      scope = state
-    } else if (typeof scope !== 'object') {
-      throw new Error('save argument has to be a object or undefined')
-    }
-    // assure we can add new stories after old ones
-    deleteFutureStories()
-    // add story to history and increase now
-    history[now++] = applySave(scope)
-  }
-
   function getNewLink (scope) {
     return links.set(scope, {
       scope,
@@ -74,18 +61,36 @@ function boxes (state = {}) {
   }
 
   function applySave (scope) {
-    const link = links.get(scope) || getNewLink(scope)
-    const cp = Array.isArray(scope) ? [] : {}
+    // make a copy of the object
+    const copy = Array.isArray(scope) ? [] : {},
+          link = links.get(scope) || getNewLink(scope)
     Object.keys(scope).forEach(k => {
       const val = scope[k]
-      cp[k] = val
+      copy[k] = val
+      // save nested objects whether they are new in the box
       if (val && typeof val === 'object' && !links.has(val)) {
         applySave(val)
       }
     })
-    link.pre.push(cp)
+    // save the copy of the object in `pre` list in its link
+    link.pre.push(copy)
+    // call subscriptions
     applyTrigger(scope)
+    // the returned link will be stored as a story in the history
     return [link]
+  }
+
+  function save (scope) {
+    if (!scope) {
+      // use state as default scope
+      scope = state
+    } else if (typeof scope !== 'object') {
+      throw new Error('save argument has to be a object or undefined')
+    }
+    // assure we can add new stories after old ones
+    deleteFutureStories()
+    // add story to history and increase `now`
+    history[now++] = applySave(scope)
   }
 
   // trigger actions subscribed to a `scope`.
@@ -111,15 +116,15 @@ function boxes (state = {}) {
   }
 
   function applyStory (link) {
-    const pre = link.pre[link.pre.length - 1]
-    const scope = link.scope
-    const keys = Object.keys(pre)
+    const pre = link.pre[link.pre.length - 1],
+          scope = link.scope,
+          keys = Object.keys(pre)
     // delete properties
     Object.keys(scope)
     .filter(i => keys.indexOf(i) < 0)
     .forEach(k => delete scope[k])
     // assign properties
-    keys.forEach(k => scope[k] = pre[k])
+    keys.forEach(k => {scope[k] = pre[k]})
     link.bindings.forEach(f => f(scope))
   }
 

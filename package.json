@@ -1,7 +1,7 @@
 {
   "name": "boxes",
   "version": "0.8.2",
-  "description": "Another predictable state container for JavaScript apps",
+  "description": "Mutable state container with time travelling",
   "main": "boxes.js",
   "jsnext:main": "boxes.es6.js",
   "scripts": {

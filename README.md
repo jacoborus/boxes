@@ -3,7 +3,7 @@ Boxes
 
 Mutable state containers with time travelling for JavaScript apps
 
-The lib is written in vanilla ES6, so maybe you want to transpile it before using it.
+Boxes is written in vanilla ES6, so maybe you want to transpile it before using it.
 
 *Work in progress* **API may change**
 

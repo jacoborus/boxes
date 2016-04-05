@@ -1,13 +1,18 @@
 {
   "name": "boxes",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "jsnext:main": "boxes.es6.js",
   "scripts": {
     "linter": "eslint src test",
     "test": "node ./test/tests.js",
-    "postinstall": "rm boxes.es6.js -f && cp boxes.js boxes.es6.js && sed -i '$d' boxes.es6.js && echo 'export default boxes' >> boxes.es6.js"
+    "build-umd": "rm -rf dist && mkdir dist && cp assets/preumd.txt dist/boxes.umd.js && cat boxes.js >> dist/boxes.umd.js && sed -i '$d' dist/boxes.umd.js && cat assets/postumd.txt >> dist/boxes.umd.js",
+    "build-tests": "mkdir test/dist -p && browserify test/tests.js -o test/dist/tests.js",
+    "build": "npm run build-umd && npm run build-tests"
+  },
+  "engines": {
+    "node": ">=5.9.1"
   },
   "repository": {
     "type": "git",
@@ -23,6 +28,7 @@
   },
   "homepage": "https://github.com/jacoborus/boxes",
   "devDependencies": {
+    "browserify": "^13.0.0",
     "eslint": "^2.6.0",
     "tape": "^4.5.1"
   }

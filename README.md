@@ -15,6 +15,8 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 - [box.subscribe](#box-subscribe-api)
 - [box.trigger](#box-trigger-api)
 - [box.undo and box.redo](#box-undo-redo-api)
+- [Testing](#testing)
+- [Building](#building)
 
 
 
@@ -26,8 +28,8 @@ Create and return a new box from a given object (`state`).
 Every box has its independent history.
 
 ```js
-let scope = {a:1, o: {x: true}}
-let box = boxes(scope)
+let state = {a:1, o: {x: true}}
+let box = boxes(state)
 ```
 
 
@@ -111,6 +113,32 @@ box.redo()
 scope.a === undefined // true
 scope.b === 99 // true
 ```
+
+
+
+<a name="testing"></a>
+## Testing
+
+### Node
+
+```sh
+npm test
+```
+
+### Browser
+
+Open `test/tests.html`
+
+
+
+<a name="building"></a>
+## Building
+
+- Build UMD file: `npm run build-umd`
+- Build browser tests: `npm run build-tests`
+- Run both builds: `npm run build`
+
+
 
 <br><br>
 

@@ -90,6 +90,22 @@ test('trigger', t => {
   t.end()
 })
 
+test('unsubscribe', t => {
+  let control = 0
+  let scope = {
+    a: 1
+  }
+  let box = boxes(scope)
+  let unsubscribe = box.subscribe(s => {control = s.a})
+  box.trigger()
+  t.is(control, 1)
+  scope.a = 2
+  unsubscribe()
+  box.trigger()
+  t.is(control, 1)
+  t.end()
+})
+
 test('work with arrays', t => {
   let x0, x1
   let scope = {

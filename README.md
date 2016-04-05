@@ -84,9 +84,8 @@ Trigger actions subscribed to a `scope`. `scope` is `state` by default
 ```js
 // subscribe to a scope
 box.subscribe(myAction, scope.o)
-// save custom scope
-box.trigger(scope.o)
 // will call `myAction`
+box.trigger(scope.o)
 ```
 
 

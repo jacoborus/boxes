@@ -46,7 +46,7 @@ box.get() //=> {a:1, o: {x: true}}
 <a name="box-save-api"></a>
 ## box.save(scope)
 
-Save the changes in `scope` in history. `scope` is `state` by default
+Save `scope` changes in history. `scope` is `state` by default
 
 ```js
 // save state scope

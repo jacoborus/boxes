@@ -12,7 +12,7 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 - [boxes](#boxes-api)
 - [box.get](#box-get-api)
 - [box.save](#box-save-api)
-- [box.onChange](#box-onChange-api)
+- [box.subscribe](#box-subscribe-api)
 - [box.trigger](#box-trigger-api)
 - [box.undo and box.redo](#box-undo-redo-api)
 
@@ -46,7 +46,7 @@ box.get() //=> {a:1, o: {x: true}}
 <a name="box-save-api"></a>
 ## box.save(scope)
 
-Save the state of the `scope` or box in history. `scope` is `state` by default
+Save the changes in `scope` in history. `scope` is `state` by default
 
 ```js
 // save state scope
@@ -60,7 +60,7 @@ box.save(scope.o)
 <a name="box-subscribe-api"></a>
 ## box.subscribe(action[, scope])
 
-Call the `action` when saving or triggering `scope`. `scope` is `state` by default
+Subscribe `action` method to changes in `scope`.  That `action` will be launched on `scope` saving. `scope` is `state` by default
 
 ```js
 box.subscribe(console.log)
@@ -79,7 +79,7 @@ box.save(scope.o)
 <a name="box-trigger-api"></a>
 ## box.trigger(scope)
 
-Trigger actions subscribed to a `scope`. `scope` is `state` by default
+Trigger subscriptions without saving `scope`. `scope` is `state` by default
 
 ```js
 // subscribe to a scope
@@ -93,7 +93,7 @@ box.trigger(scope.o)
 <a name="box-undo-redo-api"></a>
 ## box.undo() and box.redo()
 
-Undo and redo changes in box
+Undo and redo changes in scope
 
 ```js
 let scope = {a: 1}

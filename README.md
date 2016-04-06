@@ -7,7 +7,7 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 
 *Work in progress* **API may change**
 
-[![Build Status](https://travis-ci.org/jacoborus/boxes.svg?branch=master)](https://travis-ci.org/jacoborus/boxes)
+[![Build Status](https://travis-ci.org/jacoborus/boxes.svg?branch=master)](https://travis-ci.org/jacoborus/boxes) [![npm version](https://badge.fury.io/js/boxes.svg)](https://www.npmjs.com/package/boxes)
 
 - [boxes](#boxes-api)
 - [box.get](#box-get-api)

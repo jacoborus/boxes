@@ -36,15 +36,13 @@ function boxes (state) {
    */
   function subscribe (action, scope) {
     if (!action || typeof action !== 'function') {
-      throw new Error('subscribe requires a function as action argument')
+      throw new Error('subscribe requires a function as first argument')
     }
     // use state as default scope
     if (!scope) {
       scope = state
-    } else if (typeof scope !== 'object') {
-      throw new Error('subscribe requires a object as scope argument')
     } else if (!links.has(scope)) {
-      throw new Error('cannot subscribe to a scope outside the box')
+      throw new Error('cannot subscribe to a scope outside the box state')
     }
     const link = links.get(scope)
     let subscribed = true

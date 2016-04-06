@@ -127,7 +127,7 @@ npm test
 
 ### Browser
 
-Open `test/tests.html`
+Open `test/test.html`
 
 
 

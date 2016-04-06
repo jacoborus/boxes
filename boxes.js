@@ -57,12 +57,14 @@ function boxes (state) {
   }
 
   function getNewLink (scope) {
-    return links.set(scope, {
+    const link = {
       scope,
       pre: [],
       post: [],
       bindings: new Set()
-    }).get(scope)
+    }
+    links.set(scope, link)
+    return link
   }
 
   function applySave (scope) {

@@ -1,15 +1,15 @@
 {
   "name": "boxes",
-  "version": "0.9.2",
+  "version": "0.9.4",
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
-  "jsnext:main": "boxes.es6.js",
   "scripts": {
     "linter": "eslint src test",
     "test": "node ./test/tests.js",
     "build-umd": "rm -rf dist && mkdir dist && cp assets/preumd.txt dist/boxes.umd.js && cat boxes.js >> dist/boxes.umd.js && sed -i '$d' dist/boxes.umd.js && cat assets/postumd.txt >> dist/boxes.umd.js",
     "build-tests": "mkdir test/dist -p && browserify test/tests.js -o test/dist/tests.js",
-    "build": "npm run build-umd && npm run build-tests"
+    "build": "npm run build-umd && npm run build-tests",
+    "postinstall": "npm run build-umd"
   },
   "engines": {
     "node": ">=5.9.1"

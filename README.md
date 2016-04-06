@@ -95,23 +95,23 @@ box.trigger(scope.o)
 <a name="box-undo-redo-api"></a>
 ## box.undo() and box.redo()
 
-Undo and redo changes in scope
+Undo and redo changes in `state`
 
 ```js
-let scope = {a: 1}
-let box = boxes(scope)
+let state = {a: 1}
+let box = boxes(state)
 
-delete scope.a
-scope.b = 99
+delete state.a
+state.b = 99
 box.save()
 
 box.undo()
-scope.a === 1 // true
-scope.b === undefined // true
+state.a === 1 // true
+state.b === undefined // true
 
 box.redo()
-scope.a === undefined // true
-scope.b === 99 // true
+state.a === undefined // true
+state.b === 99 // true
 ```
 
 

@@ -4,7 +4,7 @@
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "scripts": {
-    "linter": "eslint src test",
+    "linter": "eslint boxes.js test/tests.js",
     "test": "node ./test/tests.js",
     "build-umd": "rm -rf dist && mkdir dist && cp assets/preumd.txt dist/boxes.umd.js && cat boxes.js >> dist/boxes.umd.js && sed -i '$d' dist/boxes.umd.js && cat assets/postumd.txt >> dist/boxes.umd.js",
     "build-tests": "mkdir test/dist -p && browserify test/tests.js -o test/dist/tests.js",

@@ -14,9 +14,17 @@ function boxes (state) {
   } else {
     state = {}
   }
+
+  let now = 0
   const links = new Map()
   const history = []
-  let now = 0
+  const box = {
+    get: () => state,
+    save, trigger, subscribe, undo, redo
+  }
+
+  // save initial state so we can get back later
+  save(state)
 
   function deleteFutureStories () {
     if (now < history.length) {
@@ -98,6 +106,7 @@ function boxes (state) {
     deleteFutureStories()
     // add story to history and increase `now`
     history[now++] = applySave(scope)
+    return box
   }
 
   // trigger actions subscribed to a `scope`.
@@ -106,6 +115,7 @@ function boxes (state) {
     if (bindings.size) {
       bindings.forEach(f => f(scope))
     }
+    return box
   }
 
   /**
@@ -119,7 +129,7 @@ function boxes (state) {
     if (!links.has(scope)) {
       throw new Error('Cannot trigger a scope outside the box')
     }
-    applyTrigger(scope)
+    return box
   }
 
   function applyStory (link) {
@@ -178,13 +188,7 @@ function boxes (state) {
     return 0
   }
 
-  // save initial state so we can get back later
-  save(state)
-
-  return {
-    get: () => state,
-    save, trigger, subscribe, undo, redo
-  }
+  return box
 }
 
 // this line has to be the last for building purposes

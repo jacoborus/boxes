@@ -48,7 +48,7 @@ box.get() //=> {a:1, o: {x: true}}
 <a name="box-save-api"></a>
 ## box.save(scope)
 
-Save `scope` changes in history. `scope` is `state` by default
+Save `scope` changes in history. `scope` is `state` by default. `save` method returns the box, so you can chain multiple calls
 
 ```js
 // save state scope
@@ -81,7 +81,7 @@ box.save(scope.o)
 <a name="box-trigger-api"></a>
 ## box.trigger(scope)
 
-Trigger subscriptions without saving `scope`. `scope` is `state` by default
+Trigger subscriptions without saving `scope`. `scope` is `state` by default. `trigger` method returns the box, so you can chain multiple calls
 
 ```js
 // subscribe to a scope

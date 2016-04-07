@@ -17,9 +17,10 @@ test('work with objects', t => {
   box.subscribe(obj => {a = obj.a})
   scope.a = 1
   scope.o = {x: 'x'}
-  box.save()
+  let boxTest = box.save()
   // {a: 1, o: {x: 'x'}}
   t.is(a, 1, 'basic subscribe')
+  t.is(boxTest, box, 'save returns box')
 
   box.subscribe(obj => {x = obj.x}, scope.o)
   scope.o.x = 99
@@ -99,8 +100,9 @@ test('trigger', t => {
   }
   let box = boxes(scope)
   box.subscribe(s => {control = s.a})
-  box.trigger()
+  let boxTest = box.trigger()
   t.is(control, 1)
+  t.is(boxTest, box, 'trigger returns box')
   t.end()
 })
 

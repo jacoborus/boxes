@@ -93,9 +93,9 @@ box.trigger(scope.o)
 
 
 <a name="box-undo-redo-api"></a>
-## box.undo() and box.redo()
+## box.undo(steps) and box.redo(steps)
 
-Undo and redo changes in `state`
+Undo and redo changes in `state`. `steps` is a number greater than 0, by default `1`
 
 ```js
 let state = {a: 1}
@@ -105,13 +105,20 @@ delete state.a
 state.b = 99
 box.save()
 
+state.b = 'boxes!'
+box.save()
+
+box.undo()
+state.a === undefined // true
+state.b === 99 // true
+
 box.undo()
 state.a === 1 // true
 state.b === undefined // true
 
-box.redo()
+box.redo(2)
 state.a === undefined // true
-state.b === 99 // true
+state.b === 'boxes!' // true
 ```
 
 

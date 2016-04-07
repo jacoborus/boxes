@@ -21,13 +21,13 @@ document.getElementById('redo').addEventListener('click', () => box.redo())
 
 function createPlayer (player) {
   const bt = document.createElement('button')
-  const printLabel = () => {bt.innerHTML = player.points + ' ' + player.name}
+  const printLabel = p => {bt.innerHTML = p.points + ' ' + p.name}
   box.subscribe(printLabel, player)
   bt.addEventListener('click', () => {
     player.points++
     box.save(player)
   })
-  printLabel()
+  printLabel(player)
   return bt
 }
 

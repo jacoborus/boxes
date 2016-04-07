@@ -1,0 +1,15 @@
+body{
+  background: #ddd;
+  color: #444;
+}
+#players {
+  float: left;
+  width: 6em;
+}
+button {
+  cursor: pointer;
+  border: 1px solid;
+  float: left;
+  margin-bottom: .5em;
+  padding: .5em;
+}

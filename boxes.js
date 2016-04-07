@@ -142,26 +142,40 @@ function boxes (state) {
     link.bindings.forEach(f => f(scope))
   }
 
-  function undo () {
-    if (now - 1) {
-      history[--now].forEach(link => {
-        link.post.push(link.pre.pop())
-        applyStory(link)
-      })
-      return true
+  function undo (steps) {
+    if (!steps || steps && (isNaN(steps) || steps < 1)) {
+      steps = 1
     }
-    return false
+    if (now - steps) {
+      let i = steps
+      while (i) {
+        history[--now].forEach(link => {
+          link.post.push(link.pre.pop())
+          applyStory(link)
+        })
+        --i
+      }
+      return steps
+    }
+    return 0
   }
 
-  function redo () {
-    if (history[now]) {
-      history[now++].forEach(link => {
-        link.pre.push(link.post.pop())
-        applyStory(link)
-      })
-      return true
+  function redo (steps) {
+    if (!steps || steps && (isNaN(steps) || steps < 1)) {
+      steps = 1
     }
-    return false
+    let i = steps
+    if (history[now + steps - 1]) {
+      while (i) {
+        history[now++].forEach(link => {
+          link.pre.push(link.post.pop())
+          applyStory(link)
+        })
+        --i
+      }
+      return steps
+    }
+    return 0
   }
 
   // save initial state so we can get back later

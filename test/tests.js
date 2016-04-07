@@ -69,6 +69,20 @@ test('work with objects', t => {
   t.is(x, 99)
   t.is(scope.o.x, 99)
 
+  box.undo(2)
+  // {a: 1, o: {x: 'x'}}
+  t.is(x, 'x')
+  t.is(scope.o.x, 'x', 'subscribe undo')
+  t.is(a, 1)
+  t.is(scope.a, 1, 'subscribe undo')
+
+  box.redo(2)
+  // {o: {x: 99}}
+  t.is(a, undefined)
+  t.is(scope.a, undefined)
+  t.is(x, 99)
+  t.is(scope.o.x, 99)
+
   t.end()
 })
 
@@ -167,6 +181,16 @@ test('work with arrays', t => {
   t.is(x1, z, 'subscribe redo')
 
   box.redo()
+  // {a: [{z: 1}]}
+  t.is(x0, z)
+
+  box.undo(2)
+  // {a: [1]}
+  t.is(x0, 1, 'undo 2 steps')
+  t.is(scope.a.length, 1, 'subscribe undo 2 steps')
+  t.notOk(x1, 'subscribe undo 2 steps')
+
+  box.redo(2)
   // {a: [{z: 1}]}
   t.is(x0, z)
 

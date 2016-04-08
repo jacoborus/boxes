@@ -26,7 +26,8 @@ function boxes (state) {
   // save initial state so we can get back later
   save(state)
 
-  function deleteFutureStories () {
+  // clean future stories and future logs
+  function removeFuture () {
     if (now < history.length) {
       // get future stories
       const toClean = history.splice(now + 1)
@@ -36,11 +37,11 @@ function boxes (state) {
   }
 
   /**
-   * Call the `action` when saving or triggering `scope`. Default scope is main scope (state)
+   * Call the `action` when saving or triggering `scope`. `scope` is `state` by default
    *
-   * @param {function} action method to dispatch every time `scope` is saved or triggered
-   * @param {object} scope target. By default is the main state
-   * @returns {function} unsubscribe
+   * @param {function} action method to dispatch on saving
+   * @param {object} scope target. `state` by default
+   * @returns {function} unsubscribe method
    */
   function subscribe (action, scope) {
     if (!action || typeof action !== 'function') {
@@ -92,7 +93,7 @@ function boxes (state) {
     // call subscriptions
     applyTrigger(scope)
     // the returned link will be stored as a story in the history
-    return [link]
+    return link
   }
 
   function save (scope) {
@@ -100,12 +101,15 @@ function boxes (state) {
       // use state as default scope
       scope = state
     } else if (typeof scope !== 'object') {
-      throw new Error('save argument has to be a object or undefined')
+      throw new Error('scope argument has to be a object')
     }
     // assure we can add new stories after old ones
-    deleteFutureStories()
+    removeFuture()
     // add story to history and increase `now`
-    history[now++] = applySave(scope)
+    const story = {
+      targets: [applySave(scope)]
+    }
+    history[now++] = story
     return box
   }
 
@@ -159,7 +163,7 @@ function boxes (state) {
     if (now - steps) {
       let i = steps
       while (i) {
-        history[--now].forEach(link => {
+        history[--now].targets.forEach(link => {
           link.post.push(link.pre.pop())
           applyStory(link)
         })
@@ -177,7 +181,7 @@ function boxes (state) {
     let i = steps
     if (history[now + steps - 1]) {
       while (i) {
-        history[now++].forEach(link => {
+        history[now++].targets.forEach(link => {
           link.pre.push(link.post.pop())
           applyStory(link)
         })

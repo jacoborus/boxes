@@ -32,7 +32,7 @@ function boxes (state) {
       // get future stories
       const toClean = history.splice(now + 1)
       // reset `post` property in every link in of future stories
-      toClean.forEach(story => story.forEach(link => {link.post = []}))
+      toClean.forEach(story => story.targets.forEach(link => {link.post = []}))
     }
   }
 

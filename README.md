@@ -12,7 +12,7 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 - [boxes](#boxes-api)
 - [box.get](#box-get-api)
 - [box.save](#box-save-api)
-- [box.subscribe](#box-subscribe-api)
+- [box.subscribe and unsubscribe](#box-subscribe-api)
 - [box.trigger](#box-trigger-api)
 - [box.undo and box.redo](#box-undo-redo-api)
 - [Testing](#testing)
@@ -60,15 +60,22 @@ box.save(scope.o)
 
 
 <a name="box-subscribe-api"></a>
-## box.subscribe(action[, scope])
+## box.subscribe(action[, scope]) and unsubscribe()
 
-Subscribe `action` method to changes in `scope`.  That `action` will be launched on `scope` saving. `scope` is `state` by default
+Subscribe `action` method to changes in `scope`.  That `action` will be launched on `scope` saving. `scope` is `state` by default.
+
+`subscribe` returns `unsubscribe` method.
 
 ```js
-box.subscribe(console.log)
+let unsubscribe = box.subscribe(console.log)
 scope.a = 99
 box.save()
 // console will print: {a: 99, o: {x: true}}
+
+unsubscribe()
+scope.a = 3
+box.save()
+// console will print nothing
 
 box.subscribe(console.log, scope.o)
 scope.o.x = false

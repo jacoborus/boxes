@@ -12,14 +12,18 @@
     "postinstall": "npm run build-umd"
   },
   "engines": {
-    "node": ">=5.9.1"
+    "node": ">=5.9.0"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:jacoborus/boxes.git"
   },
   "keywords": [
-    "containers"
+    "state",
+    "mutable",
+    "containers",
+    "undo",
+    "redo"
   ],
   "author": "Jacobo Tabernero - https://github.com/jacoborus",
   "license": "MIT",

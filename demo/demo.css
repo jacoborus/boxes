@@ -12,10 +12,21 @@ body{
   margin-top: 0;
   width: 8em;
 }
+#history li {
+  cursor: pointer;
+  border: 1px solid;
+  float: left;
+  margin-bottom: .5em;
+  padding: .2em;
+}
+#history li.current {
+  background: #3cf;
+}
 button {
   cursor: pointer;
   border: 1px solid;
   float: left;
   margin-bottom: .5em;
   padding: .5em;
+  font-size: 1em;
 }

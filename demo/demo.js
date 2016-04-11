@@ -17,24 +17,40 @@ const state = {
 const box = boxes(state)
 box.log('begin game')
 
-document.getElementById('undo').addEventListener('click', () => box.undo())
-document.getElementById('redo').addEventListener('click', () => box.redo())
+document.getElementById('undo').addEventListener('click', () => {
+  box.undo()
+  printRecords()
+})
+document.getElementById('redo').addEventListener('click', () => {
+  box.redo()
+  printRecords()
+})
 
-const history = document.getElementById('history')
 const container = document.getElementById('players')
-
 state.players.forEach(player => {
   container.appendChild(createPlayer(player))
 })
 
+const history = document.getElementById('history')
+printRecords()
+
 function printRecords () {
   history.innerHTML = ''
-  box.records.forEach(log => history.appendChild(createRecord(log)))
+  box.records.forEach((log, i) => {
+    history.appendChild(createRecord(log, i))
+  })
 }
 
-function createRecord (log) {
+function createRecord (log, i) {
   const el = document.createElement('li')
   el.innerHTML = log
+  if (box.now() === i) {
+    el.classList.add('current')
+  }
+  el.addEventListener('click', () => {
+    box.now(i)
+    printRecords()
+  })
   return el
 }
 

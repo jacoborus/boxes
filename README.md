@@ -17,6 +17,7 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 - [box.undo and box.redo](#box-undo-redo-api)
 - [box.records](#box-records-api)
 - [box.log](#box-log-api)
+- [box.now](#box-now-api)
 - [Testing](#testing)
 - [Building](#building)
 
@@ -104,7 +105,7 @@ box.trigger(scope.o)
 <a name="box-undo-redo-api"></a>
 ## box.undo(steps) and box.redo(steps)
 
-Undo and redo changes in `state`. `steps` is a number greater than 0, by default `1`
+Undo and redo changes in `state`. `steps` is a number greater than 0, by default `1`. Both methods returns the actual position in history
 
 ```js
 let state = {a: 1}
@@ -159,6 +160,27 @@ box.records // ['this is the initial state', 1460337512847]
 ```
 
 
+
+<a name="box-now-api"></a>
+## box.now(position)
+
+Travel in history to story in `position`, then return the actual position in the history as a number
+
+```js
+let state = {a: 1}
+let box = boxes(state)
+
+box.now() === 0 // true
+
+state.a = 9
+box.save().now() === 1 // true
+
+box.undo()
+box.now() === 0 // true
+
+box.now(1)
+box.now() === 1 // true
+```
 
 
 

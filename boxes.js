@@ -15,13 +15,13 @@ function boxes (state) {
     state = {}
   }
 
-  let now = 0
+  let step = -1
   const links = new Map()
   const history = []
   const records = []
   const box = {
     get: () => state,
-    save, trigger, subscribe, undo, redo, log, records
+    save, trigger, subscribe, undo, redo, log, records, now
   }
 
   // save initial state so we can get back later
@@ -29,10 +29,10 @@ function boxes (state) {
 
   // clean future stories and future logs
   function removeFuture () {
-    if (now < history.length) {
+    if (step + 1 < history.length) {
       // get future stories
-      const toClean = history.splice(now + 1)
-      records.splice(now + 1)
+      const toClean = history.splice(step + 2)
+      records.splice(step + 2)
       // reset `post` property in every link in of future stories
       toClean.forEach(story => story.targets.forEach(link => {link.post = []}))
     }
@@ -107,19 +107,19 @@ function boxes (state) {
     }
     // assure we can add new stories after old ones
     removeFuture()
-    // add story to history and increase `now`
+    // add story to history and increase `step`
     const story = {
       targets: [applySave(scope)],
       info: Date.now()
     }
-    records[now] = story.info
-    history[now++] = story
+    history[++step] = story
+    records[step] = story.info
     return box
   }
 
   function log (info) {
     info = 0 in arguments ? info : Date.now()
-    records[now - 1] = history[now - 1].info = info
+    records[step] = history[step].info = info
   }
 
   // trigger actions subscribed to a `link`.
@@ -175,18 +175,18 @@ function boxes (state) {
     if (!steps || steps && (isNaN(steps) || steps < 1)) {
       steps = 1
     }
-    if (now - steps) {
+    if (step - steps + 1) {
       let i = steps
       while (i) {
-        history[--now].targets.forEach(link => {
+        history[step--].targets.forEach(link => {
           link.post.push(link.pre.pop())
           applyStory(link)
         })
         --i
       }
-      return steps
+      return step
     }
-    return 0
+    return step
   }
 
   function redo (steps) {
@@ -194,17 +194,31 @@ function boxes (state) {
       steps = 1
     }
     let i = steps
-    if (history[now + steps - 1]) {
+    if (history[step + steps]) {
       while (i) {
-        history[now++].targets.forEach(link => {
+        history[++step].targets.forEach(link => {
           link.pre.push(link.post.pop())
           applyStory(link)
         })
         --i
       }
-      return steps
+      return step
     }
-    return 0
+    return step
+  }
+
+  function now (pos) {
+    if (!(0 in arguments) ||
+        isNaN(pos) ||
+        !Number.isInteger(pos) ||
+        history.length > pos < 0 ||
+        pos === step) {
+      return step
+    }
+    if (step < pos) {
+      return box.redo(pos - step)
+    }
+    return box.undo(step - pos)
   }
 
   return box

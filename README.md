@@ -5,6 +5,8 @@ Mutable state containers with time travelling for JavaScript apps
 
 Boxes is written in vanilla ES6, so maybe you want to transpile it before using it.
 
+[Live demo](https://jsfiddle.net/jacoborus/t98z7sts/1/) (for modern browsers)
+
 **Project in active development, API may change**
 
 [![Build Status](https://travis-ci.org/jacoborus/boxes.svg?branch=master)](https://travis-ci.org/jacoborus/boxes) [![npm version](https://badge.fury.io/js/boxes.svg)](https://www.npmjs.com/package/boxes)

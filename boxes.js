@@ -92,7 +92,7 @@ function boxes (state) {
     // save the copy of the object in `pre` list in its link
     link.pre.push(copy)
     // call subscriptions
-    applyTrigger(scope)
+    triggerLink(link)
     // the returned link will be stored as a story in the history
     return link
   }
@@ -121,22 +121,28 @@ function boxes (state) {
     records[now - 1] = history[now - 1].info = info
   }
 
-  // trigger actions subscribed to a `scope`.
-  function applyTrigger (scope) {
-    const bindings = links.get(scope).bindings
+  // trigger actions subscribed to a `link`.
+  function triggerLink (link) {
+    let bindings = link.bindings
     if (bindings.size) {
+      let scope = link.scope
       bindings.forEach(f => f(scope))
     }
     return box
   }
 
+  // trigger actions subscribed to a `scope`.
+  function triggerScope (scope) {
+    return triggerLink(links.get(scope))
+  }
+
   /**
-   * call applyTrigger passing `state` as `scope` by default
+   * call triggerScope passing `state` as `scope` by default
    * also check passed `scope` is inside state
    * @param {object} scope optional target
    */
   function trigger (scope) {
-    if (!scope) return applyTrigger(state)
+    if (!scope) return triggerScope(state)
     // check passed `scope` is inside state
     if (!links.has(scope)) {
       throw new Error('Cannot trigger a scope outside the box')

@@ -111,8 +111,8 @@ function boxes (state) {
       targets: [applySave(scope)],
       info: Date.now()
     }
+    records[now] = story.info
     history[now++] = story
-    records.push(story.info)
     return box
   }
 

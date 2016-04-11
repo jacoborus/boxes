@@ -152,6 +152,7 @@ let state = {a: 1}
 let box = boxes(state)
 
 box.log('this is the initial state')
+state.a = 99
 box.save() // will log `Date.now()`
 
 box.records // ['this is the initial state', 1460337512847]

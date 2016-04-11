@@ -198,3 +198,18 @@ test('work with arrays', t => {
 
   t.end()
 })
+
+test('log and records', t => {
+  let state = {a: 1}
+  let box = boxes(state)
+  t.notOk(isNaN(box.records[0]), 'default log is time')
+
+  box.log('initial state')
+  t.is(box.records[0], 'initial state')
+
+  state.a = 2
+  box.save().log('a is 2')
+  t.is(box.records[1], 'a is 2')
+
+  t.end()
+})

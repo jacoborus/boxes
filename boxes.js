@@ -18,9 +18,10 @@ function boxes (state) {
   let now = 0
   const links = new Map()
   const history = []
+  const records = []
   const box = {
     get: () => state,
-    save, trigger, subscribe, undo, redo
+    save, trigger, subscribe, undo, redo, log, records
   }
 
   // save initial state so we can get back later
@@ -107,10 +108,17 @@ function boxes (state) {
     removeFuture()
     // add story to history and increase `now`
     const story = {
-      targets: [applySave(scope)]
+      targets: [applySave(scope)],
+      info: Date.now()
     }
     history[now++] = story
+    records.push(story.info)
     return box
+  }
+
+  function log (info) {
+    info = 0 in arguments ? info : Date.now()
+    records[now - 1] = history[now - 1].info = info
   }
 
   // trigger actions subscribed to a `scope`.

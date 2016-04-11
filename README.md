@@ -15,6 +15,8 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 - [box.subscribe and unsubscribe](#box-subscribe-api)
 - [box.trigger](#box-trigger-api)
 - [box.undo and box.redo](#box-undo-redo-api)
+- [box.records](#box-records-api)
+- [box.log](#box-log-api)
 - [Testing](#testing)
 - [Building](#building)
 
@@ -127,6 +129,36 @@ box.redo(2)
 state.a === undefined // true
 state.b === 'boxes!' // true
 ```
+
+
+
+<a name="box-records-api"></a>
+## box.records
+
+Boxes saves every change with a log. You can examine this array in `box.records`.
+
+
+
+
+<a name="box-log-api"></a>
+## box.log(info)
+
+Change the log `info` of last commit. `info` can be any type.
+The log info of every change is `Date.now()` by default, but you can change it with `box.log(info)`
+
+
+```js
+let state = {a: 1}
+let box = boxes(state)
+
+box.log('this is the initial state')
+box.save() // will log `Date.now()`
+
+box.records // ['this is the initial state', 1460337512847]
+```
+
+
+
 
 
 

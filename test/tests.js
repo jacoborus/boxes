@@ -211,5 +211,14 @@ test('log and records', t => {
   box.save().log('a is 2')
   t.is(box.records[1], 'a is 2')
 
+  state.b = true
+  box.save()
+  t.is(box.records.length, 3, 'keep records count')
+
+  box.undo(2)
+  state.b = false
+  box.save()
+  t.is(box.records.length, 2, 'delete future records when save')
+
   t.end()
 })

@@ -1,10 +1,16 @@
 body{
   background: #ddd;
   color: #444;
+  font-family: sans-serif;
 }
 #players {
   float: left;
   width: 6em;
+}
+#history {
+  float: left;
+  margin-top: 0;
+  width: 8em;
 }
 button {
   cursor: pointer;

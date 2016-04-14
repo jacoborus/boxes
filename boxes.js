@@ -211,8 +211,8 @@ function boxes (state) {
     if (!(0 in arguments) ||
         isNaN(pos) ||
         !Number.isInteger(pos) ||
-        history.length > pos < 0 ||
-        pos === step) {
+        pos === step ||
+        history.length > pos < 0) {
       return step
     }
     if (step < pos) {

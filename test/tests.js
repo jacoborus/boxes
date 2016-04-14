@@ -14,15 +14,15 @@ test('work with objects', t => {
   t.is(typeof scope, 'object')
   t.is(Object.keys(scope).length, 0)
 
-  box.subscribe(obj => {a = obj.a})
+  box.on(obj => {a = obj.a})
   scope.a = 1
   scope.o = {x: 'x'}
   let boxTest = box.save()
   // {a: 1, o: {x: 'x'}}
-  t.is(a, 1, 'basic subscribe')
+  t.is(a, 1, 'basic on')
   t.is(boxTest, box, 'save returns box')
 
-  box.subscribe(obj => {x = obj.x}, scope.o)
+  box.on(obj => {x = obj.x}, scope.o)
   scope.o.x = 99
   box.save(scope.o)
   // {a: 1, {x: 99}
@@ -89,20 +89,20 @@ test('work with objects', t => {
 
 test('throw when subscribing to a object a scope that is not in the box', t => {
   let box = boxes()
-  t.throws(() => box.subscribe(() => 1, {}), 'throws error when subscribing to scope outside the box')
+  t.throws(() => box.on(() => 1, {}), 'throws error when subscribing to scope outside the box')
   t.end()
 })
 
-test('trigger', t => {
+test('emit', t => {
   let control = 0
   let scope = {
     a: 1
   }
   let box = boxes(scope)
-  box.subscribe(s => {control = s.a})
-  let boxTest = box.trigger()
+  box.on(s => {control = s.a})
+  let boxTest = box.emit()
   t.is(control, 1)
-  t.is(boxTest, box, 'trigger returns box')
+  t.is(boxTest, box, 'emit returns box')
   t.end()
 })
 
@@ -112,12 +112,12 @@ test('unsubscribe', t => {
     a: 1
   }
   let box = boxes(scope)
-  let unsubscribe = box.subscribe(s => {control = s.a})
-  box.trigger()
+  let unsubscribe = box.on(s => {control = s.a})
+  box.emit()
   t.is(control, 1)
   scope.a = 2
   unsubscribe()
-  box.trigger()
+  box.emit()
   t.is(control, 1)
   t.end()
 })
@@ -133,7 +133,7 @@ test('work with arrays', t => {
   t.is(Object.keys(scope).length, 1)
 
   scope.a.push(1)
-  box.subscribe(obj => {
+  box.on(obj => {
     x0 = obj[0]
     x1 = obj[1]
   }, scope.a)

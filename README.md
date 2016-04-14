@@ -14,8 +14,8 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 - [boxes](#boxes-api)
 - [box.get](#box-get-api)
 - [box.save](#box-save-api)
-- [box.subscribe and unsubscribe](#box-subscribe-api)
-- [box.trigger](#box-trigger-api)
+- [box.on and unsubscribe](#box-on-api)
+- [box.emit](#box-emit-api)
 - [box.undo and box.redo](#box-undo-redo-api)
 - [box.records](#box-records-api)
 - [box.log](#box-log-api)
@@ -64,12 +64,12 @@ box.save(scope.o)
 
 
 
-<a name="box-subscribe-api"></a>
-## box.subscribe(action[, scope]) and unsubscribe()
+<a name="box-on-api"></a>
+## box.on(action[, scope]) and unsubscribe()
 
 Subscribe `action` method to changes in `scope`.  That `action` will be launched on `scope` saving. `scope` is `state` by default.
 
-`subscribe` returns `unsubscribe` method.
+`on` returns `unsubscribe` method.
 
 ```js
 let unsubscribe = box.subscribe(console.log)
@@ -82,7 +82,7 @@ scope.a = 3
 box.save()
 // console will print nothing
 
-box.subscribe(console.log, scope.o)
+box.on(console.log, scope.o)
 scope.o.x = false
 box.save(scope.o)
 // console will print: {x: false}
@@ -90,16 +90,16 @@ box.save(scope.o)
 
 
 
-<a name="box-trigger-api"></a>
-## box.trigger(scope)
+<a name="box-emit-api"></a>
+## box.emit(scope)
 
-Trigger subscriptions without saving `scope`. `scope` is `state` by default. `trigger` method returns the box, so you can chain multiple calls
+emit subscriptions without saving `scope`. `scope` is `state` by default. `emit` method returns the box, so you can chain multiple calls
 
 ```js
 // subscribe to a scope
-box.subscribe(myAction, scope.o)
+box.on(myAction, scope.o)
 // will call `myAction`
-box.trigger(scope.o)
+box.emit(scope.o)
 ```
 
 

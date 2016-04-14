@@ -21,7 +21,7 @@ function boxes (state) {
   const records = []
   const box = {
     get: () => state,
-    save, trigger, subscribe, undo, redo, log, records, now
+    save, emit, on, undo, redo, log, records, now
   }
 
   // save initial state so we can get back later
@@ -45,9 +45,9 @@ function boxes (state) {
    * @param {object} scope target. `state` by default
    * @returns {function} unsubscribe method
    */
-  function subscribe (action, scope) {
+  function on (action, scope) {
     if (!action || typeof action !== 'function') {
-      throw new Error('subscribe requires a function as first argument')
+      throw new Error('on requires a function as first argument')
     }
     // use state as default scope
     if (!scope) {
@@ -122,7 +122,7 @@ function boxes (state) {
     records[step] = history[step].info = info
   }
 
-  // trigger actions subscribed to a `link`.
+  // emit actions subscribed to a `link`.
   function triggerLink (link) {
     let bindings = link.bindings
     if (bindings.size) {
@@ -142,7 +142,7 @@ function boxes (state) {
    * also check passed `scope` is inside state
    * @param {object} scope optional target
    */
-  function trigger (scope) {
+  function emit (scope) {
     if (!scope) return triggerScope(state)
     // check passed `scope` is inside state
     if (!links.has(scope)) {

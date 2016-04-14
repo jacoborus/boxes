@@ -240,3 +240,17 @@ test('apply now', t => {
   t.is(box.now(), 0)
   t.end()
 })
+
+test('off', t => {
+  const state = {a: 1}
+  const box = boxes(state)
+  let control = 0
+  const fn = () => control++
+  box.on(fn)
+  box.emit()
+  t.is(control, 1)
+  box.off(state, fn)
+  box.emit()
+  t.is(control, 1)
+  t.end()
+})

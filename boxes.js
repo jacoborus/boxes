@@ -21,7 +21,7 @@ function boxes (state) {
   const records = []
   const box = {
     get: () => state,
-    save, emit, on, undo, redo, log, records, now
+    save, emit, on, off, undo, redo, log, records, now
   }
 
   // save initial state so we can get back later
@@ -65,6 +65,12 @@ function boxes (state) {
         subscribed = false
       }
     }
+  }
+
+  function off (scope, action) {
+    const link = links.get(scope)
+    if (!link) return
+    link.bindings.delete(action)
   }
 
   function getNewLink (scope) {

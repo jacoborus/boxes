@@ -90,6 +90,27 @@ box.save(scope.o)
 
 
 
+<a name="box-off-api"></a>
+## box.off(scope, action)
+
+Remove listener `action` from `scope` bindings
+
+```js
+const state = {a: 1}
+const box = boxes(state)
+let control = 0
+const fn = () => control++
+box.on(fn)
+box.emit()
+control === 1 // true
+
+box.off(state, fn)
+box.emit()
+control === 1 // true
+```
+
+
+
 <a name="box-emit-api"></a>
 ## box.emit(scope)
 

@@ -57,7 +57,7 @@ function createRecord (log, i) {
 function createPlayer (player) {
   const bt = document.createElement('button')
   const printLabel = p => {bt.innerHTML = p.points + ' ' + p.name}
-  box.on(printLabel, player)
+  box.on(player, printLabel)
   bt.addEventListener('click', () => {
     player.points++
     box.save(player).log(player.name + ' has ' + player.points)

@@ -1,6 +1,6 @@
 {
   "name": "boxes",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "scripts": {
@@ -35,5 +35,8 @@
     "browserify": "^13.0.0",
     "eslint": "^2.6.0",
     "tape": "^4.5.1"
+  },
+  "dependencies": {
+    "arbitrary-emitter": "^0.7.6"
   }
 }

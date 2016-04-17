@@ -41,20 +41,21 @@ function boxes (state) {
   /**
    * Call the `action` when saving or triggering `scope`. `scope` is `state` by default
    *
-   * @param {function} action method to dispatch on saving
    * @param {object} scope target. `state` by default
+   * @param {function} action method to dispatch on saving
    * @returns {function} unsubscribe method
    */
-  function on (action, scope) {
-    if (!action || typeof action !== 'function') {
-      throw new Error('on requires a function as first argument')
-    }
-    // use state as default scope
-    if (!scope) {
+  function on (scope, action) {
+    if (!action) {
+      action = scope
       scope = state
     } else if (!links.has(scope)) {
       throw new Error('cannot subscribe to a scope outside the box state')
     }
+    if (!action || typeof action !== 'function') {
+      throw new Error('on requires a function as first argument')
+    }
+
     const link = links.get(scope)
     let subscribed = true
     link.bindings.add(action)

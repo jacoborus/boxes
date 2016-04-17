@@ -22,7 +22,7 @@ test('work with objects', t => {
   t.is(a, 1, 'basic on')
   t.is(boxTest, box, 'save returns box')
 
-  box.on(obj => {x = obj.x}, scope.o)
+  box.on(scope.o, obj => {x = obj.x})
   scope.o.x = 99
   box.save(scope.o)
   // {a: 1, {x: 99}
@@ -89,7 +89,7 @@ test('work with objects', t => {
 
 test('throw when subscribing to a object a scope that is not in the box', t => {
   let box = boxes()
-  t.throws(() => box.on(() => 1, {}), 'throws error when subscribing to scope outside the box')
+  t.throws(() => box.on({}, () => 1), 'throws error when subscribing to scope outside the box')
   t.end()
 })
 
@@ -133,10 +133,10 @@ test('work with arrays', t => {
   t.is(Object.keys(scope).length, 1)
 
   scope.a.push(1)
-  box.on(obj => {
+  box.on(scope.a, obj => {
     x0 = obj[0]
     x1 = obj[1]
-  }, scope.a)
+  })
   box.save(scope.a)
   // {a: [1]}
   t.is(x0, 1, 'basic subscribe')

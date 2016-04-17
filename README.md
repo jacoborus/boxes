@@ -11,23 +11,26 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 
 [![Build Status](https://travis-ci.org/jacoborus/boxes.svg?branch=master)](https://travis-ci.org/jacoborus/boxes) [![npm version](https://badge.fury.io/js/boxes.svg)](https://www.npmjs.com/package/boxes)
 
-- [boxes](#boxes-api)
-- [box.get](#box-get-api)
-- [box.save](#box-save-api)
-- [box.on and unsubscribe](#box-on-api)
-- [box.off](#box-off-api)
-- [box.emit](#box-emit-api)
-- [box.undo and box.redo](#box-undo-redo-api)
-- [box.records](#box-records-api)
-- [box.log](#box-log-api)
-- [box.now](#box-now-api)
+- [API](#boxes-api)
+    - [boxes](#boxes-constructor-api)
+    - [box.get](#box-get-api)
+    - [box.save](#box-save-api)
+    - [box.on and unsubscribe](#box-on-api)
+    - [box.off](#box-off-api)
+    - [box.emit](#box-emit-api)
+    - [box.undo and box.redo](#box-undo-redo-api)
+    - [box.records](#box-records-api)
+    - [box.log](#box-log-api)
+    - [box.now](#box-now-api)
 - [Testing](#testing)
 - [Building](#building)
 
 
-
 <a name="boxes-api"></a>
-## boxes(state)
+## API
+
+<a name="boxes-constructor-api"></a>
+### boxes(state)
 
 Create and return a new box from a given object (`state`).
 
@@ -41,7 +44,7 @@ let box = boxes(state)
 
 
 <a name="box-get-api"></a>
-## box.get()
+### box.get()
 
 Returns the state of the box
 
@@ -52,7 +55,7 @@ box.get() //=> {a:1, o: {x: true}}
 
 
 <a name="box-save-api"></a>
-## box.save(scope)
+### box.save(scope)
 
 Save `scope` changes in history. `scope` is `state` by default. `save` method returns the box, so you can chain multiple calls
 
@@ -66,7 +69,7 @@ box.save(scope.o)
 
 
 <a name="box-on-api"></a>
-## box.on([scope,] action) and unsubscribe()
+### box.on([scope,] action) and unsubscribe()
 
 Subscribe `action` method to changes in `scope`.  That `action` will be launched on `scope` saving. `scope` is `state` by default.
 
@@ -92,7 +95,7 @@ box.save(scope.o)
 
 
 <a name="box-off-api"></a>
-## box.off(scope, action)
+### box.off(scope, action)
 
 Remove listener `action` from `scope` bindings
 
@@ -113,7 +116,7 @@ control === 1 // true
 
 
 <a name="box-emit-api"></a>
-## box.emit(scope)
+### box.emit(scope)
 
 emit subscriptions without saving `scope`. `scope` is `state` by default. `emit` method returns the box, so you can chain multiple calls
 
@@ -127,7 +130,7 @@ box.emit(scope.o)
 
 
 <a name="box-undo-redo-api"></a>
-## box.undo(steps) and box.redo(steps)
+### box.undo(steps) and box.redo(steps)
 
 Undo and redo changes in `state`. `steps` is a number greater than 0, by default `1`. Both methods returns the actual position in history
 
@@ -158,7 +161,7 @@ state.b === 'boxes!' // true
 
 
 <a name="box-records-api"></a>
-## box.records
+### box.records
 
 Boxes saves every change with a log. You can examine this array in `box.records`.
 
@@ -166,7 +169,7 @@ Boxes saves every change with a log. You can examine this array in `box.records`
 
 
 <a name="box-log-api"></a>
-## box.log(info)
+### box.log(info)
 
 Change the log `info` of last commit. `info` can be any type.
 The log info of every change is `Date.now()` by default, but you can change it with `box.log(info)`
@@ -186,7 +189,7 @@ box.records // ['this is the initial state', 1460337512847]
 
 
 <a name="box-now-api"></a>
-## box.now(position)
+### box.now(position)
 
 Travel in history to story in `position`, then return the actual position in the history as a number
 

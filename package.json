@@ -1,6 +1,6 @@
 {
   "name": "boxes",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "scripts": {
@@ -23,7 +23,9 @@
     "mutable",
     "containers",
     "undo",
-    "redo"
+    "redo",
+    "history",
+    "time travel"
   ],
   "author": "Jacobo Tabernero - https://github.com/jacoborus",
   "license": "MIT",

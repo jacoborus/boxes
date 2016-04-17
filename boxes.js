@@ -1,5 +1,7 @@
 'use strict'
 
+const ae = require('arbitrary-emitter')
+
 /**
  * create and return a new box with given objject state
  *
@@ -7,6 +9,7 @@
  * @returns {object} a new box
  */
 function boxes (state) {
+  const emitter = ae()
   if (state) {
     if (typeof state !== 'object') {
       throw new Error('state should be a object')
@@ -56,30 +59,18 @@ function boxes (state) {
       throw new Error('on requires a function as first argument')
     }
 
-    const link = links.get(scope)
-    let subscribed = true
-    link.bindings.add(action)
-    // return unsubscribe method
-    return () => {
-      if (subscribed) {
-        link.bindings.delete(action)
-        subscribed = false
-      }
-    }
+    return emitter.on(scope, action)
   }
 
   function off (scope, action) {
-    const link = links.get(scope)
-    if (!link) return
-    link.bindings.delete(action)
+    emitter.off(scope, action)
   }
 
   function getNewLink (scope) {
     const link = {
       scope,
       pre: [],
-      post: [],
-      bindings: new Set()
+      post: []
     }
     links.set(scope, link)
     return link
@@ -131,11 +122,8 @@ function boxes (state) {
 
   // emit actions subscribed to a `link`.
   function triggerLink (link) {
-    let bindings = link.bindings
-    if (bindings.size) {
-      let scope = link.scope
-      bindings.forEach(f => f(scope))
-    }
+    let scope = link.scope
+    emitter.emit(scope, scope)
     return box
   }
 
@@ -155,6 +143,7 @@ function boxes (state) {
     if (!links.has(scope)) {
       throw new Error('Cannot trigger a scope outside the box')
     }
+    triggerScope(scope)
     return box
   }
 
@@ -175,7 +164,7 @@ function boxes (state) {
       // assign properties
       keys.forEach(k => {scope[k] = pre[k]})
     }
-    link.bindings.forEach(f => f(scope))
+    emitter.emit(scope, scope)
   }
 
   function undo (steps) {

@@ -20,7 +20,7 @@ function boxes (state) {
 
   let step = -1
   const links = new Map()
-  const history = []
+  const hist = [] // history
   const records = []
   const box = {
     get: () => state,
@@ -32,9 +32,9 @@ function boxes (state) {
 
   // clean future stories and future logs
   function removeFuture () {
-    if (step + 1 < history.length) {
+    if (step + 1 < hist.length) {
       // get future stories
-      const toClean = history.splice(step + 2)
+      const toClean = hist.splice(step + 2)
       records.splice(step + 2)
       // reset `post` property in every link in of future stories
       toClean.forEach(story => story.targets.forEach(link => {link.post = []}))
@@ -110,14 +110,14 @@ function boxes (state) {
       targets: [applySave(scope)],
       info: Date.now()
     }
-    history[++step] = story
+    hist[++step] = story
     records[step] = story.info
     return box
   }
 
   function log (info) {
     info = 0 in arguments ? info : Date.now()
-    records[step] = history[step].info = info
+    records[step] = hist[step].info = info
   }
 
   // emit actions subscribed to a `link`.
@@ -174,7 +174,7 @@ function boxes (state) {
     if (step - steps + 1) {
       let i = steps
       while (i) {
-        history[step--].targets.forEach(link => {
+        hist[step--].targets.forEach(link => {
           link.post.push(link.pre.pop())
           applyStory(link)
         })
@@ -190,9 +190,9 @@ function boxes (state) {
       steps = 1
     }
     let i = steps
-    if (history[step + steps]) {
+    if (hist[step + steps]) {
       while (i) {
-        history[++step].targets.forEach(link => {
+        hist[++step].targets.forEach(link => {
           link.pre.push(link.post.pop())
           applyStory(link)
         })
@@ -208,7 +208,7 @@ function boxes (state) {
         isNaN(pos) ||
         !Number.isInteger(pos) ||
         pos === step ||
-        history.length > pos < 0) {
+        hist.length > pos < 0) {
       return step
     }
     if (step < pos) {

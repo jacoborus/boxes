@@ -14,7 +14,7 @@ test('work with objects', t => {
   t.is(typeof scope, 'object')
   t.is(Object.keys(scope).length, 0)
 
-  box.on(obj => {a = obj.a})
+  box.on(obj => { a = obj.a })
   scope.a = 1
   scope.o = {x: 'x'}
   let boxTest = box.save()
@@ -22,7 +22,7 @@ test('work with objects', t => {
   t.is(a, 1, 'basic on')
   t.is(boxTest, box, 'save returns box')
 
-  box.on(scope.o, obj => {x = obj.x})
+  box.on(scope.o, obj => { x = obj.x })
   scope.o.x = 99
   box.save(scope.o)
   // {a: 1, {x: 99}
@@ -99,7 +99,7 @@ test('emit', t => {
     a: 1
   }
   let box = boxes(scope)
-  box.on(s => {control = s.a})
+  box.on(s => { control = s.a })
   let boxTest = box.emit()
   t.is(control, 1)
   t.is(boxTest, box, 'emit returns box')
@@ -112,7 +112,7 @@ test('unsubscribe', t => {
     a: 1
   }
   let box = boxes(scope)
-  let unsubscribe = box.on(s => {control = s.a})
+  let unsubscribe = box.on(s => { control = s.a })
   box.emit()
   t.is(control, 1)
   scope.a = 2

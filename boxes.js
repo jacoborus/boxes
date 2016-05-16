@@ -37,7 +37,7 @@ function boxes (state) {
       const toClean = hist.splice(step + 2)
       records.splice(step + 2)
       // reset `post` property in every link in of future stories
-      toClean.forEach(story => story.targets.forEach(link => {link.post = []}))
+      toClean.forEach(story => story.targets.forEach(link => { link.post = [] }))
     }
   }
 
@@ -78,8 +78,8 @@ function boxes (state) {
 
   function applySave (scope) {
     // make a copy of the object
-    const copy = Array.isArray(scope) ? [] : {},
-          link = links.get(scope) || getNewLink(scope)
+    const copy = Array.isArray(scope) ? [] : {}
+    const link = links.get(scope) || getNewLink(scope)
     Object.keys(scope).forEach(k => {
       const val = scope[k]
       copy[k] = val
@@ -148,13 +148,13 @@ function boxes (state) {
   }
 
   function applyStory (link) {
-    const pre = link.pre[link.pre.length - 1],
-          scope = link.scope
+    const pre = link.pre[link.pre.length - 1]
+    const scope = link.scope
     if (Array.isArray(scope)) {
       // remove extra length
       scope.splice(pre.length)
       // assign properties
-      pre.forEach((el, i) => {scope[i] = el})
+      pre.forEach((el, i) => { scope[i] = el })
     } else {
       let keys = Object.keys(pre)
       // delete properties
@@ -162,7 +162,7 @@ function boxes (state) {
       .filter(i => keys.indexOf(i) < 0)
       .forEach(k => delete scope[k])
       // assign properties
-      keys.forEach(k => {scope[k] = pre[k]})
+      keys.forEach(k => { scope[k] = pre[k] })
     }
     emitter.emit(scope, scope)
   }

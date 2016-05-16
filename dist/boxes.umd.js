@@ -21,7 +21,7 @@ function boxes (state) {
 
   let step = -1
   const links = new Map()
-  const hist = []
+  const hist = [] // history
   const records = []
   const box = {
     get: () => state,
@@ -38,7 +38,7 @@ function boxes (state) {
       const toClean = hist.splice(step + 2)
       records.splice(step + 2)
       // reset `post` property in every link in of future stories
-      toClean.forEach(story => story.targets.forEach(link => {link.post = []}))
+      toClean.forEach(story => story.targets.forEach(link => { link.post = [] }))
     }
   }
 
@@ -79,8 +79,8 @@ function boxes (state) {
 
   function applySave (scope) {
     // make a copy of the object
-    const copy = Array.isArray(scope) ? [] : {},
-          link = links.get(scope) || getNewLink(scope)
+    const copy = Array.isArray(scope) ? [] : {}
+    const link = links.get(scope) || getNewLink(scope)
     Object.keys(scope).forEach(k => {
       const val = scope[k]
       copy[k] = val
@@ -93,7 +93,7 @@ function boxes (state) {
     link.pre.push(copy)
     // call subscriptions
     triggerLink(link)
-    // the returned link will be stored as a story in the hist
+    // the returned link will be stored as a story in the history
     return link
   }
 
@@ -106,7 +106,7 @@ function boxes (state) {
     }
     // assure we can add new stories after old ones
     removeFuture()
-    // add story to hist and increase `step`
+    // add story to history and increase `step`
     const story = {
       targets: [applySave(scope)],
       info: Date.now()
@@ -149,13 +149,13 @@ function boxes (state) {
   }
 
   function applyStory (link) {
-    const pre = link.pre[link.pre.length - 1],
-          scope = link.scope
+    const pre = link.pre[link.pre.length - 1]
+    const scope = link.scope
     if (Array.isArray(scope)) {
       // remove extra length
       scope.splice(pre.length)
       // assign properties
-      pre.forEach((el, i) => {scope[i] = el})
+      pre.forEach((el, i) => { scope[i] = el })
     } else {
       let keys = Object.keys(pre)
       // delete properties
@@ -163,7 +163,7 @@ function boxes (state) {
       .filter(i => keys.indexOf(i) < 0)
       .forEach(k => delete scope[k])
       // assign properties
-      keys.forEach(k => {scope[k] = pre[k]})
+      keys.forEach(k => { scope[k] = pre[k] })
     }
     emitter.emit(scope, scope)
   }
@@ -272,6 +272,9 @@ function arbitrary () {
         } else if (size === 2) {
           multipleTriggers(triggers, lis)
         }
+      },
+      trigger (args) {
+        triggers.forEach(f => f.apply(f, args))
       }
     }
 
@@ -326,6 +329,19 @@ function arbitrary () {
           lis.launchX(args)
         }
       }
+    },
+
+    trigger (key) {
+      const lis = listeners.get(key)
+      if (!lis) return
+      if (arguments.length === 1) {
+        return lis.launch0()
+      }
+      let args = arguments[1]
+      if (!Array.isArray(args)) {
+        throw new Error('arguments list has wrong type')
+      }
+      lis.trigger(arguments[1])
     },
 
     off (key, action) {

@@ -39,6 +39,6 @@
     "tape": "^4.5.1"
   },
   "dependencies": {
-    "arbitrary-emitter": "^0.8.1"
+    "arbitrary-emitter": "^0.8.3"
   }
 }

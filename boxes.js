@@ -3,7 +3,7 @@
 const ae = require('arbitrary-emitter')
 
 /**
- * create and return a new box from given object state
+ * Create and return a new box from given object `state`
  *
  * @param {object} state = {} inital state
  * @returns {object} a new box
@@ -18,13 +18,6 @@ function boxes (state) {
   const links = new Map()
   const hist = [] // history
   const records = []
-  const box = {
-    get: () => state,
-    save, emit, on, off, undo, redo, log, records, now
-  }
-
-  // save initial state so we can get back later
-  save(state)
 
   // clean future stories and future logs
   function removeFuture () {
@@ -39,6 +32,61 @@ function boxes (state) {
         })
       })
     }
+  }
+
+  function getNewLink (scope) {
+    const link = {
+      scope,
+      past: [],
+      future: []
+    }
+    links.set(scope, link)
+    return link
+  }
+
+  function applySave (scope) {
+    // make a copy of the object
+    const copy = Array.isArray(scope) ? [] : {}
+    const link = links.get(scope) || getNewLink(scope)
+    Object.keys(scope).forEach(k => {
+      const val = copy[k] = scope[k]
+      // save nested objects whether they are new in the box
+      if (val && typeof val === 'object' && !links.has(val)) {
+        applySave(val)
+      }
+    })
+    // save the copy of the object in `past` list in its `link`
+    link.past.push(copy)
+    // call listeners
+    triggerScope(scope)
+    // the returned link will be stored as a story in the history
+    return link
+  }
+
+  // trigger actions subscribed to a `scope`.
+  function triggerScope (scope) {
+    emitter.emit(scope)
+    return box
+  }
+
+  function applyStory (link) {
+    const past = link.past[link.past.length - 1]
+    const scope = link.scope
+    if (Array.isArray(scope)) {
+      // remove extra length
+      scope.splice(past.length)
+      // assign properties
+      past.forEach((el, i) => { scope[i] = el })
+    } else {
+      let keys = Object.keys(past)
+      // delete properties
+      Object.keys(scope)
+      .filter(i => keys.indexOf(i) < 0)
+      .forEach(k => delete scope[k])
+      // assign properties
+      keys.forEach(k => { scope[k] = past[k] })
+    }
+    emitter.emit(scope, scope)
   }
 
   /**
@@ -80,35 +128,12 @@ function boxes (state) {
     emitter.off(scope, listener)
   }
 
-  function getNewLink (scope) {
-    const link = {
-      scope,
-      past: [],
-      future: []
-    }
-    links.set(scope, link)
-    return link
-  }
-
-  function applySave (scope) {
-    // make a copy of the object
-    const copy = Array.isArray(scope) ? [] : {}
-    const link = links.get(scope) || getNewLink(scope)
-    Object.keys(scope).forEach(k => {
-      const val = copy[k] = scope[k]
-      // save nested objects whether they are new in the box
-      if (val && typeof val === 'object' && !links.has(val)) {
-        applySave(val)
-      }
-    })
-    // save the copy of the object in `past` list in its `link`
-    link.past.push(copy)
-    // call listeners
-    triggerScope(scope)
-    // the returned link will be stored as a story in the history
-    return link
-  }
-
+  /**
+   * save `scope` values in history, then call listeners tagged with `scope`
+   *
+   * @param {Object} scope Optional, is `state` by default
+   * @returns {Object} box
+   */
   function save (scope) {
     if (!scope) {
       // use state as default scope
@@ -133,45 +158,18 @@ function boxes (state) {
     records[step] = hist[step].info = info
   }
 
-  // trigger actions subscribed to a `scope`.
-  function triggerScope (scope) {
-    emitter.emit(scope)
-    return box
-  }
-
   /**
-   * call triggerScope passing `state` as `scope` by default
-   * also check passed `scope` is inside state
-   * @param {object} scope optional target
+   * Call listeners tagged with `scope`.
+   *
+   * @param {object} scope optional, is `state` by default
    */
   function emit (scope) {
     if (!scope) return triggerScope(state)
-    // check passed `scope` is inside state
     if (!links.has(scope)) {
       throw new Error('Cannot trigger a scope outside the box')
     }
     triggerScope(scope)
     return box
-  }
-
-  function applyStory (link) {
-    const past = link.past[link.past.length - 1]
-    const scope = link.scope
-    if (Array.isArray(scope)) {
-      // remove extra length
-      scope.splice(past.length)
-      // assign properties
-      past.forEach((el, i) => { scope[i] = el })
-    } else {
-      let keys = Object.keys(past)
-      // delete properties
-      Object.keys(scope)
-      .filter(i => keys.indexOf(i) < 0)
-      .forEach(k => delete scope[k])
-      // assign properties
-      keys.forEach(k => { scope[k] = past[k] })
-    }
-    emitter.emit(scope, scope)
   }
 
   function undo (steps) {
@@ -221,6 +219,14 @@ function boxes (state) {
     }
     return box.undo(step - pos)
   }
+
+  const box = {
+    get: () => state,
+    save, emit, on, off, undo, redo, log, records, now
+  }
+
+  // save initial state so we can get back later
+  save(state)
 
   return box
 }

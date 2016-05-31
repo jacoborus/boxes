@@ -10,12 +10,9 @@ const ae = require('arbitrary-emitter')
  */
 function boxes (state) {
   const emitter = ae()
-  if (state) {
-    if (typeof state !== 'object') {
-      throw new Error('state should be a object')
-    }
-  } else {
-    state = {}
+  if (!state) state = {}
+  else if (typeof state !== 'object') {
+    throw new Error('state should be a object')
   }
 
   let step = -1
@@ -36,41 +33,45 @@ function boxes (state) {
       // get future stories
       const toClean = hist.splice(step + 2)
       records.splice(step + 2)
-      // reset `post` property in every link in of future stories
-      toClean.forEach(story => story.targets.forEach(link => { link.post = [] }))
+      // reset `future` property in every link in of future stories
+      toClean.forEach(story => {
+        story.targets.forEach(link => {
+          link.future = []
+        })
+      })
     }
   }
 
   /**
-   * Call the `action` when saving or triggering `scope`. `scope` is `state` by default
+   * Call the `listener` when saving or triggering `scope`. `scope` is `state` by default
    *
    * @param {object} scope target. `state` by default
-   * @param {function} action method to dispatch on saving
+   * @param {function} listener method to dispatch on saving
    * @returns {function} unsubscribe method
    */
-  function on (scope, action) {
-    if (!action) {
-      action = scope
+  function on (scope, listener) {
+    if (!listener) {
+      listener = scope
       scope = state
     } else if (!links.has(scope)) {
       throw new Error('cannot subscribe to a scope outside the box state')
     }
-    if (!action || typeof action !== 'function') {
-      throw new Error('on requires a function as first argument')
+    if (!listener || typeof listener !== 'function') {
+      throw new Error('on method requires a listener function')
     }
 
-    return emitter.on(scope, action)
+    return emitter.on(scope, listener)
   }
 
-  function off (scope, action) {
-    emitter.off(scope, action)
+  function off (scope, listener) {
+    emitter.off(scope, listener)
   }
 
   function getNewLink (scope) {
     const link = {
       scope,
-      pre: [],
-      post: []
+      past: [],
+      future: []
     }
     links.set(scope, link)
     return link
@@ -81,17 +82,16 @@ function boxes (state) {
     const copy = Array.isArray(scope) ? [] : {}
     const link = links.get(scope) || getNewLink(scope)
     Object.keys(scope).forEach(k => {
-      const val = scope[k]
-      copy[k] = val
+      const val = copy[k] = scope[k]
       // save nested objects whether they are new in the box
       if (val && typeof val === 'object' && !links.has(val)) {
         applySave(val)
       }
     })
-    // save the copy of the object in `pre` list in its link
-    link.pre.push(copy)
-    // call subscriptions
-    triggerLink(link)
+    // save the copy of the object in `past` list in its `link`
+    link.past.push(copy)
+    // call listeners
+    triggerScope(scope)
     // the returned link will be stored as a story in the history
     return link
   }
@@ -120,16 +120,12 @@ function boxes (state) {
     records[step] = hist[step].info = info
   }
 
-  // emit actions subscribed to a `link`.
-  function triggerLink (link) {
-    let scope = link.scope
-    emitter.emit(scope, scope)
-    return box
-  }
-
   // trigger actions subscribed to a `scope`.
   function triggerScope (scope) {
-    return triggerLink(links.get(scope))
+    // TODO: uncomment next line and rewrite tests
+    // emitter.emit(scope)
+    emitter.emit(scope, scope)
+    return box
   }
 
   /**
@@ -148,21 +144,21 @@ function boxes (state) {
   }
 
   function applyStory (link) {
-    const pre = link.pre[link.pre.length - 1]
+    const past = link.past[link.past.length - 1]
     const scope = link.scope
     if (Array.isArray(scope)) {
       // remove extra length
-      scope.splice(pre.length)
+      scope.splice(past.length)
       // assign properties
-      pre.forEach((el, i) => { scope[i] = el })
+      past.forEach((el, i) => { scope[i] = el })
     } else {
-      let keys = Object.keys(pre)
+      let keys = Object.keys(past)
       // delete properties
       Object.keys(scope)
       .filter(i => keys.indexOf(i) < 0)
       .forEach(k => delete scope[k])
       // assign properties
-      keys.forEach(k => { scope[k] = pre[k] })
+      keys.forEach(k => { scope[k] = past[k] })
     }
     emitter.emit(scope, scope)
   }
@@ -175,12 +171,11 @@ function boxes (state) {
       let i = steps
       while (i) {
         hist[step--].targets.forEach(link => {
-          link.post.push(link.pre.pop())
+          link.future.push(link.past.pop())
           applyStory(link)
         })
         --i
       }
-      return step
     }
     return step
   }
@@ -193,12 +188,11 @@ function boxes (state) {
     if (hist[step + steps]) {
       while (i) {
         hist[++step].targets.forEach(link => {
-          link.pre.push(link.post.pop())
+          link.past.push(link.future.pop())
           applyStory(link)
         })
         --i
       }
-      return step
     }
     return step
   }

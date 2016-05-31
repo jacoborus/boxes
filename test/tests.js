@@ -3,32 +3,41 @@
 const test = require('tape')
 const boxes = require('../boxes.js')
 
+test('boxes requires a state object', t => {
+  t.throws(
+    boxes,
+    /boxes requires an object state/,
+    'throws error when subscribing to scope outside the box'
+  )
+  t.end()
+})
+
 test('work with objects', t => {
-  let box = boxes()
+  let state = {}
+  let box = boxes(state)
   t.is(typeof box, 'object')
 
-  let scope = box.get()
   // {}
-  t.is(typeof scope, 'object')
-  t.is(Object.keys(scope).length, 0)
+  t.is(typeof state, 'object')
+  t.is(Object.keys(state).length, 0)
 
   let a = 0
   box.on(() => ++a)
-  scope.a = 1
-  scope.o = {x: 'x'}
-  let boxTest = box.save(scope)
+  state.a = 1
+  state.o = {x: 'x'}
+  let boxTest = box.save(state)
   // {a: 1, o: {x: 'x'}}
   t.is(a, 1, 'basic on')
   t.is(boxTest, box, 'save returns box')
 
   let x = 0
-  box.on(scope.o, () => ++x)
-  scope.o.x = 99
-  box.save(scope.o)
+  box.on(state.o, () => ++x)
+  state.o.x = 99
+  box.save(state.o)
   // {a: 1, {x: 99}
   t.is(x, 1, 'subscribe inside object')
 
-  delete scope.a
+  delete state.a
   box.save()
   // {o: {x: 99}}
   t.is(a, 2)
@@ -36,49 +45,49 @@ test('work with objects', t => {
 
   box.undo()
   // {a: 1, o: {x: 99}
-  t.is(scope.a, 1, 'subscribe undo')
-  t.is(scope.o.x, 99, 'subscribe undo')
+  t.is(state.a, 1, 'subscribe undo')
+  t.is(state.o.x, 99, 'subscribe undo')
 
   box.undo()
   // {a: 1, o: {x: 'x'}}
-  t.is(scope.a, 1)
-  t.is(scope.o.x, 'x', 'subscribe undo')
+  t.is(state.a, 1)
+  t.is(state.o.x, 'x', 'subscribe undo')
 
   box.undo()
   // {}
-  t.is(scope.a, undefined)
-  t.is(scope.o, undefined)
+  t.is(state.a, undefined)
+  t.is(state.o, undefined)
 
   box.redo()
   // {a: 1, o: {x: 'x'}}
-  t.is(scope.o.x, 'x', 'subscribe undo')
-  t.is(scope.a, 1, 'subscribe undo')
+  t.is(state.o.x, 'x', 'subscribe undo')
+  t.is(state.a, 1, 'subscribe undo')
 
   box.redo()
   // {a: 1, o: {x: 99}
-  t.is(scope.a, 1, 'subscribe undo')
-  t.is(scope.o.x, 99, 'subscribe undo')
+  t.is(state.a, 1, 'subscribe undo')
+  t.is(state.o.x, 99, 'subscribe undo')
 
   box.redo()
   // {o: {x: 99}}
-  t.is(scope.a, undefined)
-  t.is(scope.o.x, 99)
+  t.is(state.a, undefined)
+  t.is(state.o.x, 99)
 
   box.undo(2)
   // {a: 1, o: {x: 'x'}}
-  t.is(scope.o.x, 'x', 'subscribe undo')
-  t.is(scope.a, 1, 'subscribe undo')
+  t.is(state.o.x, 'x', 'subscribe undo')
+  t.is(state.a, 1, 'subscribe undo')
 
   box.redo(2)
   // {o: {x: 99}}
-  t.is(scope.a, undefined)
-  t.is(scope.o.x, 99)
+  t.is(state.a, undefined)
+  t.is(state.o.x, 99)
 
   t.end()
 })
 
 test('throw when subscribing to a object a scope that is not in the box', t => {
-  let box = boxes()
+  let box = boxes({})
   t.throws(() => box.on({}, () => 1), 'throws error when subscribing to scope outside the box')
   t.end()
 })

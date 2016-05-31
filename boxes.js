@@ -10,9 +10,8 @@ const ae = require('arbitrary-emitter')
  */
 function boxes (state) {
   const emitter = ae()
-  if (!state) state = {}
-  else if (typeof state !== 'object') {
-    throw new Error('state should be a object')
+  if (!state || typeof state !== 'object') {
+    throw new Error('boxes requires an object state')
   }
 
   let step = -1

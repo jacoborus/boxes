@@ -32,7 +32,7 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 <a name="boxes-constructor-api"></a>
 ### boxes(state)
 
-Create and return a new box from a given object (`state`).
+Create and return a new box from a given `state` object.
 
 Every box has its independent history.
 

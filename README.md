@@ -15,7 +15,7 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
     - [boxes](#boxes-constructor-api)
     - [box.get](#box-get-api)
     - [box.save](#box-save-api)
-    - [box.on and unsubscribe](#box-on-api)
+    - [box.on](#box-on-api)
     - [box.off](#box-off-api)
     - [box.emit](#box-emit-api)
     - [box.undo and box.redo](#box-undo-redo-api)
@@ -73,23 +73,16 @@ box.save(scope.o)
 
 Subscribe `action` method to changes in `scope`.  That `action` will be launched on `scope` saving. `scope` is `state` by default.
 
-`on` returns `unsubscribe` method.
-
 ```js
-let unsubscribe = box.subscribe(console.log)
+box.on(() => console.log('state changed!'))
 scope.a = 99
 box.save()
-// console will print: {a: 99, o: {x: true}}
+// 'state changed!'
 
-unsubscribe()
-scope.a = 3
-box.save()
-// console will print nothing
-
-box.on(scope.o, console.log)
+box.on(scope.o, console.log('object changed!'))
 scope.o.x = false
 box.save(scope.o)
-// console will print: {x: false}
+// 'object changed!'
 ```
 
 

@@ -71,6 +71,13 @@ function boxes (state) {
    * @param {Function} listener target to remove
    */
   function off (scope, listener) {
+    if (!listener) {
+      listener = scope
+      scope = state
+    }
+    if (!listener || typeof listener !== 'function') {
+      throw new Error('off method requires a listener function')
+    }
     emitter.off(scope, listener)
   }
 

@@ -96,17 +96,18 @@ test('emit', t => {
   t.end()
 })
 
-test('unsubscribe', t => {
+test('off', t => {
   let control = 0
   let scope = {
     a: 1
   }
   let box = boxes(scope)
-  let unsubscribe = box.on(() => ++control)
+  const fn = () => ++control
+  box.on(fn)
   box.emit()
   t.is(control, 1)
   scope.a = 2
-  unsubscribe()
+  box.off(fn)
   box.emit()
   t.is(control, 1)
   t.end()

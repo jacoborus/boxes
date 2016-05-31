@@ -1,6 +1,6 @@
 {
   "name": "boxes",
-  "version": "0.16.6",
+  "version": "0.17.0",
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "scripts": {

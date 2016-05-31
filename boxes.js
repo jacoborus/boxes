@@ -3,7 +3,7 @@
 const ae = require('arbitrary-emitter')
 
 /**
- * create and return a new box with given objject state
+ * create and return a new box from given object state
  *
  * @param {object} state = {} inital state
  * @returns {object} a new box
@@ -63,6 +63,13 @@ function boxes (state) {
     return emitter.on(scope, listener)
   }
 
+  /**
+   * Unsubscribe `listener` tagged with `scope`. Remove all
+   * listeners tagged with `scope` if no `listener` is passed
+   *
+   * @param {Object} scope event key
+   * @param {Function} listener target to remove
+   */
   function off (scope, listener) {
     emitter.off(scope, listener)
   }
@@ -122,9 +129,7 @@ function boxes (state) {
 
   // trigger actions subscribed to a `scope`.
   function triggerScope (scope) {
-    // TODO: uncomment next line and rewrite tests
-    // emitter.emit(scope)
-    emitter.emit(scope, scope)
+    emitter.emit(scope)
     return box
   }
 

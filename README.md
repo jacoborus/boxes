@@ -19,9 +19,7 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
     - [box.off](#box-off-api)
     - [box.emit](#box-emit-api)
     - [box.undo and box.redo](#box-undo-redo-api)
-    - [box.records](#box-records-api)
     - [box.log](#box-log-api)
-    - [box.now](#box-now-api)
 - [Testing](#testing)
 - [Building](#building)
 
@@ -153,14 +151,6 @@ state.b === 'boxes!' // true
 
 
 
-<a name="box-records-api"></a>
-### box.records
-
-Boxes saves every change with a log. You can examine this array in `box.records`.
-
-
-
-
 <a name="box-log-api"></a>
 ### box.log(info)
 
@@ -175,33 +165,7 @@ let box = boxes(state)
 box.log('this is the initial state')
 state.a = 99
 box.save() // will log `Date.now()`
-
-box.records // ['this is the initial state', 1460337512847]
 ```
-
-
-
-<a name="box-now-api"></a>
-### box.now(position)
-
-Travel in history to story in `position`, then return the actual position in the history as a number
-
-```js
-let state = {a: 1}
-let box = boxes(state)
-
-box.now() === 0 // true
-
-state.a = 9
-box.save().now() === 1 // true
-
-box.undo()
-box.now() === 0 // true
-
-box.now(1)
-box.now() === 1 // true
-```
-
 
 
 

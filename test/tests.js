@@ -203,48 +203,6 @@ test('work with arrays', t => {
   t.end()
 })
 
-test('log, records and get now', t => {
-  let state = {a: 1}
-  let box = boxes(state)
-  t.is(box.now(), 0, 'initial now')
-  t.notOk(isNaN(box.records[0]), 'default log is time')
-
-  box.log('initial state')
-  t.is(box.now(), 0, 'initial now')
-  t.is(box.records[0], 'initial state')
-
-  state.a = 2
-  box.save().log('a is 2')
-  t.is(box.now(), 1, 'initial now')
-  t.is(box.records[1], 'a is 2')
-
-  state.b = true
-  box.save()
-  t.is(box.now(), 2, 'initial now')
-  t.is(box.records.length, 3, 'keep records count')
-
-  box.undo(2)
-  state.b = false
-  t.is(box.now(), 0, 'undo now')
-  box.save()
-  t.is(box.now(), 1, 'now re save')
-  t.is(box.records.length, 2, 'delete future records when save')
-
-  t.end()
-})
-
-test('apply now', t => {
-  const state = {a: 1}
-  const box = boxes(state)
-  state.a = 2
-  box.save()
-  state.b = true
-  box.save()
-  box.now(0)
-  t.is(box.now(), 0)
-  t.end()
-})
-
 test('off', t => {
   const state = {a: 1}
   const box = boxes(state)

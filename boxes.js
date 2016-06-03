@@ -17,14 +17,12 @@ function boxes (state) {
   let step = -1
   const links = new Map()
   const hist = [] // history
-  const records = []
 
   // clean future stories and future logs
   function removeFuture () {
     if (step + 1 < hist.length) {
       // get future stories
       const toClean = hist.splice(step + 2)
-      records.splice(step + 2)
       // reset `future` property in every link in of future stories
       toClean.forEach(story => {
         story.targets.forEach(link => {
@@ -143,12 +141,7 @@ function boxes (state) {
       info: Date.now()
     }
     hist[++step] = story
-    records[step] = story.info
     return box
-  }
-
-  function log (info = Date.now()) {
-    records[step] = hist[step].info = info
   }
 
   /**
@@ -199,23 +192,9 @@ function boxes (state) {
     return step
   }
 
-  function now (pos) {
-    if (!(0 in arguments) ||
-        isNaN(pos) ||
-        !Number.isInteger(pos) ||
-        pos === step ||
-        hist.length > pos < 0) {
-      return step
-    }
-    if (step < pos) {
-      return box.redo(pos - step)
-    }
-    return box.undo(step - pos)
-  }
-
   const box = {
     get: () => state,
-    save, emit, on, off, undo, redo, log, records, now
+    save, emit, on, off, undo, redo
   }
 
   // save initial state so we can get back later

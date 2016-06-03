@@ -58,15 +58,9 @@ function boxes (state) {
     // save the copy of the object in `past` list in its `link`
     link.past.push(copy)
     // call listeners
-    triggerScope(scope)
+    emitter.emit(scope)
     // the returned link will be stored as a story in the history
     return link
-  }
-
-  // trigger actions subscribed to a `scope`.
-  function triggerScope (scope) {
-    emitter.emit(scope)
-    return box
   }
 
   function applyStory (link) {
@@ -86,7 +80,7 @@ function boxes (state) {
       // assign properties
       keys.forEach(k => { scope[k] = past[k] })
     }
-    emitter.emit(scope, scope)
+    emitter.emit(scope)
   }
 
   /**
@@ -153,8 +147,7 @@ function boxes (state) {
     return box
   }
 
-  function log (info) {
-    info = 0 in arguments ? info : Date.now()
+  function log (info = Date.now()) {
     records[step] = hist[step].info = info
   }
 
@@ -164,11 +157,11 @@ function boxes (state) {
    * @param {object} scope optional, is `state` by default
    */
   function emit (scope) {
-    if (!scope) return triggerScope(state)
-    if (!links.has(scope)) {
+    if (!scope) emitter.emit(state)
+    else if (links.has(scope)) emitter.emit(scope)
+    else {
       throw new Error('Cannot trigger a scope outside the box')
     }
-    triggerScope(scope)
     return box
   }
 

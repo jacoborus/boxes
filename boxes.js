@@ -5,7 +5,7 @@ const ae = require('arbitrary-emitter')
 /**
  * Create and return a new box from given object `state`
  *
- * @param {object} state = {} inital state
+ * @param {object} state inital state
  * @returns {object} a new box
  */
 function boxes (state) {

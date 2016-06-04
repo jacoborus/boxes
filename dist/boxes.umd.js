@@ -4,74 +4,40 @@
 const ae = require('arbitrary-emitter')
 
 /**
- * create and return a new box with given objject state
+ * Create and return a new box from given object `state`
  *
- * @param {object} state = {} inital state
+ * @param {object} state inital state
  * @returns {object} a new box
  */
 function boxes (state) {
   const emitter = ae()
-  if (state) {
-    if (typeof state !== 'object') {
-      throw new Error('state should be a object')
-    }
-  } else {
-    state = {}
+  if (!state || typeof state !== 'object') {
+    throw new Error('boxes requires an object state')
   }
 
   let step = -1
   const links = new Map()
   const hist = [] // history
-  const records = []
-  const box = {
-    get: () => state,
-    save, emit, on, off, undo, redo, log, records, now
-  }
-
-  // save initial state so we can get back later
-  save(state)
 
   // clean future stories and future logs
   function removeFuture () {
     if (step + 1 < hist.length) {
       // get future stories
       const toClean = hist.splice(step + 2)
-      records.splice(step + 2)
-      // reset `post` property in every link in of future stories
-      toClean.forEach(story => story.targets.forEach(link => { link.post = [] }))
+      // reset `future` property in every link in of future stories
+      toClean.forEach(story => {
+        story.targets.forEach(link => {
+          link.future = []
+        })
+      })
     }
-  }
-
-  /**
-   * Call the `action` when saving or triggering `scope`. `scope` is `state` by default
-   *
-   * @param {object} scope target. `state` by default
-   * @param {function} action method to dispatch on saving
-   * @returns {function} unsubscribe method
-   */
-  function on (scope, action) {
-    if (!action) {
-      action = scope
-      scope = state
-    } else if (!links.has(scope)) {
-      throw new Error('cannot subscribe to a scope outside the box state')
-    }
-    if (!action || typeof action !== 'function') {
-      throw new Error('on requires a function as first argument')
-    }
-
-    return emitter.on(scope, action)
-  }
-
-  function off (scope, action) {
-    emitter.off(scope, action)
   }
 
   function getNewLink (scope) {
     const link = {
       scope,
-      pre: [],
-      post: []
+      past: [],
+      future: []
     }
     links.set(scope, link)
     return link
@@ -82,21 +48,85 @@ function boxes (state) {
     const copy = Array.isArray(scope) ? [] : {}
     const link = links.get(scope) || getNewLink(scope)
     Object.keys(scope).forEach(k => {
-      const val = scope[k]
-      copy[k] = val
+      const val = copy[k] = scope[k]
       // save nested objects whether they are new in the box
       if (val && typeof val === 'object' && !links.has(val)) {
         applySave(val)
       }
     })
-    // save the copy of the object in `pre` list in its link
-    link.pre.push(copy)
-    // call subscriptions
-    triggerLink(link)
+    // save the copy of the object in `past` list in its `link`
+    link.past.push(copy)
+    // call listeners
+    emitter.emit(scope)
     // the returned link will be stored as a story in the history
     return link
   }
 
+  function applyStory (link) {
+    const past = link.past[link.past.length - 1]
+    const scope = link.scope
+    if (Array.isArray(scope)) {
+      // remove extra length
+      scope.splice(past.length)
+      // assign properties
+      past.forEach((el, i) => { scope[i] = el })
+    } else {
+      let keys = Object.keys(past)
+      // delete properties
+      Object.keys(scope)
+      .filter(i => keys.indexOf(i) < 0)
+      .forEach(k => delete scope[k])
+      // assign properties
+      keys.forEach(k => { scope[k] = past[k] })
+    }
+    emitter.emit(scope)
+  }
+
+  /**
+   * Call the `listener` when saving or triggering `scope`. `scope` is `state` by default
+   *
+   * @param {object} scope target. `state` by default
+   * @param {function} listener method to dispatch on saving
+   * @returns {function} unsubscribe method
+   */
+  function on (scope, listener) {
+    if (!listener) {
+      listener = scope
+      scope = state
+    } else if (!links.has(scope)) {
+      throw new Error('cannot subscribe to a scope outside the box state')
+    }
+    if (!listener || typeof listener !== 'function') {
+      throw new Error('on method requires a listener function')
+    }
+
+    return emitter.on(scope, listener)
+  }
+
+  /**
+   * Unsubscribe `listener` tagged with `scope`. Remove all
+   * listeners tagged with `scope` if no `listener` is passed
+   *
+   * @param {Object} scope event key
+   * @param {Function} listener target to remove
+   */
+  function off (scope, listener) {
+    if (!listener) {
+      listener = scope
+      scope = state
+    }
+    if (!listener || typeof listener !== 'function') {
+      throw new Error('off method requires a listener function')
+    }
+    emitter.off(scope, listener)
+  }
+
+  /**
+   * save `scope` values in history, then call listeners tagged with `scope`
+   *
+   * @param {Object} scope Optional, is `state` by default
+   * @returns {Object} box
+   */
   function save (scope) {
     if (!scope) {
       // use state as default scope
@@ -112,60 +142,21 @@ function boxes (state) {
       info: Date.now()
     }
     hist[++step] = story
-    records[step] = story.info
     return box
-  }
-
-  function log (info) {
-    info = 0 in arguments ? info : Date.now()
-    records[step] = hist[step].info = info
-  }
-
-  // emit actions subscribed to a `link`.
-  function triggerLink (link) {
-    let scope = link.scope
-    emitter.emit(scope, scope)
-    return box
-  }
-
-  // trigger actions subscribed to a `scope`.
-  function triggerScope (scope) {
-    return triggerLink(links.get(scope))
   }
 
   /**
-   * call triggerScope passing `state` as `scope` by default
-   * also check passed `scope` is inside state
-   * @param {object} scope optional target
+   * Call listeners tagged with `scope`.
+   *
+   * @param {object} scope optional, is `state` by default
    */
   function emit (scope) {
-    if (!scope) return triggerScope(state)
-    // check passed `scope` is inside state
-    if (!links.has(scope)) {
+    if (!scope) emitter.emit(state)
+    else if (links.has(scope)) emitter.emit(scope)
+    else {
       throw new Error('Cannot trigger a scope outside the box')
     }
-    triggerScope(scope)
     return box
-  }
-
-  function applyStory (link) {
-    const pre = link.pre[link.pre.length - 1]
-    const scope = link.scope
-    if (Array.isArray(scope)) {
-      // remove extra length
-      scope.splice(pre.length)
-      // assign properties
-      pre.forEach((el, i) => { scope[i] = el })
-    } else {
-      let keys = Object.keys(pre)
-      // delete properties
-      Object.keys(scope)
-      .filter(i => keys.indexOf(i) < 0)
-      .forEach(k => delete scope[k])
-      // assign properties
-      keys.forEach(k => { scope[k] = pre[k] })
-    }
-    emitter.emit(scope, scope)
   }
 
   function undo (steps) {
@@ -176,12 +167,11 @@ function boxes (state) {
       let i = steps
       while (i) {
         hist[step--].targets.forEach(link => {
-          link.post.push(link.pre.pop())
+          link.future.push(link.past.pop())
           applyStory(link)
         })
         --i
       }
-      return step
     }
     return step
   }
@@ -194,29 +184,22 @@ function boxes (state) {
     if (hist[step + steps]) {
       while (i) {
         hist[++step].targets.forEach(link => {
-          link.pre.push(link.post.pop())
+          link.past.push(link.future.pop())
           applyStory(link)
         })
         --i
       }
-      return step
     }
     return step
   }
 
-  function now (pos) {
-    if (!(0 in arguments) ||
-        isNaN(pos) ||
-        !Number.isInteger(pos) ||
-        pos === step ||
-        hist.length > pos < 0) {
-      return step
-    }
-    if (step < pos) {
-      return box.redo(pos - step)
-    }
-    return box.undo(step - pos)
+  const box = {
+    get: () => state,
+    save, emit, on, off, undo, redo
   }
+
+  // save initial state so we can get back later
+  save(state)
 
   return box
 }
@@ -228,99 +211,102 @@ module.exports = boxes
 'use strict'
 
 function arbitrary () {
-  const listeners = new Map()
+  const events = new Map()
+  const actions = new Map()
 
-  function setEmitters (lis, triggers) {
-    const size = triggers.size
-    if (!size) listeners.delete(lis.key)
-    else if (size === 1) {
-      let fn
-      triggers.forEach(f => { fn = f })
-      lis.launch0 = lis.launch1 = fn
-      lis.launchX = args => fn.apply(fn, args)
+  function setActions (e) {
+    const listeners = e.listeners.filter(l => l)
+    let size = listeners.length
+    if (!size) {
+      events.delete(e.key)
+      actions.delete(e.key)
+    } else if (size === 1) {
+      actions.set(e.key, (a, b) => {
+        let fn = listeners[0]
+        if (fn) fn(a, b)
+      })
     } else {
-      lis.launch0 = () => triggers.forEach(f => f())
-      lis.launch1 = (a, b) => triggers.forEach(f => f(a, b))
-      lis.launchX = lis.trigger
+      actions.set(e.key, (a, b) => {
+        e.running.push(listeners)
+        let size = listeners.length
+        while (size > 0) {
+          const fn = listeners[--size]
+          if (fn) fn(a, b)
+        }
+        e.running.pop()
+      })
     }
   }
 
   const newListener = key => {
-    const triggers = new Set()
+    const listeners = []
+    const running = []
 
-    const lis = {
-      key,
-      add (fn) {
-        triggers.add(fn)
-        setEmitters(lis, triggers)
-      },
-      rm (method) {
-        triggers.delete(method)
-        setEmitters(lis, triggers)
-      },
-      trigger (args) {
-        triggers.forEach(f => f.apply(f, args))
+    function trash (list, lis) {
+      let index = list.indexOf(lis)
+      if (index > -1) {
+        delete list[index]
       }
     }
 
-    listeners.set(key, lis)
-    return lis
+    const e = {
+      key,
+      listeners,
+      running,
+      add (fn) {
+        if (listeners.indexOf(fn) === -1) {
+          listeners.unshift(fn)
+        }
+        setActions(e)
+      },
+      rm (lis) {
+        trash(listeners, lis)
+        if (running.length) {
+          running.forEach(list => trash(list, lis))
+        }
+        setActions(e)
+      }
+    }
+
+    events.set(key, e)
+    return e
   }
 
   return {
-    on (key, method) {
-      const lis = listeners.get(key) || newListener(key)
-      lis.add(method)
-      let isSubscribed = true
-      return () => {
-        if (isSubscribed) {
-          lis.rm(method)
-          isSubscribed = false
-        }
-      }
+    on (key, lis) {
+      const e = events.get(key) || newListener(key)
+      e.add(lis)
     },
 
-    once (key, method) {
-      const lis = listeners.get(key) || newListener(key)
-      lis.add(fn)
+    once (key, lis) {
+      const e = events.get(key) || newListener(key)
+      e.add(fn)
       function fn () {
-        method(arguments)
-        lis.rm(fn)
+        lis(arguments)
+        e.rm(fn)
       }
     },
 
-    emit (key) {
-      const lis = listeners.get(key)
-      if (!lis) return
-      const al = arguments.length
-      if (al === 1) lis.launch0()
-      else if (al > 4) lis.launch1(arguments[1], arguments[2])
-      else {
-        let args = new Array(al - 1)
-        for (let i = 1; i < al; ++i) {
-          args[i - 1] = arguments[i]
-        }
-        lis.launchX(args)
+    emit (key, a, b) {
+      const action = actions.get(key)
+      if (action) action(a, b)
+    },
+
+    off (key, lis) {
+      if (!(1 in arguments)) {
+        events.delete(key)
+        actions.delete(key)
+      } else if (events.has(key)) {
+        events.get(key).rm(lis)
       }
     },
 
-    trigger (key) {
-      const lis = listeners.get(key)
-      if (!lis) return
-      if (arguments.length === 1) {
-        return lis.launch0()
-      }
-      let args = arguments[1]
-      if (typeof args !== 'object') {
-        throw new Error('arguments has wrong type')
-      }
-      lis.trigger(args)
-    },
-
-    off (key, action) {
-      if (!(1 in arguments)) listeners.delete(key)
-      else if (listeners.has(key)) listeners.get(key).rm(action)
+    listeners (key) {
+      const e = events.get(key)
+      if (!e) return []
+      else return e.listeners.slice(0).reverse()
     }
+
   }
 }
 

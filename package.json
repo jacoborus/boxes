@@ -1,6 +1,6 @@
 {
   "name": "boxes",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "scripts": {
@@ -35,10 +35,10 @@
   "homepage": "https://github.com/jacoborus/boxes",
   "devDependencies": {
     "browserify": "^13.0.0",
-    "standard": "^7.1.1",
+    "standard": "^7.1.2",
     "tape": "^4.5.1"
   },
   "dependencies": {
-    "arbitrary-emitter": "^0.10.2"
+    "arbitrary-emitter": "^0.11.0"
   }
 }

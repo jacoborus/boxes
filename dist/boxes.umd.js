@@ -20,6 +20,7 @@ function boxes (state) {
   const hist = [] // history
 
   // clean future stories and future logs
+  // (the ones from the actual step to the last one)
   function removeFuture () {
     if (step + 1 < hist.length) {
       // get future stories
@@ -82,126 +83,136 @@ function boxes (state) {
     emitter.emit(scope)
   }
 
-  /**
-   * Call the `listener` when saving or triggering `scope`. `scope` is `state` by default
-   *
-   * @param {object} scope target. `state` by default
-   * @param {function} listener method to dispatch on saving
-   * @returns {function} unsubscribe method
-   */
-  function on (scope, listener) {
-    if (!listener) {
-      listener = scope
-      scope = state
-    } else if (!links.has(scope)) {
-      throw new Error('cannot subscribe to a scope outside the box state')
-    }
-    if (!listener || typeof listener !== 'function') {
-      throw new Error('on method requires a listener function')
-    }
-
-    return emitter.on(scope, listener)
-  }
-
-  /**
-   * Unsubscribe `listener` tagged with `scope`. Remove all
-   * listeners tagged with `scope` if no `listener` is passed
-   *
-   * @param {Object} scope event key
-   * @param {Function} listener target to remove
-   */
-  function off (scope, listener) {
-    if (!listener) {
-      listener = scope
-      scope = state
-    }
-    if (!listener || typeof listener !== 'function') {
-      throw new Error('off method requires a listener function')
-    }
-    emitter.off(scope, listener)
-  }
-
-  /**
-   * save `scope` values in history, then call listeners tagged with `scope`
-   *
-   * @param {Object} scope Optional, is `state` by default
-   * @returns {Object} box
-   */
-  function save (scope) {
-    if (!scope) {
-      // use state as default scope
-      scope = state
-    } else if (typeof scope !== 'object') {
-      throw new Error('scope argument has to be a object')
-    }
-    // assure we can add new stories after old ones
-    removeFuture()
-    // add story to history and increase `step`
-    const story = {
-      targets: [applySave(scope)],
-      info: Date.now()
-    }
-    hist[++step] = story
-    return box
-  }
-
-  /**
-   * Call listeners tagged with `scope`.
-   *
-   * @param {object} scope optional, is `state` by default
-   */
-  function emit (scope) {
-    if (!scope) emitter.emit(state)
-    else if (links.has(scope)) emitter.emit(scope)
-    else {
-      throw new Error('Cannot trigger a scope outside the box')
-    }
-    return box
-  }
-
-  function undo (steps) {
-    if (!steps || steps && (isNaN(steps) || steps < 1)) {
-      steps = 1
-    }
-    if (step - steps + 1) {
-      let i = steps
-      while (i) {
-        hist[step--].targets.forEach(link => {
-          link.future.push(link.past.pop())
-          applyStory(link)
-        })
-        --i
-      }
-    }
-    return step
-  }
-
-  function redo (steps) {
-    if (!steps || steps && (isNaN(steps) || steps < 1)) {
-      steps = 1
-    }
-    let i = steps
-    if (hist[step + steps]) {
-      while (i) {
-        hist[++step].targets.forEach(link => {
-          link.past.push(link.future.pop())
-          applyStory(link)
-        })
-        --i
-      }
-    }
-    return step
-  }
-
   const box = {
     get: () => state,
-    save, emit, on, off, undo, redo
+    /**
+      * Call the `listener` when saving or triggering `scope`.
+      * `scope` is `state` by default
+      *
+      * @param {object} scope target. `state` by default
+      * @param {function} listener method to dispatch on saving
+      * @returns {function} unsubscribe method
+      */
+    on (scope, listener) {
+      if (!listener) {
+        listener = scope
+        scope = state
+      } else if (!links.has(scope)) {
+        throw new Error('cannot subscribe to a scope outside the box state')
+      }
+      if (!listener || typeof listener !== 'function') {
+        throw new Error('on method requires a listener function')
+      }
+
+      return emitter.on(scope, listener)
+    },
+
+    /**
+     * Unsubscribe `listener` tagged with `scope`. Remove all
+     * listeners tagged with `scope` if no `listener` is passed
+     *
+     * @param {Object} scope event key
+     * @param {Function} listener target to remove
+     */
+    off (scope, listener) {
+      if (!listener) {
+        listener = scope
+        scope = state
+      }
+      if (!listener || typeof listener !== 'function') {
+        throw new Error('off method requires a listener function')
+      }
+      emitter.off(scope, listener)
+    },
+
+    /**
+     * save `scope` values in history, then call listeners tagged with `scope`
+     *
+     * @param {Object} scope Optional, is `state` by default
+     * @returns {Object} box
+     */
+    save (scope) {
+      if (!scope) {
+        // use state as default scope
+        scope = state
+      } else if (typeof scope !== 'object') {
+        throw new Error('scope argument has to be a object')
+      }
+      // assure we can add new stories after old ones
+      removeFuture()
+      // add story to history and increase `step`
+      const story = {
+        targets: [applySave(scope)],
+        info: Date.now()
+      }
+      hist[++step] = story
+      return box
+    },
+
+    /**
+     * Call listeners tagged with `scope`.
+     *
+     * @param {object} scope optional, is `state` by default
+     */
+    emit (scope) {
+      if (!scope) emitter.emit(state)
+      else if (links.has(scope)) emitter.emit(scope)
+      else {
+        throw new Error('Cannot trigger scopes from outside the box')
+      }
+      return box
+    },
+
+    /**
+     * undo `steps` changes in box and call all
+     * listeners tagged with the changed objects
+     *
+     * @param {Number} steps changes to undo
+     * @returns {Number} changes box undid
+     */
+    undo (steps) {
+      if (!steps || steps && (isNaN(steps) || steps < 1)) {
+        steps = 1
+      }
+      if (step - steps + 1) {
+        let i = steps
+        while (i--) {
+          hist[step--].targets.forEach(link => {
+            link.future.push(link.past.pop())
+            applyStory(link)
+          })
+        }
+      }
+      return step
+    },
+
+    /**
+     * redo `steps` changes in box and call all
+     * listeners tagged with the changed objects
+     *
+     * @param {Number} steps changes to do again
+     * @returns {Number} changes box did
+     */
+    redo (steps) {
+      if (!steps || steps && (isNaN(steps) || steps < 1)) {
+        steps = 1
+      }
+      if (hist[step + steps]) {
+        let i = steps
+        while (i--) {
+          hist[++step].targets.forEach(link => {
+            link.past.push(link.future.pop())
+            applyStory(link)
+          })
+        }
+      }
+      return step
+    }
   }
 
   // save initial state so we can get back later
-  save(state)
-
-  return box
+  // and return the box
+  return box.save(state)
 }
 
 // this line has to be the last for building purposes
@@ -210,7 +221,7 @@ module.exports = boxes
 },{"arbitrary-emitter":2}],2:[function(require,module,exports){
 'use strict'
 
-function arbitrary () {
+module.exports = () => {
   const events = new Map()
   const actions = new Map()
 
@@ -309,8 +320,6 @@ function arbitrary () {
 
   }
 }
-
-module.exports = arbitrary
 
 },{}]},{},[1])(1)
 });

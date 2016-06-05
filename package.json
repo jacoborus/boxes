@@ -1,15 +1,14 @@
 {
   "name": "boxes",
-  "version": "0.19.3",
+  "version": "0.19.4",
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "scripts": {
     "linter": "standard boxes.js test/tests.js",
     "test": "node ./test/tests.js && standard boxes.js test/tests.js",
-    "build-umd": "rm -rf dist && mkdir dist && browserify boxes.js -s boxes -o dist/boxes.umd.js",
+    "build-umd": "rollup --config",
     "build-tests": "mkdir test/dist -p && browserify test/tests.js -o test/dist/tests.js",
-    "build": "npm run build-umd && npm run build-tests",
-    "postinstall": "npm run build-umd"
+    "build": "npm run build-umd && npm run build-tests"
   },
   "engines": {
     "node": ">=5.9.0"
@@ -34,7 +33,10 @@
   },
   "homepage": "https://github.com/jacoborus/boxes",
   "devDependencies": {
-    "browserify": "^13.0.0",
+    "browserify": "^13.0.1",
+    "rollup": "^0.26.6",
+    "rollup-plugin-commonjs": "^2.2.1",
+    "rollup-plugin-node-resolve": "^1.5.0",
     "standard": "^7.1.2",
     "tape": "^4.5.1"
   },

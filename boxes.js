@@ -19,8 +19,8 @@ function boxes (state) {
   const hist = [] // history
 
   /**
-   * clean future stories and future logs
-   * (the ones from the actual step to the last one)
+   * clean future stories (the ones from
+   * the actual step to the last one)
    */
   function removeFuture () {
     if (step + 1 < hist.length) {
@@ -98,7 +98,6 @@ function boxes (state) {
   }
 
   const box = {
-    get: () => state,
     /**
       * Call the `listener` when saving or triggering `scope`.
       * `scope` is `state` by default
@@ -140,6 +139,20 @@ function boxes (state) {
     },
 
     /**
+     * Call listeners tagged with `scope`.
+     *
+     * @param {object} scope optional, is `state` by default
+     */
+    emit (scope) {
+      if (!scope) emitter.emit(state)
+      else if (links.has(scope)) emitter.emit(scope)
+      else {
+        throw new Error('Cannot trigger scopes from outside the box')
+      }
+      return box
+    },
+
+    /**
      * save `scope` values in history, then call listeners tagged with `scope`
      *
      * @param {Object} scope Optional, is `state` by default
@@ -160,20 +173,6 @@ function boxes (state) {
         info: Date.now()
       }
       hist[++step] = story
-      return box
-    },
-
-    /**
-     * Call listeners tagged with `scope`.
-     *
-     * @param {object} scope optional, is `state` by default
-     */
-    emit (scope) {
-      if (!scope) emitter.emit(state)
-      else if (links.has(scope)) emitter.emit(scope)
-      else {
-        throw new Error('Cannot trigger scopes from outside the box')
-      }
       return box
     },
 

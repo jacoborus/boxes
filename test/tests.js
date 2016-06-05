@@ -129,7 +129,6 @@ test('work with arrays', t => {
   }
   let box = boxes(scope)
   // {}
-  t.is(box.get().a, scope.a)
   t.is(Object.keys(scope).length, 1)
 
   scope.a.push(1)

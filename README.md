@@ -41,31 +41,6 @@ let box = boxes(state)
 
 
 
-<a name="box-get-api"></a>
-### box.get()
-
-Returns the state of the box
-
-```js
-box.get() //=> {a:1, o: {x: true}}
-```
-
-
-
-<a name="box-save-api"></a>
-### box.save(scope)
-
-Save `scope` changes in history. `scope` is `state` by default. `save` method returns the box, so you can chain multiple calls
-
-```js
-// save state scope
-box.save()
-// save picked scope
-box.save(scope.o)
-```
-
-
-
 <a name="box-on-api"></a>
 ### box.on([scope,] action) and unsubscribe()
 
@@ -120,6 +95,20 @@ box.emit(scope.o)
 
 
 
+<a name="box-save-api"></a>
+### box.save(scope)
+
+Save `scope` changes in history. `scope` is `state` by default. `save` method returns the box, so you can chain multiple calls
+
+```js
+// save state scope
+box.save()
+// save picked scope
+box.save(scope.o)
+```
+
+
+
 <a name="box-undo-redo-api"></a>
 ### box.undo(steps) and box.redo(steps)
 
@@ -147,24 +136,6 @@ state.b === undefined // true
 box.redo(2)
 state.a === undefined // true
 state.b === 'boxes!' // true
-```
-
-
-
-<a name="box-log-api"></a>
-### box.log(info)
-
-Change the log `info` of last commit. `info` can be any type.
-The log info of every change is `Date.now()` by default, but you can change it with `box.log(info)`
-
-
-```js
-let state = {a: 1}
-let box = boxes(state)
-
-box.log('this is the initial state')
-state.a = 99
-box.save() // will log `Date.now()`
 ```
 
 

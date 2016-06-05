@@ -18,8 +18,10 @@ function boxes (state) {
   const links = new Map()
   const hist = [] // history
 
-  // clean future stories and future logs
-  // (the ones from the actual step to the last one)
+  /**
+   * clean future stories and future logs
+   * (the ones from the actual step to the last one)
+   */
   function removeFuture () {
     if (step + 1 < hist.length) {
       // get future stories
@@ -33,7 +35,14 @@ function boxes (state) {
     }
   }
 
-  function getNewLink (scope) {
+  /**
+   * Create a new link that contains the target scope
+   * and arrays for future and past scope state copies
+   *
+   * @param {Object|Array} scope target
+   * @returns {Object} the link
+   */
+  function createNewLink (scope) {
     const link = {
       scope,
       past: [],
@@ -43,10 +52,16 @@ function boxes (state) {
     return link
   }
 
+  /**
+   * Creates a copy of `scope` and stores it in its link.past array
+   *
+   * @param {Object|Array} scope Object to save
+   * @returns {Object} link of scope
+   */
   function applySave (scope) {
     // make a copy of the object
     const copy = Array.isArray(scope) ? [] : {}
-    const link = links.get(scope) || getNewLink(scope)
+    const link = links.get(scope) || createNewLink(scope)
     Object.keys(scope).forEach(k => {
       const val = copy[k] = scope[k]
       // save nested objects whether they are new in the box

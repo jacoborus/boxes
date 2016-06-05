@@ -153,7 +153,7 @@ function boxes (state) {
     if (!scope) emitter.emit(state)
     else if (links.has(scope)) emitter.emit(scope)
     else {
-      throw new Error('Cannot trigger a scope outside the box')
+      throw new Error('Cannot trigger scopes from outside the box')
     }
     return box
   }
@@ -164,12 +164,11 @@ function boxes (state) {
     }
     if (step - steps + 1) {
       let i = steps
-      while (i) {
+      while (i--) {
         hist[step--].targets.forEach(link => {
           link.future.push(link.past.pop())
           applyStory(link)
         })
-        --i
       }
     }
     return step
@@ -179,14 +178,13 @@ function boxes (state) {
     if (!steps || steps && (isNaN(steps) || steps < 1)) {
       steps = 1
     }
-    let i = steps
     if (hist[step + steps]) {
-      while (i) {
+      let i = steps
+      while (i--) {
         hist[++step].targets.forEach(link => {
           link.past.push(link.future.pop())
           applyStory(link)
         })
-        --i
       }
     }
     return step
@@ -198,9 +196,7 @@ function boxes (state) {
   }
 
   // save initial state so we can get back later
-  save(state)
-
-  return box
+  return save(state)
 }
 
 // this line has to be the last for building purposes

@@ -9,7 +9,8 @@ Boxes is written in vanilla ES6, so maybe you want to transpile it before using 
 
 **Project in active development, API may change**
 
-[![Build Status](https://travis-ci.org/jacoborus/boxes.svg?branch=master)](https://travis-ci.org/jacoborus/boxes) [![npm version](https://badge.fury.io/js/boxes.svg)](https://www.npmjs.com/package/boxes) ![npm dependencies](https://david-dm.org/jacoborus/boxes.svg)
+[![Build Status](https://travis-ci.org/jacoborus/boxes.svg?branch=master)](https://travis-ci.org/jacoborus/boxes) [![npm version](https://badge.fury.io/js/boxes.svg)](https://www.npmjs.com/package/boxes) ![npm dependencies](https://david-dm.org/jacoborus/boxes.svg) 
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 
 - [API](#boxes-api)
     - [boxes](#boxes-constructor-api)

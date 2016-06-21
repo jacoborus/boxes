@@ -1,6 +1,6 @@
 {
   "name": "boxes",
-  "version": "0.19.4",
+  "version": "0.19.5",
   "description": "Mutable state containers with time travelling",
   "main": "boxes.js",
   "scripts": {
@@ -34,7 +34,7 @@
   "homepage": "https://github.com/jacoborus/boxes",
   "devDependencies": {
     "browserify": "^13.0.1",
-    "rollup": "^0.26.6",
+    "rollup": "^0.26.7",
     "rollup-plugin-commonjs": "^2.2.1",
     "rollup-plugin-node-resolve": "^1.5.0",
     "standard": "^7.1.2",

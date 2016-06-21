@@ -133,8 +133,10 @@
     const links = new Map()
     const hist = [] // history
 
-    // clean future stories and future logs
-    // (the ones from the actual step to the last one)
+    /**
+     * clean future stories (the ones from
+     * the actual step to the last one)
+     */
     function removeFuture () {
       if (step + 1 < hist.length) {
         // get future stories
@@ -148,7 +150,14 @@
       }
     }
 
-    function getNewLink (scope) {
+    /**
+     * Create a new link that contains the target scope
+     * and arrays for future and past scope state copies
+     *
+     * @param {Object|Array} scope target
+     * @returns {Object} the link
+     */
+    function createNewLink (scope) {
       const link = {
         scope,
         past: [],
@@ -158,10 +167,16 @@
       return link
     }
 
+    /**
+     * Creates a copy of `scope` and stores it in its link.past array
+     *
+     * @param {Object|Array} scope Object to save
+     * @returns {Object} link of scope
+     */
     function applySave (scope) {
       // make a copy of the object
       const copy = Array.isArray(scope) ? [] : {}
-      const link = links.get(scope) || getNewLink(scope)
+      const link = links.get(scope) || createNewLink(scope)
       Object.keys(scope).forEach(k => {
         const val = copy[k] = scope[k]
         // save nested objects whether they are new in the box
@@ -198,7 +213,6 @@
     }
 
     const box = {
-      get: () => state,
       /**
         * Call the `listener` when saving or triggering `scope`.
         * `scope` is `state` by default
@@ -240,6 +254,20 @@
       },
 
       /**
+       * Call listeners tagged with `scope`.
+       *
+       * @param {object} scope optional, is `state` by default
+       */
+      emit (scope) {
+        if (!scope) emitter.emit(state)
+        else if (links.has(scope)) emitter.emit(scope)
+        else {
+          throw new Error('Cannot trigger scopes from outside the box')
+        }
+        return box
+      },
+
+      /**
        * save `scope` values in history, then call listeners tagged with `scope`
        *
        * @param {Object} scope Optional, is `state` by default
@@ -260,20 +288,6 @@
           info: Date.now()
         }
         hist[++step] = story
-        return box
-      },
-
-      /**
-       * Call listeners tagged with `scope`.
-       *
-       * @param {object} scope optional, is `state` by default
-       */
-      emit (scope) {
-        if (!scope) emitter.emit(state)
-        else if (links.has(scope)) emitter.emit(scope)
-        else {
-          throw new Error('Cannot trigger scopes from outside the box')
-        }
         return box
       },
 

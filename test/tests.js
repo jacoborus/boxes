@@ -215,3 +215,10 @@ test('off', t => {
   t.is(control, 1)
   t.end()
 })
+
+// TODO:
+// - reenable log
+// - recover logs
+// - limit history (through options at create time)
+// - travel to a instant in time without undo or redo
+// - flat group of stories into one

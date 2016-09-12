@@ -3,17 +3,17 @@
 const ae = require('arbitrary-emitter')
 
 /**
- * Create and return a new box from given object `state`
+ * Create and return a new box from given `state`
  *
  * @param {object} state inital state
  * @returns {object} a new box
  */
 function boxes (state) {
-  const emitter = ae()
   if (!state || typeof state !== 'object') {
     throw new Error('boxes requires an object state')
   }
 
+  const emitter = ae()
   let step = -1
   const links = new Map()
   const hist = [] // history
@@ -26,7 +26,7 @@ function boxes (state) {
     if (step + 1 < hist.length) {
       // get future stories
       const toClean = hist.splice(step + 2)
-      // reset `future` property in every link in of future stories
+      // reset `future` property in every link in future stories
       toClean.forEach(story => {
         story.targets.forEach(link => {
           link.future = []

@@ -5,7 +5,7 @@
   "main": "boxes.js",
   "scripts": {
     "linter": "standard boxes.js test/tests.js",
-    "test": "node ./test/tests.js && standard boxes.js test/tests.js",
+    "test": "node ./test/tests.js && npm run linter",
     "build-umd": "rollup --config",
     "build-tests": "mkdir test/dist -p && browserify test/tests.js -o test/dist/tests.js",
     "build": "npm run build-umd && npm run build-tests"
@@ -33,14 +33,14 @@
   },
   "homepage": "https://github.com/jacoborus/boxes",
   "devDependencies": {
-    "browserify": "^13.0.1",
-    "rollup": "^0.33.0",
-    "rollup-plugin-commonjs": "^3.1.0",
-    "rollup-plugin-node-resolve": "^1.7.1",
-    "standard": "^7.1.2",
+    "browserify": "^13.1.0",
+    "rollup": "^0.35.9",
+    "rollup-plugin-commonjs": "^4.1.0",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "standard": "^8.0.0",
     "tape": "^4.6.0"
   },
   "dependencies": {
-    "arbitrary-emitter": "^0.11.1"
+    "arbitrary-emitter": "^1.0.0"
   }
 }

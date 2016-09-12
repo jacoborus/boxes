@@ -218,7 +218,6 @@ test('off', t => {
 
 // TODO:
 // - reenable log
-// - recover logs
 // - limit history (through options at create time)
 // - travel to a instant in time without undo or redo
 // - flat group of stories into one

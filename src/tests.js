@@ -239,14 +239,15 @@ test('List#flat', t => {
 })
 
 test('List#includes', t => {
-  const array1 = [1, 2, 3]
-  const list1 = new List(array1)
-  t.ok(list1.includes(2), 'basic includes')
-
-  const pets = ['cat', 'dog', 'bat']
-  t.ok(pets.includes('cat'), 'positive value')
-  t.notOk(pets.includes('at'), 'negative value')
-
+  const nums = [1, 2, 3]
+  const list = new List(nums)
+  t.ok(list.includes(2), true)
+  t.notOk(list.includes(4), false)
+  t.notOk(list.includes(3, 3), false)
+  t.ok(list.includes(3, -1), true)
+  const nans = [1, 2, NaN]
+  const listnan = new List(nans)
+  t.ok(listnan.includes(NaN), true)
   t.end()
 })
 

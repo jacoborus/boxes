@@ -219,18 +219,21 @@ test('List#findIndex', t => {
   t.end()
 })
 
-// test('List#flat', t => {
-//   const origin = [1, 2, [3, 4]]
-//   const list = new List(origin)
-//   const result = list.flat()
-//   const result1 = list.flat(1)
-//   t.same(result, [1, 2, 3, 4], 'flat default omit depth')
-//   t.same(result1, [1, 2, 3, 4], 'flat depth: 1')
-//   t.same([1, 2, [3, 4]], origin, 'does not mutate original array')
-//
-//   const origin2 = [1, 2, [3, 4]]
-//   const list2 = new List(origin2)
-//   const result2 = list2.flat(2)
-//   t.same([1, 2, 3, 4, 5, 6], result2, 'flat depth: 2')
-//   t.end()
-// })
+test('List#flat', t => {
+  const origin = [1, 2, [3, 4]]
+  const list = new List(origin)
+  const result = list.flat()
+  t.same(result, [1, 2, 3, 4], 'basic flat')
+
+  const arr2 = [1, 2, [3, 4, [5, 6]]]
+  const list2 = new List(arr2)
+  const flat2 = list2.flat()
+  t.is(flat2[4][0], 5, 'flat default omit depth')
+
+  const arr3 = [1, 2, [3, 4, [5, 6]]]
+  const list3 = new List(arr3)
+  const flat3 = list3.flat(2)
+  t.is(flat3[5], 6, 'flat default omit depth')
+
+  t.end()
+})

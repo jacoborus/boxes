@@ -93,17 +93,37 @@ test('List', t => {
 test('List#forEach', t => {
   const origin = [0, 1, 2]
   let result = ''
+  let arrTest
   const list = new List(origin)
-  list.forEach(i => { result += i })
+  list.forEach((value, i, arr) => {
+    arrTest = arr
+    result += value
+  })
   t.is(result, '012', 'basic forEach')
+  t.throws(
+    function () {
+      arrTest[0] = 999
+    },
+    'does not expose real array'
+  )
   t.end()
 })
 
 test('List#map', t => {
   const origin = [0, 1, 2]
   const list = new List(origin)
-  const result = list.map(i => i + 10)
+  let arrTest
+  const result = list.map((value, i, arr) => {
+    arrTest = arr
+    return value + 10
+  })
   t.same([10, 11, 12], result, 'basic map')
+  t.throws(
+    function () {
+      arrTest[0] = 999
+    },
+    'does not expose real array'
+  )
   t.end()
 })
 

@@ -55,20 +55,10 @@ function Box (origin) {
 const listMethods = {
   length: arr => arr.length,
   concat: arr => (...args) => arr.concat(...args),
-  forEach: arr => fn => arr.forEach(fn),
-  map: arr => fn => arr.map(fn)
-}
-
-const listHandler = {
-  get (target, prop) {
-    if (!isNaN(prop)) return target[prop]
-
-    const method = listMethods[prop]
-    return method
-      ? method(target)
-      : undefined
-  },
-  set: false
+  // TODO: FIX THIS:
+  // this is bad, forEach method exposes the real array in the third param
+  forEach: (arr, proxy) => fn => arr.forEach((val, i) => fn(val, i, proxy)),
+  map: (arr, proxy) => fn => arr.map((val, i) => fn(val, i, proxy))
 }
 
 function List (origin) {
@@ -78,7 +68,17 @@ function List (origin) {
     const value = origin[key]
     assignValue(arr, key, value)
   })
-  const proxy = new Proxy(arr, listHandler)
+  const proxy = new Proxy(arr, {
+    get (target, prop) {
+      if (!isNaN(prop)) return target[prop]
+
+      const method = listMethods[prop]
+      return method
+        ? method(target, proxy)
+        : undefined
+    },
+    set: false
+  })
   addBox(proxy, arr)
   return proxy
 }

@@ -258,3 +258,13 @@ test('List#indexOf', t => {
   t.is(list.indexOf('giraffe'), -1, 'not found')
   t.end()
 })
+
+test('List#join', t => {
+  const elements = ['Fire', 'Air', 'Water']
+  const list = new List(elements)
+
+  t.is(list.join(), 'Fire,Air,Water')
+  t.is(list.join(''), 'FireAirWater')
+  t.is(list.join('-'), 'Fire-Air-Water')
+  t.end()
+})

@@ -63,7 +63,8 @@ const listMethods = {
   findIndex: (arr, proxy) => fn => arr.findIndex((val, i) => fn(val, i, proxy)),
   flat: arr => depth => arr.flat(depth),
   includes: arr => (val, fromIndex) => arr.includes(val, fromIndex),
-  indexOf: arr => (val, fromIndex) => arr.indexOf(val, fromIndex)
+  indexOf: arr => (val, fromIndex) => arr.indexOf(val, fromIndex),
+  join: arr => separator => arr.join(separator)
 }
 
 function List (origin) {

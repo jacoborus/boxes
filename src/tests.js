@@ -293,3 +293,12 @@ test('List#reduceRight', t => {
   t.same(result, [4, 5, 2, 3, 0, 1])
   t.end()
 })
+
+test('List#slice', t => {
+  const animals = ['ant', 'bison', 'camel', 'duck', 'elephant']
+  const list = new List(animals)
+  t.same(list.slice(2), ['camel', 'duck', 'elephant'])
+  t.same(list.slice(2, 4), ['camel', 'duck'])
+  t.same(list.slice(1, 5), ['bison', 'camel', 'duck', 'elephant'])
+  t.end()
+})

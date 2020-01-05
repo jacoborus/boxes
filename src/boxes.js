@@ -77,7 +77,8 @@ const listMethods = {
     return '1' in arguments
       ? arr.reduceRight((val, i) => fn(val, i, proxy), init)
       : arr.reduceRight((val, i) => fn(val, i, proxy))
-  }
+  },
+  slice: arr => (begin, end) => arr.slice(begin, end)
 }
 
 function List (origin) {

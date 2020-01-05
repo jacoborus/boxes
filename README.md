@@ -1,172 +1,72 @@
 Boxes
 =====
 
-Mutable state containers with time travelling for JavaScript apps
+Experimental mutable state containers for javascript apps
 
-Boxes is written in vanilla ES6, so maybe you want to transpile it before using it.
-
-[Live demo](https://jsfiddle.net/jacoborus/t98z7sts/1/) (for modern browsers)
-
-**Project in active development, API may change**
-
-[![Build Status](https://travis-ci.org/jacoborus/boxes.svg?branch=master)](https://travis-ci.org/jacoborus/boxes) [![npm version](https://badge.fury.io/js/boxes.svg)](https://www.npmjs.com/package/boxes) ![npm dependencies](https://david-dm.org/jacoborus/boxes.svg) 
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
-
-- [API](#boxes-api)
-    - [boxes](#boxes-constructor-api)
-    - [box.get](#box-get-api)
-    - [box.save](#box-save-api)
-    - [box.on](#box-on-api)
-    - [box.off](#box-off-api)
-    - [box.emit](#box-emit-api)
-    - [box.undo and box.redo](#box-undo-redo-api)
-    - [box.log](#box-log-api)
-- [Testing](#testing)
-- [Building](#building)
-
-
-<a name="boxes-api"></a>
 ## API
 
-<a name="boxes-constructor-api"></a>
-### boxes(state)
-
-Create and return a new box from a given `state` object.
-
-Every box has its independent history.
+### Boxes
 
 ```js
-let state = {a:1, o: {x: true}}
-let box = boxes(state)
+import Boxes from 'Boxes'
 ```
 
+### Boxes.Box(origin)
 
+Create a new box. A box is like an object, but their values can't be assign without one of the Boxes mutability methods.
 
-<a name="box-on-api"></a>
-### box.on([scope,] action) and unsubscribe()
+Parameter origin should be a object, box or list
 
-Subscribe `action` method to changes in `scope`.  That `action` will be launched on `scope` saving. `scope` is `state` by default.
+It internally creates a copy of your object, changing the inside objects with boxes and arrays with lists. Then creates a Proxy from this copy which handler only allows properties to be read, not changed.
 
 ```js
-box.on(() => console.log('state changed!'))
-scope.a = 99
-box.save()
-// 'state changed!'
+const origin = {
+  name: 'avocado',
+  amount: 1,
+  sale: true
+}
+const mybox = new Boxes.box(origin)
+console.log(mybox)
+/* outputs: {
+  name: 'avocado',
+  amout: 4,
+  sale: true
+} */
 
-box.on(scope.o, console.log('object changed!'))
-scope.o.x = false
-box.save(scope.o)
-// 'object changed!'
+origin.amount = 99
+
+console.log(mybox.amount)
+// outputs: 1
+mybox.amount = 99
+// throws error
 ```
 
+### Boxes.Box.set(box, propName, value)
 
+### Boxes.List(origin)
 
-<a name="box-off-api"></a>
-### box.off(scope, action)
+Create a new list. A list is like an array, but their values can't be assign without one of the Boxes mutability methods.
 
-Remove listener `action` from `scope` bindings
+The only array methods that doesn't mutate the array will be present in the list.
+
+Parameter origin should be an array
+
+It internally creates a copy of your object, changing the inside objects with boxes and arrays with lists. Then creates a Proxy from this copy which handler only allows properties to be read, not changed.
 
 ```js
-const state = {a: 1}
-const box = boxes(state)
-let control = 0
-const fn = () => control++
-box.on(fn)
-box.emit()
-control === 1 // true
+const fruits = ['avocado', 'orange', 'melon']
 
-box.off(state, fn)
-box.emit()
-control === 1 // true
+const mylist = new Boxes.list(fruits)
+console.log(mybox)
+/* outputs: ['avocado', 'orange', 'melon']
+
+fruits[0] = 'apple'
+console.log(fruits)
+/* outputs: ['apple', 'orange', 'melon']
+
+console.log(mylist)
+/* outputs: ['avocado', 'orange', 'melon']
+
+mylist[0] = 'apple'
+// throws error
 ```
-
-
-
-<a name="box-emit-api"></a>
-### box.emit(scope)
-
-emit subscriptions without saving `scope`. `scope` is `state` by default. `emit` method returns the box, so you can chain multiple calls
-
-```js
-// subscribe to a scope
-box.on(scope.o, myAction)
-// will call `myAction`
-box.emit(scope.o)
-```
-
-
-
-<a name="box-save-api"></a>
-### box.save(scope)
-
-Save `scope` changes in history. `scope` is `state` by default. `save` method returns the box, so you can chain multiple calls
-
-```js
-// save state scope
-box.save()
-// save picked scope
-box.save(scope.o)
-```
-
-
-
-<a name="box-undo-redo-api"></a>
-### box.undo(steps) and box.redo(steps)
-
-Undo and redo changes in `state`. `steps` is a number greater than 0, by default `1`. Both methods returns the actual position in history
-
-```js
-let state = {a: 1}
-let box = boxes(state)
-
-delete state.a
-state.b = 99
-box.save()
-
-state.b = 'boxes!'
-box.save()
-
-box.undo()
-state.a === undefined // true
-state.b === 99 // true
-
-box.undo()
-state.a === 1 // true
-state.b === undefined // true
-
-box.redo(2)
-state.a === undefined // true
-state.b === 'boxes!' // true
-```
-
-
-
-<a name="testing"></a>
-## Testing
-
-### Node
-
-```sh
-npm test
-```
-
-### Browser
-
-Open `test/test.html`
-
-
-
-<a name="building"></a>
-## Building
-
-- Build UMD file: `npm run build-umd`
-- Build browser tests: `npm run build-tests`
-- Run both builds: `npm run build`
-
-
-
-<br><br>
-
----
-
-© 2016 [Jacobo Tabernero](https://github.com/jacoborus) - Released under [MIT License](https://raw.github.com/jacoborus/boxes/master/LICENSE)

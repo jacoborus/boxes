@@ -3,3 +3,5 @@ npm-debug.log
 test/dist
 *.*~
 .tern-port
+dist
+.cache

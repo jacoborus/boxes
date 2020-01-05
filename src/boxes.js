@@ -53,6 +53,10 @@ const modifiers = {
     const link = links.get(proxy)
     link.reverse()
     return proxy
+  },
+  shift (proxy) {
+    const link = links.get(proxy)
+    return link.shift()
   }
 }
 

@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const { Box, copyWithin, fill, pop, push, reverse } = Boxes
+const { Box, copyWithin, fill, pop, push, reverse, shift } = Boxes
 
 test('Box', t => {
   const origin = { a: 1 }
@@ -431,5 +431,14 @@ test('modifiers#reverse', t => {
   const reversed = reverse(list)
   t.same(reversed, ['three', 'two', 'one'])
   t.is(list, reversed)
+  t.end()
+})
+
+test('modifiers#shift', t => {
+  const arr = [1, 2, 3]
+  const list = new Box(arr)
+  const firstElement = shift(list)
+  t.same(list, [2, 3])
+  t.is(firstElement, 1)
   t.end()
 })

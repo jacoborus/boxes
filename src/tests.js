@@ -103,25 +103,6 @@ test('List#concat', t => {
   t.end()
 })
 
-test('List#forEach', t => {
-  const origin = [0, 1, 2]
-  let result = ''
-  let arrTest
-  const list = new Box(origin)
-  list.forEach((value, i, arr) => {
-    arrTest = arr
-    result += value
-  })
-  t.is(result, '012', 'basic forEach')
-  t.throws(
-    function () {
-      arrTest[0] = 999
-    },
-    'does not expose real array'
-  )
-  t.end()
-})
-
 test('List#every', t => {
   const origin = [0, 1, 2]
   const list = new Box(origin)
@@ -212,6 +193,35 @@ test('List#flat', t => {
   const flat3 = list3.flat(2)
   t.is(flat3[5], 6, 'flat default omit depth')
 
+  t.end()
+})
+
+test('List#flatMap', t => {
+  const arr = [1, 2, 3, 4]
+  const list = new Box(arr)
+  t.same(list.map(x => [x * 2]), [[2], [4], [6], [8]])
+  t.same(list.flatMap(x => [x * 2]), [2, 4, 6, 8])
+  // only one level is flattened
+  t.same(list.flatMap(x => [[x * 2]]), [[2], [4], [6], [8]])
+  t.end()
+})
+
+test('List#forEach', t => {
+  const origin = [0, 1, 2]
+  let result = ''
+  let arrTest
+  const list = new Box(origin)
+  list.forEach((value, i, arr) => {
+    arrTest = arr
+    result += value
+  })
+  t.is(result, '012', 'basic forEach')
+  t.throws(
+    function () {
+      arrTest[0] = 999
+    },
+    'does not expose real array'
+  )
   t.end()
 })
 

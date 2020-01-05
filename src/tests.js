@@ -100,6 +100,14 @@ test('List (deep)', t => {
   t.end()
 })
 
+test('List#concat', t => {
+  const origin = [0, 1, 2]
+  const list = new List(origin)
+  const result = list.concat([3, 4], 9)
+  t.same([0, 1, 2, 3, 4, 9], result, 'basic concat')
+  t.end()
+})
+
 test('List#forEach', t => {
   const origin = [0, 1, 2]
   let result = ''
@@ -116,32 +124,6 @@ test('List#forEach', t => {
     },
     'does not expose real array'
   )
-  t.end()
-})
-
-test('List#map', t => {
-  const origin = [0, 1, 2]
-  const list = new List(origin)
-  let arrTest
-  const result = list.map((value, i, arr) => {
-    arrTest = arr
-    return value + 10
-  })
-  t.same([10, 11, 12], result, 'basic map')
-  t.throws(
-    function () {
-      arrTest[0] = 999
-    },
-    'does not expose real array'
-  )
-  t.end()
-})
-
-test('List#concat', t => {
-  const origin = [0, 1, 2]
-  const list = new List(origin)
-  const result = list.concat([3, 4], 9)
-  t.same([0, 1, 2, 3, 4, 9], result, 'basic concat')
   t.end()
 })
 
@@ -279,5 +261,23 @@ test('List#lastIndexOf', t => {
   t.is(list.lastIndexOf(2, 2), 0)
   t.is(list.lastIndexOf(2, -2), 0)
   t.is(list.lastIndexOf(2, -1), 3)
+  t.end()
+})
+
+test('List#map', t => {
+  const origin = [0, 1, 2]
+  const list = new List(origin)
+  let arrTest
+  const result = list.map((value, i, arr) => {
+    arrTest = arr
+    return value + 10
+  })
+  t.same([10, 11, 12], result, 'basic map')
+  t.throws(
+    function () {
+      arrTest[0] = 999
+    },
+    'does not expose real array'
+  )
   t.end()
 })

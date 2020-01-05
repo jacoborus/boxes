@@ -57,7 +57,6 @@ const listMethods = {
   concat: arr => (...args) => arr.concat(...args),
   // entries ??
   forEach: (arr, proxy) => fn => arr.forEach((val, i) => fn(val, i, proxy)),
-  map: (arr, proxy) => fn => arr.map((val, i) => fn(val, i, proxy)),
   every: (arr, proxy) => fn => arr.every((val, i) => fn(val, i, proxy)),
   filter: (arr, proxy) => fn => arr.filter((val, i) => fn(val, i, proxy)),
   find: (arr, proxy) => fn => arr.find((val, i) => fn(val, i, proxy)),
@@ -67,7 +66,8 @@ const listMethods = {
   indexOf: arr => (val, fromIndex) => arr.indexOf(val, fromIndex),
   join: arr => separator => arr.join(separator),
   // keys ?
-  lastIndexOf: arr => (val, fromIndex = -1) => arr.lastIndexOf(val, fromIndex)
+  lastIndexOf: arr => (val, fromIndex = -1) => arr.lastIndexOf(val, fromIndex),
+  map: (arr, proxy) => fn => arr.map((val, i) => fn(val, i, proxy))
 }
 
 function List (origin) {

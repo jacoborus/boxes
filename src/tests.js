@@ -90,7 +90,7 @@ test('List', t => {
   t.end()
 })
 
-test.only('List (deep)', t => {
+test('List (deep)', t => {
   const ori = [2, 3, [4, 5]]
   const list = new List(ori)
   t.is(ori[0], list[0], 'list has same props as origin')

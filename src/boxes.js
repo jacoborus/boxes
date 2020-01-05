@@ -72,6 +72,11 @@ const listMethods = {
     return '1' in arguments
       ? arr.reduce((val, i) => fn(val, i, proxy), init)
       : arr.reduce((val, i) => fn(val, i, proxy))
+  },
+  reduceRight: (arr, proxy) => function (fn, init) {
+    return '1' in arguments
+      ? arr.reduceRight((val, i) => fn(val, i, proxy), init)
+      : arr.reduceRight((val, i) => fn(val, i, proxy))
   }
 }
 
@@ -81,7 +86,7 @@ function List (origin) {
   origin.forEach((value, i) => assignValue(arr, i, value))
   const proxy = new Proxy(arr, {
     get (target, prop) {
-      if (!isNaN(prop)) return target[prop]
+      if (typeof prop === 'string' && !isNaN(prop)) return target[prop]
 
       const method = listMethods[prop]
       return method

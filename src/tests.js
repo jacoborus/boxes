@@ -290,3 +290,16 @@ test('List#reduce', t => {
   t.is(list.reduce(reducer, 5), 15)
   t.end()
 })
+
+test('List#reduceRight', t => {
+  const array1 = [[0, 1], [2, 3], [4, 5]]
+  const list = new List(array1)
+  const result = list.reduceRight((acc, cur) => acc.concat(cur))
+  t.is(result[0], 4)
+  t.is(result[1], 5)
+  t.is(result[2], 2)
+  t.is(result[3], 3)
+  t.is(result[4], 0)
+  t.is(result[5], 1)
+  t.end()
+})

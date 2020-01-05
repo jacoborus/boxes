@@ -44,6 +44,10 @@ const modifiers = {
   pop (proxy) {
     const link = links.get(proxy)
     return link.pop()
+  },
+  push (proxy, ...args) {
+    const link = links.get(proxy)
+    return link.push(...args)
   }
 }
 

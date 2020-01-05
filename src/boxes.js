@@ -54,6 +54,7 @@ function Box (origin) {
 
 const listMethods = {
   length: arr => arr.length,
+  concat: arr => (...args) => arr.concat(...args),
   forEach: arr => fn => arr.forEach(fn),
   map: arr => fn => arr.map(fn)
 }

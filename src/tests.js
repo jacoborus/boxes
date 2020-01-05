@@ -106,3 +106,11 @@ test('List#map', t => {
   t.same([10, 11, 12], result, 'basic map')
   t.end()
 })
+
+test('List#concat', t => {
+  const origin = [0, 1, 2]
+  const list = new List(origin)
+  const result = list.concat([3, 4], 9)
+  t.same([0, 1, 2, 3, 4, 9], result, 'basic concat')
+  t.end()
+})

@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const { Box, List } = Boxes
+const { Box } = Boxes
 
 test('Box', t => {
   const origin = { a: 1 }
@@ -48,7 +48,7 @@ test('Box', t => {
 
 test('List', t => {
   const origin = [2, 3, 4]
-  const list = new List(origin)
+  const list = new Box(origin)
 
   // {}
   t.is(Array.isArray(list), true, 'is array')
@@ -90,14 +90,14 @@ test('List', t => {
 
 test('List (deep)', t => {
   const ori = [2, 3, [4, 5]]
-  const list = new List(ori)
+  const list = new Box(ori)
   t.same(ori, list, 'list has same props as origin')
   t.end()
 })
 
 test('List#concat', t => {
   const origin = [0, 1, 2]
-  const list = new List(origin)
+  const list = new Box(origin)
   const result = list.concat([3, 4], 9)
   t.same([0, 1, 2, 3, 4, 9], result, 'basic concat')
   t.end()
@@ -107,7 +107,7 @@ test('List#forEach', t => {
   const origin = [0, 1, 2]
   let result = ''
   let arrTest
-  const list = new List(origin)
+  const list = new Box(origin)
   list.forEach((value, i, arr) => {
     arrTest = arr
     result += value
@@ -124,7 +124,7 @@ test('List#forEach', t => {
 
 test('List#every', t => {
   const origin = [0, 1, 2]
-  const list = new List(origin)
+  const list = new Box(origin)
   let arrTest
   const positiveResult = list.every((value, i, arr) => {
     arrTest = arr
@@ -144,7 +144,7 @@ test('List#every', t => {
 
 test('List#filter', t => {
   const origin = [0, 1, 2]
-  const list = new List(origin)
+  const list = new Box(origin)
   let arrTest
   const result = list.filter((value, i, arr) => {
     arrTest = arr
@@ -162,7 +162,7 @@ test('List#filter', t => {
 
 test('List#find', t => {
   const origin = [0, 1, 2]
-  const list = new List(origin)
+  const list = new Box(origin)
   let arrTest
   const result = list.find((value, i, arr) => {
     arrTest = arr
@@ -180,7 +180,7 @@ test('List#find', t => {
 
 test('List#findIndex', t => {
   const origin = [0, 1, 2]
-  const list = new List(origin)
+  const list = new Box(origin)
   let arrTest
   const result = list.findIndex((value, i, arr) => {
     arrTest = arr
@@ -198,17 +198,17 @@ test('List#findIndex', t => {
 
 test('List#flat', t => {
   const origin = [1, 2, [3, 4]]
-  const list = new List(origin)
+  const list = new Box(origin)
   const result = list.flat()
   t.same(result, [1, 2, 3, 4], 'basic flat')
 
   const arr2 = [1, 2, [3, 4, [5, 6]]]
-  const list2 = new List(arr2)
+  const list2 = new Box(arr2)
   const flat2 = list2.flat()
   t.is(flat2[4][0], 5, 'flat default omit depth')
 
   const arr3 = [1, 2, [3, 4, [5, 6]]]
-  const list3 = new List(arr3)
+  const list3 = new Box(arr3)
   const flat3 = list3.flat(2)
   t.is(flat3[5], 6, 'flat default omit depth')
 
@@ -217,20 +217,20 @@ test('List#flat', t => {
 
 test('List#includes', t => {
   const nums = [1, 2, 3]
-  const list = new List(nums)
+  const list = new Box(nums)
   t.ok(list.includes(2), true)
   t.notOk(list.includes(4), false)
   t.notOk(list.includes(3, 3), false)
   t.ok(list.includes(3, -1), true)
   const nans = [1, 2, NaN]
-  const listnan = new List(nans)
+  const listnan = new Box(nans)
   t.ok(listnan.includes(NaN), true)
   t.end()
 })
 
 test('List#indexOf', t => {
   const beasts = ['ant', 'bison', 'camel', 'duck', 'bison']
-  const list = new List(beasts)
+  const list = new Box(beasts)
   t.is(list.indexOf('bison'), 1, 'basic indexOf')
   t.is(list.indexOf('bison', 2), 4, 'start from index 2')
   t.is(list.indexOf('giraffe'), -1, 'not found')
@@ -239,7 +239,7 @@ test('List#indexOf', t => {
 
 test('List#join', t => {
   const elements = ['Fire', 'Air', 'Water']
-  const list = new List(elements)
+  const list = new Box(elements)
 
   t.is(list.join(), 'Fire,Air,Water')
   t.is(list.join(''), 'FireAirWater')
@@ -249,7 +249,7 @@ test('List#join', t => {
 
 test('List#lastIndexOf', t => {
   var numbers = [2, 5, 9, 2]
-  const list = new List(numbers)
+  const list = new Box(numbers)
   t.is(list.lastIndexOf(2), 3)
   t.is(list.lastIndexOf(7), -1)
   t.is(list.lastIndexOf(2, 3), 3)
@@ -261,7 +261,7 @@ test('List#lastIndexOf', t => {
 
 test('List#map', t => {
   const origin = [0, 1, 2]
-  const list = new List(origin)
+  const list = new Box(origin)
   let arrTest
   const result = list.map((value, i, arr) => {
     arrTest = arr
@@ -280,7 +280,7 @@ test('List#map', t => {
 test('List#reduce', t => {
   const array1 = [1, 2, 3, 4]
   const reducer = (accumulator, currentValue) => accumulator + currentValue
-  const list = new List(array1)
+  const list = new Box(array1)
   t.is(list.reduce(reducer), 10)
   t.is(list.reduce(reducer, 5), 15)
   t.end()
@@ -288,7 +288,7 @@ test('List#reduce', t => {
 
 test('List#reduceRight', t => {
   const array1 = [[0, 1], [2, 3], [4, 5]]
-  const list = new List(array1)
+  const list = new Box(array1)
   const result = list.reduceRight((acc, cur) => acc.concat(cur))
   t.same(result, [4, 5, 2, 3, 0, 1])
   t.end()
@@ -296,7 +296,7 @@ test('List#reduceRight', t => {
 
 test('List#slice', t => {
   const animals = ['ant', 'bison', 'camel', 'duck', 'elephant']
-  const list = new List(animals)
+  const list = new Box(animals)
   t.same(list.slice(2), ['camel', 'duck', 'elephant'])
   t.same(list.slice(2, 4), ['camel', 'duck'])
   t.same(list.slice(1, 5), ['bison', 'camel', 'duck', 'elephant'])
@@ -310,8 +310,8 @@ test('List#some', t => {
 
   const origin1 = [2, 5, 8, 1, 4]
   const origin2 = [12, 5, 8, 1, 4]
-  const list1 = new List(origin1)
-  const list2 = new List(origin2)
+  const list1 = new Box(origin1)
+  const list2 = new Box(origin2)
   t.notOk(list1.some(isBiggerThan10))
   t.ok(list2.some(isBiggerThan10))
   t.end()
@@ -319,7 +319,7 @@ test('List#some', t => {
 
 test('List#toLocaleString', t => {
   const prices = ['￥7', 500, 8123, 12]
-  const list = new List(prices)
+  const list = new Box(prices)
   t.is(
     list.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' }),
     prices.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' })
@@ -329,7 +329,7 @@ test('List#toLocaleString', t => {
 
 test('List#toString', t => {
   const array = [1, 2, 'a', '1a']
-  const list = new List(array)
+  const list = new Box(array)
 
   t.is(list.toString(), '1,2,a,1a')
   t.end()

@@ -1,5 +1,4 @@
 const ProtoBox = {}
-const ProtoList = []
 const links = new Map()
 
 const boxHandler = {
@@ -16,23 +15,15 @@ function isBox (obj) {
   return Object.getPrototypeOf(obj) === ProtoBox
 }
 
-function isList (arr) {
-  return Object.getPrototypeOf(arr) === ProtoList
-}
-
 function isPrimitive (value) {
   const t = typeof value
   return t === 'string' || t === 'number' || t === 'boolean'
 }
 
 function assignValue (target, prop, value) {
-  if (isPrimitive(value)) {
-    target[prop] = value
-  } else if (Array.isArray(value)) {
-    target[prop] = List(value)
-  } else if (typeof value === 'object' && value !== null) {
-    target[prop] = Box(value)
-  }
+  target[prop] = isPrimitive(value) || isBox(value)
+    ? value
+    : new Box(value)
 }
 
 function set (proxy, prop, value) {
@@ -41,7 +32,16 @@ function set (proxy, prop, value) {
 }
 
 function Box (origin) {
-  if (isBox(origin)) return origin
+  if (Array.isArray(origin)) {
+    return createArrayBox(origin)
+  } else if (typeof origin === 'object' && origin !== null) {
+    return createObjectBox(origin)
+  } else {
+    throw new Error('Wrong origin creating new Box')
+  }
+}
+
+function createObjectBox (origin) {
   const obj = {}
   Object.keys(origin).forEach(key => {
     const value = origin[key]
@@ -88,8 +88,7 @@ const listMethods = {
   toString: arr => () => arr.toString()
 }
 
-function List (origin) {
-  if (isList(origin)) return origin
+function createArrayBox (origin) {
   const arr = []
   origin.forEach((value, i) => assignValue(arr, i, value))
   const proxy = new Proxy(arr, {
@@ -107,4 +106,4 @@ function List (origin) {
   return proxy
 }
 
-module.exports = { Box, set, List }
+module.exports = { Box, set }

@@ -11,7 +11,7 @@ Experimental mutable state containers for javascript apps
 import Boxes from 'Boxes'
 ```
 
-### Boxes.Box(origin)
+### Boxes.Box(Object)
 
 Create a new box. A box is like an object, but their values can't be assign without one of the Boxes mutability methods.
 
@@ -43,7 +43,7 @@ mybox.amount = 99
 
 ### Boxes.Box.set(box, propName, value)
 
-### Boxes.List(origin)
+### Boxes.List(Array)
 
 Create a new list. A list is like an array, but their values can't be assign without one of the Boxes mutability methods.
 
@@ -56,7 +56,7 @@ It internally creates a copy of your object, changing the inside objects with bo
 ```js
 const fruits = ['avocado', 'orange', 'melon']
 
-const mylist = new Boxes.list(fruits)
+const mylist = new Boxes.Box(fruits)
 console.log(mybox)
 /* outputs: ['avocado', 'orange', 'melon']
 

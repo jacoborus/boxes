@@ -249,3 +249,12 @@ test('List#includes', t => {
 
   t.end()
 })
+
+test('List#indexOf', t => {
+  const beasts = ['ant', 'bison', 'camel', 'duck', 'bison']
+  const list = new List(beasts)
+  t.is(list.indexOf('bison'), 1, 'basic indexOf')
+  t.is(list.indexOf('bison', 2), 4, 'start from index 2')
+  t.is(list.indexOf('giraffe'), -1, 'not found')
+  t.end()
+})

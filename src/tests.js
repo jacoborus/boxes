@@ -134,3 +134,23 @@ test('List#concat', t => {
   t.same([0, 1, 2, 3, 4, 9], result, 'basic concat')
   t.end()
 })
+
+test('List#every', t => {
+  const origin = [0, 1, 2]
+  const list = new List(origin)
+  let arrTest
+  const positiveResult = list.every((value, i, arr) => {
+    arrTest = arr
+    return value < 10
+  })
+  t.ok(positiveResult, 'positive result')
+  t.throws(
+    function () {
+      arrTest[0] = 999
+    },
+    'does not expose real array'
+  )
+  const negativeResult = list.every(value => value < 2)
+  t.notOk(negativeResult, 'negative result')
+  t.end()
+})

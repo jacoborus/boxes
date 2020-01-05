@@ -53,9 +53,7 @@ test('List', t => {
   // {}
   t.is(Array.isArray(list), true, 'is array')
   t.is(list.length, 3, 'list has same props as origin')
-  t.is(list[0], origin[0], 'list has same props as origin')
-  t.is(list[1], origin[1], 'list has same props as origin')
-  t.is(list[2], origin[2], 'list has same props as origin')
+  t.same(origin, list, 'list has same props as origin')
 
   // directly changing properties throw error
   t.throws(
@@ -93,10 +91,7 @@ test('List', t => {
 test('List (deep)', t => {
   const ori = [2, 3, [4, 5]]
   const list = new List(ori)
-  t.is(ori[0], list[0], 'list has same props as origin')
-  t.is(ori[1], list[1], 'list has same props as origin')
-  t.is(ori[2][0], list[2][0], 'list has same props as origin')
-  t.is(ori[2][1], list[2][1], 'list has same props as origin')
+  t.same(ori, list, 'list has same props as origin')
   t.end()
 })
 
@@ -295,11 +290,6 @@ test('List#reduceRight', t => {
   const array1 = [[0, 1], [2, 3], [4, 5]]
   const list = new List(array1)
   const result = list.reduceRight((acc, cur) => acc.concat(cur))
-  t.is(result[0], 4)
-  t.is(result[1], 5)
-  t.is(result[2], 2)
-  t.is(result[3], 3)
-  t.is(result[4], 0)
-  t.is(result[5], 1)
+  t.same(result, [4, 5, 2, 3, 0, 1])
   t.end()
 })

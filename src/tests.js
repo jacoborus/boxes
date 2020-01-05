@@ -47,7 +47,7 @@ test('Box', t => {
 })
 
 test('List', t => {
-  const origin = [0, 1, 2]
+  const origin = [2, 3, 4]
   const list = new List(origin)
 
   // {}
@@ -67,7 +67,7 @@ test('List', t => {
 
   // changing origin does not change list
   origin[0] = 9
-  t.is(list[0], 0, 'changing origin does not change list')
+  t.is(list[0], 2, 'changing origin does not change list')
 
   // list props can be changed with Boxes.set
   Boxes.set(list, 0, 9)

@@ -68,10 +68,7 @@ const listMethods = {
 function List (origin) {
   if (isList(origin)) return origin
   const arr = []
-  origin.forEach(key => {
-    const value = origin[key]
-    assignValue(arr, key, value)
-  })
+  origin.forEach((value, i) => assignValue(arr, i, value))
   const proxy = new Proxy(arr, {
     get (target, prop) {
       if (!isNaN(prop)) return target[prop]

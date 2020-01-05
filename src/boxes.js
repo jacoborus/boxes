@@ -84,7 +84,8 @@ const listMethods = {
     return function () {
       return arr.toLocaleString(...arguments)
     }
-  }
+  },
+  toString: arr => () => arr.toString()
 }
 
 function List (origin) {

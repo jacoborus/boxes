@@ -326,3 +326,11 @@ test('List#toLocaleString', t => {
   )
   t.end()
 })
+
+test('List#toString', t => {
+  const array = [1, 2, 'a', '1a']
+  const list = new List(array)
+
+  t.is(list.toString(), '1,2,a,1a')
+  t.end()
+})

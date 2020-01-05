@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const { Box, copyWithin } = Boxes
+const { Box, copyWithin, fill } = Boxes
 
 test('Box', t => {
   const origin = { a: 1 }
@@ -353,5 +353,42 @@ test('Modifiers#copyWithin', t => {
   t.same(result2, [4, 5, 3, 4, 5])
   t.same(result3, [4, 2, 3, 4, 5])
   t.same(result4, [1, 2, 3, 3, 4])
+  t.end()
+})
+
+test('Modifiers#fill', t => {
+  const arr = [1, 2, 3]
+  const list1 = new Box(arr)
+  const list2 = new Box(arr)
+  const list3 = new Box(arr)
+  const list4 = new Box(arr)
+  const list5 = new Box(arr)
+  const list6 = new Box(arr)
+  const list7 = new Box(arr)
+  const list8 = new Box(arr)
+  const result1 = fill(list1, 4) // [4, 4, 4]
+  const result2 = fill(list2, 4, 1) // [1, 4, 4]
+  const result3 = fill(list3, 4, 1, 2) // [1, 4, 3]
+  const result4 = fill(list4, 4, 1, 1) // [1, 2, 3]
+  const result5 = fill(list5, 4, 3, 3) // [1, 2, 3]
+  const result6 = fill(list6, 4, -3, -2) // [4, 2, 3]
+  const result7 = fill(list7, 4, NaN, NaN) // [1, 2, 3]
+  const result8 = fill(list8, 4, 3, 5) // [1, 2, 3]
+  t.same(list1, result1, 'result and list are same object')
+  t.same(list2, result2)
+  t.same(list3, result3)
+  t.same(list4, result4)
+  t.same(list5, result5)
+  t.same(list6, result6)
+  t.same(list7, result7)
+  t.same(list8, result8)
+  t.same(result1, [4, 4, 4], 'box is correctly modified')
+  t.same(result2, [1, 4, 4])
+  t.same(result3, [1, 4, 3])
+  t.same(result4, [1, 2, 3])
+  t.same(result5, [1, 2, 3])
+  t.same(result6, [4, 2, 3])
+  t.same(result7, [1, 2, 3])
+  t.same(result8, [1, 2, 3])
   t.end()
 })

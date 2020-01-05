@@ -35,6 +35,11 @@ const modifiers = {
     const link = links.get(proxy)
     link.copyWithin(...args)
     return proxy
+  },
+  fill (proxy, ...args) {
+    const link = links.get(proxy)
+    link.fill(...args)
+    return proxy
   }
 }
 

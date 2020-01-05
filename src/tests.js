@@ -281,3 +281,12 @@ test('List#map', t => {
   )
   t.end()
 })
+
+test('List#reduce', t => {
+  const array1 = [1, 2, 3, 4]
+  const reducer = (accumulator, currentValue) => accumulator + currentValue
+  const list = new List(array1)
+  t.is(list.reduce(reducer), 10)
+  t.is(list.reduce(reducer, 5), 15)
+  t.end()
+})

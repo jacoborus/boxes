@@ -67,7 +67,12 @@ const listMethods = {
   join: arr => separator => arr.join(separator),
   // keys ?
   lastIndexOf: arr => (val, fromIndex = -1) => arr.lastIndexOf(val, fromIndex),
-  map: (arr, proxy) => fn => arr.map((val, i) => fn(val, i, proxy))
+  map: (arr, proxy) => fn => arr.map((val, i) => fn(val, i, proxy)),
+  reduce: (arr, proxy) => function (fn, init) {
+    return '1' in arguments
+      ? arr.reduce((val, i) => fn(val, i, proxy), init)
+      : arr.reduce((val, i) => fn(val, i, proxy))
+  }
 }
 
 function List (origin) {

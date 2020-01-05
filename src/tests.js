@@ -237,3 +237,15 @@ test('List#flat', t => {
 
   t.end()
 })
+
+test('List#includes', t => {
+  const array1 = [1, 2, 3]
+  const list1 = new List(array1)
+  t.ok(list1.includes(2), 'basic includes')
+
+  const pets = ['cat', 'dog', 'bat']
+  t.ok(pets.includes('cat'), 'positive value')
+  t.notOk(pets.includes('at'), 'negative value')
+
+  t.end()
+})

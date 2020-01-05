@@ -61,7 +61,8 @@ const listMethods = {
   filter: (arr, proxy) => fn => arr.filter((val, i) => fn(val, i, proxy)),
   find: (arr, proxy) => fn => arr.find((val, i) => fn(val, i, proxy)),
   findIndex: (arr, proxy) => fn => arr.findIndex((val, i) => fn(val, i, proxy)),
-  flat: arr => depth => arr.flat(depth)
+  flat: arr => depth => arr.flat(depth),
+  includes: arr => (val, fromIndex) => arr.includes(val, fromIndex)
 }
 
 function List (origin) {

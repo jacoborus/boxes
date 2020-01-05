@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const { Box } = Boxes
+const { Box, copyWithin } = Boxes
 
 test('Box', t => {
   const origin = { a: 1 }
@@ -332,5 +332,26 @@ test('List#toString', t => {
   const list = new Box(array)
 
   t.is(list.toString(), '1,2,a,1a')
+  t.end()
+})
+
+test('Modifiers#copyWithin', t => {
+  const original = [1, 2, 3, 4, 5]
+  const list1 = new Box(original)
+  const list2 = new Box(original)
+  const list3 = new Box(original)
+  const list4 = new Box(original)
+  const result1 = copyWithin(list1, -2)
+  const result2 = copyWithin(list2, 0, 3)
+  const result3 = copyWithin(list3, 0, 3, 4)
+  const result4 = copyWithin(list4, -2, -3, -1)
+  t.is(list1, result1)
+  t.is(list2, result2)
+  t.is(list3, result3)
+  t.is(list4, result4)
+  t.same(result1, [1, 2, 3, 1, 2])
+  t.same(result2, [4, 5, 3, 4, 5])
+  t.same(result3, [4, 2, 3, 4, 5])
+  t.same(result4, [1, 2, 3, 3, 4])
   t.end()
 })

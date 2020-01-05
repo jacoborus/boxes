@@ -26,9 +26,16 @@ function assignValue (target, prop, value) {
     : new Box(value)
 }
 
-function set (proxy, prop, value) {
-  const link = links.get(proxy)
-  assignValue(link, prop, value)
+const modifiers = {
+  set (proxy, prop, value) {
+    const link = links.get(proxy)
+    assignValue(link, prop, value)
+  },
+  copyWithin (proxy, ...args) {
+    const link = links.get(proxy)
+    link.copyWithin(...args)
+    return proxy
+  }
 }
 
 function Box (origin) {
@@ -52,7 +59,7 @@ function createObjectBox (origin) {
   return proxy
 }
 
-const listMethods = {
+const arrayMethods = {
   length: arr => arr.length,
   concat: arr => (...args) => arr.concat(...args),
   // entries ??
@@ -95,7 +102,7 @@ function createArrayBox (origin) {
     get (target, prop) {
       if (typeof prop === 'string' && !isNaN(prop)) return target[prop]
 
-      const method = listMethods[prop]
+      const method = arrayMethods[prop]
       return method
         ? method(target, proxy)
         : undefined
@@ -106,4 +113,4 @@ function createArrayBox (origin) {
   return proxy
 }
 
-module.exports = { Box, set }
+module.exports = { Box, ...modifiers }

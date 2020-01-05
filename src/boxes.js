@@ -48,6 +48,11 @@ const modifiers = {
   push (proxy, ...args) {
     const link = links.get(proxy)
     return link.push(...args)
+  },
+  reverse (proxy) {
+    const link = links.get(proxy)
+    link.reverse()
+    return proxy
   }
 }
 

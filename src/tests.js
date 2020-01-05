@@ -154,3 +154,21 @@ test('List#every', t => {
   t.notOk(negativeResult, 'negative result')
   t.end()
 })
+
+test('List#filter', t => {
+  const origin = [0, 1, 2]
+  const list = new List(origin)
+  let arrTest
+  const result = list.filter((value, i, arr) => {
+    arrTest = arr
+    return value < 2
+  })
+  t.same([0, 1], result, 'basic filter')
+  t.throws(
+    function () {
+      arrTest[0] = 999
+    },
+    'does not expose real array'
+  )
+  t.end()
+})

@@ -59,7 +59,8 @@ const listMethods = {
   // this is bad, forEach method exposes the real array in the third param
   forEach: (arr, proxy) => fn => arr.forEach((val, i) => fn(val, i, proxy)),
   map: (arr, proxy) => fn => arr.map((val, i) => fn(val, i, proxy)),
-  every: (arr, proxy) => fn => arr.every((val, i) => fn(val, i, proxy))
+  every: (arr, proxy) => fn => arr.every((val, i) => fn(val, i, proxy)),
+  filter: (arr, proxy) => fn => arr.filter((val, i) => fn(val, i, proxy))
 }
 
 function List (origin) {

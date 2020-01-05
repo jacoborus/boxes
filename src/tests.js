@@ -172,3 +172,39 @@ test('List#filter', t => {
   )
   t.end()
 })
+
+test('List#find', t => {
+  const origin = [0, 1, 2]
+  const list = new List(origin)
+  let arrTest
+  const result = list.find((value, i, arr) => {
+    arrTest = arr
+    return value > 0
+  })
+  t.is(1, result, 'basic find')
+  t.throws(
+    function () {
+      arrTest[0] = 999
+    },
+    'does not expose real array'
+  )
+  t.end()
+})
+
+test('List#findIndex', t => {
+  const origin = [0, 1, 2]
+  const list = new List(origin)
+  let arrTest
+  const result = list.findIndex((value, i, arr) => {
+    arrTest = arr
+    return value > 0
+  })
+  t.is(1, result, 'basic findIndex')
+  t.throws(
+    function () {
+      arrTest[0] = 999
+    },
+    'does not expose real array'
+  )
+  t.end()
+})

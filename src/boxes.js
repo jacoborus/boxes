@@ -60,7 +60,9 @@ const listMethods = {
   forEach: (arr, proxy) => fn => arr.forEach((val, i) => fn(val, i, proxy)),
   map: (arr, proxy) => fn => arr.map((val, i) => fn(val, i, proxy)),
   every: (arr, proxy) => fn => arr.every((val, i) => fn(val, i, proxy)),
-  filter: (arr, proxy) => fn => arr.filter((val, i) => fn(val, i, proxy))
+  filter: (arr, proxy) => fn => arr.filter((val, i) => fn(val, i, proxy)),
+  find: (arr, proxy) => fn => arr.find((val, i) => fn(val, i, proxy)),
+  findIndex: (arr, proxy) => fn => arr.findIndex((val, i) => fn(val, i, proxy))
 }
 
 function List (origin) {

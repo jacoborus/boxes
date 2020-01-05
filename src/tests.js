@@ -302,3 +302,17 @@ test('List#slice', t => {
   t.same(list.slice(1, 5), ['bison', 'camel', 'duck', 'elephant'])
   t.end()
 })
+
+test('List#some', t => {
+  function isBiggerThan10 (element, index, array) {
+    return element > 10
+  }
+
+  const origin1 = [2, 5, 8, 1, 4]
+  const origin2 = [12, 5, 8, 1, 4]
+  const list1 = new List(origin1)
+  const list2 = new List(origin2)
+  t.notOk(list1.some(isBiggerThan10))
+  t.ok(list2.some(isBiggerThan10))
+  t.end()
+})

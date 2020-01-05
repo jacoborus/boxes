@@ -79,7 +79,12 @@ const listMethods = {
       : arr.reduceRight((val, i) => fn(val, i, proxy))
   },
   slice: arr => (begin, end) => arr.slice(begin, end),
-  some: (arr, proxy) => fn => arr.some((val, i) => fn(val, i, proxy))
+  some: (arr, proxy) => fn => arr.some((val, i) => fn(val, i, proxy)),
+  toLocaleString: arr => {
+    return function () {
+      return arr.toLocaleString(...arguments)
+    }
+  }
 }
 
 function List (origin) {

@@ -316,3 +316,13 @@ test('List#some', t => {
   t.ok(list2.some(isBiggerThan10))
   t.end()
 })
+
+test('List#toLocaleString', t => {
+  const prices = ['￥7', 500, 8123, 12]
+  const list = new List(prices)
+  t.is(
+    list.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' }),
+    prices.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' })
+  )
+  t.end()
+})

@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const { Box, copyWithin, fill } = Boxes
+const { Box, copyWithin, fill, pop } = Boxes
 
 test('Box', t => {
   const origin = { a: 1 }
@@ -400,5 +400,16 @@ test('Modifiers#fill', t => {
   t.same(result6, [4, 2, 3])
   t.same(result7, [1, 2, 3])
   t.same(result8, [1, 2, 3])
+  t.end()
+})
+
+test('modifiers#pop', t => {
+  const plants = ['broccoli', 'cauliflower', 'cabbage', 'kale', 'tomato']
+  const list = new Box(plants)
+  const res1 = pop(list) // "tomato"
+  t.is(res1, 'tomato')
+  t.same(list, ['broccoli', 'cauliflower', 'cabbage', 'kale'])
+  pop(list)
+  t.same(list, ['broccoli', 'cauliflower', 'cabbage'])
   t.end()
 })

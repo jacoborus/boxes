@@ -68,12 +68,12 @@ const arrayMethods = {
   length: arr => arr.length,
   concat: arr => (...args) => arr.concat(...args),
   // entries ??
-  forEach: (arr, proxy) => fn => arr.forEach((val, i) => fn(val, i, proxy)),
   every: (arr, proxy) => fn => arr.every((val, i) => fn(val, i, proxy)),
   filter: (arr, proxy) => fn => arr.filter((val, i) => fn(val, i, proxy)),
   find: (arr, proxy) => fn => arr.find((val, i) => fn(val, i, proxy)),
   findIndex: (arr, proxy) => fn => arr.findIndex((val, i) => fn(val, i, proxy)),
   flat: arr => depth => arr.flat(depth),
+  forEach: (arr, proxy) => fn => arr.forEach((val, i) => fn(val, i, proxy)),
   includes: arr => (val, fromIndex) => arr.includes(val, fromIndex),
   indexOf: arr => (val, fromIndex) => arr.indexOf(val, fromIndex),
   join: arr => separator => arr.join(separator),

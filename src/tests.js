@@ -268,3 +268,15 @@ test('List#join', t => {
   t.is(list.join('-'), 'Fire-Air-Water')
   t.end()
 })
+
+test('List#lastIndexOf', t => {
+  var numbers = [2, 5, 9, 2]
+  const list = new List(numbers)
+  t.is(list.lastIndexOf(2), 3)
+  t.is(list.lastIndexOf(7), -1)
+  t.is(list.lastIndexOf(2, 3), 3)
+  t.is(list.lastIndexOf(2, 2), 0)
+  t.is(list.lastIndexOf(2, -2), 0)
+  t.is(list.lastIndexOf(2, -1), 3)
+  t.end()
+})

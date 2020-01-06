@@ -3,8 +3,29 @@
 const test = require('tape')
 const Boxes = require('./boxes.js')
 const {
-  Box, copyWithin, fill, pop, push, reverse, shift, sort, splice, unshift
+  Box, set, copyWithin, fill, pop, push, reverse, shift, sort, splice, unshift
 } = Boxes
+
+test('modifiers#set', t => {
+  const box = new Box({
+    a: 1,
+    b: {
+      x: 'x',
+      z: 'z'
+    },
+    c: [1, 2, 3, 4]
+  })
+  set(box, 'a', 99)
+  t.is(box.a, 99)
+
+  set(box.b, 'x', 99)
+  t.is(box.b.x, 99)
+
+  set(box.c, 0, 99)
+  t.is(box.c[0], 99)
+
+  t.end()
+})
 
 test('Modifiers#copyWithin', t => {
   const original = [1, 2, 3, 4, 5]

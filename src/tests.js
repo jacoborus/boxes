@@ -2,7 +2,9 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const { Box, copyWithin, fill, pop, push, reverse, shift, sort, splice } = Boxes
+const {
+  Box, copyWithin, fill, pop, push, reverse, shift, sort, splice, unshift
+} = Boxes
 
 test('Box', t => {
   const origin = { a: 1 }
@@ -470,5 +472,14 @@ test('modifiers#splice', t => {
 
   splice(list, 3, 1, 'uno', 'dos')
   t.same(list, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June'])
+  t.end()
+})
+
+test('modifiers#unshift', t => {
+  const arr = [1, 2, 3]
+  const list = new Box(arr)
+  const result = unshift(list, 4, 5)
+  t.is(result, 5)
+  t.same(list, [4, 5, 1, 2, 3])
   t.end()
 })

@@ -67,6 +67,10 @@ const modifiers = {
     const link = links.get(proxy)
     link.splice(...args)
     return proxy
+  },
+  unshift (proxy, ...args) {
+    const link = links.get(proxy)
+    return link.unshift(...args)
   }
 }
 

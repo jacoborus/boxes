@@ -30,19 +30,17 @@ function Box (origin) {
   }
 }
 
-const objectHandler = {
-  get: (...args) => Reflect.get(...args),
-  set: false,
-  getPrototypeOf: () => ProtoBox
-}
-
 function createObjectBox (origin) {
   const obj = {}
   Object.keys(origin).forEach(key => {
     const value = origin[key]
     assignValue(obj, key, value)
   })
-  const proxy = new Proxy(obj, objectHandler)
+  const proxy = new Proxy(obj, {
+    get: (...args) => Reflect.get(...args),
+    set: false,
+    getPrototypeOf: () => ProtoBox
+  })
   links.set(proxy, obj)
   return proxy
 }

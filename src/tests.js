@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const { Box, copyWithin, fill, pop, push, reverse, shift, sort } = Boxes
+const { Box, copyWithin, fill, pop, push, reverse, shift, sort, splice } = Boxes
 
 test('Box', t => {
   const origin = { a: 1 }
@@ -458,5 +458,17 @@ test('modifiers#sort', t => {
   const list2 = new Box(arr)
   sort(list2, (a, b) => a - b)
   t.same(list2, [1, 4, 21, 30, 100000])
+  t.end()
+})
+
+test('modifiers#splice', t => {
+  const months = ['Jan', 'March', 'April', 'June']
+  const list = new Box(months)
+  const result = splice(list, 1, 0, 'Feb')
+  t.is(result, list)
+  t.same(list, ['Jan', 'Feb', 'March', 'April', 'June'])
+
+  splice(list, 3, 1, 'uno', 'dos')
+  t.same(list, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June'])
   t.end()
 })

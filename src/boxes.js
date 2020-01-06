@@ -62,6 +62,11 @@ const modifiers = {
     const link = links.get(proxy)
     link.sort(fn)
     return proxy
+  },
+  splice (proxy, ...args) {
+    const link = links.get(proxy)
+    link.splice(...args)
+    return proxy
   }
 }
 

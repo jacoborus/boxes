@@ -21,13 +21,11 @@ function assignValue (target, prop, value) {
 }
 
 function Box (origin) {
-  if (Array.isArray(origin)) {
-    return createArrayBox(origin)
-  } else if (typeof origin === 'object' && origin !== null) {
-    return createObjectBox(origin)
-  } else {
-    throw new Error('Wrong origin creating new Box')
-  }
+  return Array.isArray(origin)
+    ? createArrayBox(origin)
+    : (typeof origin === 'object' && origin !== null)
+      ? createObjectBox(origin)
+      : null
 }
 
 function createObjectBox (origin) {

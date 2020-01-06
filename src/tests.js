@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const { Box, copyWithin, fill, pop, push, reverse, shift } = Boxes
+const { Box, copyWithin, fill, pop, push, reverse, shift, sort } = Boxes
 
 test('Box', t => {
   const origin = { a: 1 }
@@ -440,5 +440,23 @@ test('modifiers#shift', t => {
   const firstElement = shift(list)
   t.same(list, [2, 3])
   t.is(firstElement, 1)
+  t.end()
+})
+
+test('modifiers#sort', t => {
+  const months = ['March', 'Jan', 'Feb', 'Dec']
+  const list = new Box(months)
+  sort(list)
+  t.same(list, ['Dec', 'Feb', 'Jan', 'March'])
+
+  const arr = [1, 30, 4, 21, 100000]
+
+  const list1 = new Box(arr)
+  sort(list1)
+  t.same(list1, [1, 100000, 21, 30, 4])
+
+  const list2 = new Box(arr)
+  sort(list2, (a, b) => a - b)
+  t.same(list2, [1, 4, 21, 30, 100000])
   t.end()
 })

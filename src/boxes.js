@@ -57,6 +57,11 @@ const modifiers = {
   shift (proxy) {
     const link = links.get(proxy)
     return link.shift()
+  },
+  sort (proxy, fn) {
+    const link = links.get(proxy)
+    link.sort(fn)
+    return proxy
   }
 }
 

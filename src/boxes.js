@@ -1,15 +1,9 @@
+const getModifiers = require('./modifiers.js')
+const arrayMethods = require('./array-methods.js')
+
 const ProtoBox = {}
 const links = new Map()
-
-const boxHandler = {
-  get: (...args) => Reflect.get(...args),
-  set: false,
-  getPrototypeOf: () => ProtoBox
-}
-
-function addBox (proxy, list) {
-  links.set(proxy, list)
-}
+const modifiers = getModifiers(links, assignValue)
 
 function isBox (obj) {
   return Object.getPrototypeOf(obj) === ProtoBox
@@ -26,54 +20,6 @@ function assignValue (target, prop, value) {
     : new Box(value)
 }
 
-const modifiers = {
-  set (proxy, prop, value) {
-    const link = links.get(proxy)
-    assignValue(link, prop, value)
-  },
-  copyWithin (proxy, ...args) {
-    const link = links.get(proxy)
-    link.copyWithin(...args)
-    return proxy
-  },
-  fill (proxy, ...args) {
-    const link = links.get(proxy)
-    link.fill(...args)
-    return proxy
-  },
-  pop (proxy) {
-    const link = links.get(proxy)
-    return link.pop()
-  },
-  push (proxy, ...args) {
-    const link = links.get(proxy)
-    return link.push(...args)
-  },
-  reverse (proxy) {
-    const link = links.get(proxy)
-    link.reverse()
-    return proxy
-  },
-  shift (proxy) {
-    const link = links.get(proxy)
-    return link.shift()
-  },
-  sort (proxy, fn) {
-    const link = links.get(proxy)
-    link.sort(fn)
-    return proxy
-  },
-  splice (proxy, ...args) {
-    const link = links.get(proxy)
-    link.splice(...args)
-    return proxy
-  },
-  unshift (proxy, ...args) {
-    const link = links.get(proxy)
-    return link.unshift(...args)
-  }
-}
-
 function Box (origin) {
   if (Array.isArray(origin)) {
     return createArrayBox(origin)
@@ -84,52 +30,21 @@ function Box (origin) {
   }
 }
 
+const objectHandler = {
+  get: (...args) => Reflect.get(...args),
+  set: false,
+  getPrototypeOf: () => ProtoBox
+}
+
 function createObjectBox (origin) {
   const obj = {}
   Object.keys(origin).forEach(key => {
     const value = origin[key]
     assignValue(obj, key, value)
   })
-  const proxy = new Proxy(obj, boxHandler)
-  addBox(proxy, obj)
+  const proxy = new Proxy(obj, objectHandler)
+  links.set(proxy, obj)
   return proxy
-}
-
-const arrayMethods = {
-  length: arr => arr.length,
-  concat: arr => (...args) => arr.concat(...args),
-  // entries ??
-  every: (arr, proxy) => fn => arr.every((val, i) => fn(val, i, proxy)),
-  filter: (arr, proxy) => fn => arr.filter((val, i) => fn(val, i, proxy)),
-  find: (arr, proxy) => fn => arr.find((val, i) => fn(val, i, proxy)),
-  findIndex: (arr, proxy) => fn => arr.findIndex((val, i) => fn(val, i, proxy)),
-  flat: arr => depth => arr.flat(depth),
-  flatMap: (arr, proxy) => fn => arr.flatMap((val, i) => fn(val, i, proxy)),
-  forEach: (arr, proxy) => fn => arr.forEach((val, i) => fn(val, i, proxy)),
-  includes: arr => (val, fromIndex) => arr.includes(val, fromIndex),
-  indexOf: arr => (val, fromIndex) => arr.indexOf(val, fromIndex),
-  join: arr => separator => arr.join(separator),
-  // keys ?
-  lastIndexOf: arr => (val, fromIndex = -1) => arr.lastIndexOf(val, fromIndex),
-  map: (arr, proxy) => fn => arr.map((val, i) => fn(val, i, proxy)),
-  reduce: (arr, proxy) => function (fn, init) {
-    return '1' in arguments
-      ? arr.reduce((val, i) => fn(val, i, proxy), init)
-      : arr.reduce((val, i) => fn(val, i, proxy))
-  },
-  reduceRight: (arr, proxy) => function (fn, init) {
-    return '1' in arguments
-      ? arr.reduceRight((val, i) => fn(val, i, proxy), init)
-      : arr.reduceRight((val, i) => fn(val, i, proxy))
-  },
-  slice: arr => (begin, end) => arr.slice(begin, end),
-  some: (arr, proxy) => fn => arr.some((val, i) => fn(val, i, proxy)),
-  toLocaleString: arr => {
-    return function () {
-      return arr.toLocaleString(...arguments)
-    }
-  },
-  toString: arr => () => arr.toString()
 }
 
 function createArrayBox (origin) {
@@ -146,7 +61,7 @@ function createArrayBox (origin) {
     },
     set: false
   })
-  addBox(proxy, arr)
+  links.set(proxy, arr)
   return proxy
 }
 

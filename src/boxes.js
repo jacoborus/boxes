@@ -72,8 +72,12 @@ function createArrayBox (origin) {
   return proxy
 }
 
-function on (box, fn) {
-  ee.on(box, fn)
+function on () {
+  ee.on(...arguments)
 }
 
-module.exports = { Box, ...modifiers, on }
+function off () {
+  ee.off(...arguments)
+}
+
+module.exports = { Box, ...modifiers, on, off }

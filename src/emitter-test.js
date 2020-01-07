@@ -2,12 +2,10 @@
 
 const test = require('tape')
 const Boxes = require('./boxes.js')
-const {
-  Box, set, on
-} = Boxes
+const { Box, set, on, off } = Boxes
 
-test('emitter#on', t => {
-  t.plan(2)
+test('emitter#on emitter#off', t => {
+  t.plan(3)
   const box = new Box({
     a: 1,
     b: {
@@ -22,4 +20,7 @@ test('emitter#on', t => {
   })
 
   set(box, 'a', 99)
+  off(box)
+  set(box, 'a', true)
+  t.pass('ok off')
 })

@@ -56,7 +56,9 @@ function createArrayBox (origin) {
         ? method(target, proxy)
         : undefined
     },
-    set: false
+    set: false,
+    getPrototypeOf: () => ProtoBox,
+    deleteProperty: false
   })
   links.set(proxy, arr)
   return proxy

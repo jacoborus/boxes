@@ -70,6 +70,13 @@ test('List', t => {
     'throws error when changing a property of the list'
   )
 
+  // does not allow to delete properties
+  t.throws(
+    function () {
+      delete list[1]
+    },
+    'does not allow to delete properties'
+  )
   // changing origin does not change list
   origin[0] = 9
   t.is(list[0], 2, 'changing origin does not change list')

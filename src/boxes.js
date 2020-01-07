@@ -37,7 +37,8 @@ function createObjectBox (origin) {
   const proxy = new Proxy(obj, {
     get: (...args) => Reflect.get(...args),
     set: false,
-    getPrototypeOf: () => ProtoBox
+    getPrototypeOf: () => ProtoBox,
+    deleteProperty: false
   })
   links.set(proxy, obj)
   return proxy

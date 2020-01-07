@@ -40,6 +40,13 @@ test('Box', t => {
     },
     'Object props added as boxes'
   )
+  // does not allow to delete properties
+  t.throws(
+    function () {
+      delete box.uno
+    },
+    'does not allow to delete properties'
+  )
   Boxes.set(box.obj, 'dos', 2)
   t.is(box.obj.dos, 2, 'boxes inside boxes uses set to assign props')
 

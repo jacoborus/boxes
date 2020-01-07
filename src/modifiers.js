@@ -1,8 +1,9 @@
-module.exports = function (links, assignValue) {
+module.exports = function (links, assign, emit) {
   return {
     set (proxy, prop, value) {
       const link = links.get(proxy)
-      assignValue(link, prop, value)
+      const oldValue = assign(link, prop, value)
+      emit(proxy, prop, oldValue)
     },
     copyWithin (proxy, ...args) {
       const link = links.get(proxy)

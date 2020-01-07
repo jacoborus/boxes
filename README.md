@@ -21,29 +21,29 @@ It internally creates a copy of your object, changing the inside objects with bo
 
 ```js
 const origin = {
-  name: 'avocado',
+  name: 'tomato',
   amount: 1,
   sale: true
 }
 const mybox = new Boxes.box(origin)
 console.log(mybox)
-/* outputs: {
-  name: 'avocado',
+/* mybox === {
+  name: 'tomato',
   amout: 4,
   sale: true
 } */
 
 origin.amount = 99
+// origin.amount === 1
+// mybox.amount === 1
 
-console.log(mybox.amount)
-// outputs: 1
 mybox.amount = 99
 // throws error
 ```
 
 ### Boxes.Box.set(box, propName, value)
 
-### Boxes.List(Array)
+### Boxes.Box(Array)
 
 Create a new list. A list is like an array, but their values can't be assign without one of the Boxes mutability methods.
 
@@ -57,16 +57,41 @@ It internally creates a copy of your object, changing the inside objects with bo
 const fruits = ['avocado', 'orange', 'melon']
 
 const mylist = new Boxes.Box(fruits)
-console.log(mybox)
-/* outputs: ['avocado', 'orange', 'melon']
+// mybox: ['avocado', 'orange', 'melon']
 
 fruits[0] = 'apple'
-console.log(fruits)
-/* outputs: ['apple', 'orange', 'melon']
-
-console.log(mylist)
-/* outputs: ['avocado', 'orange', 'melon']
+// fruits === ['apple', 'orange', 'melon']
+// mybox === ['avocado', 'orange', 'melon']
 
 mylist[0] = 'apple'
 // throws error
+```
+
+### Boxes.set(box, propName, value)
+
+To assign a value you can use the `set` method, it will convert any object inside the value to a box
+
+```js
+const { Box, set } = require('boxes')
+const mybox = new Boxes.box({
+  amount: 1,
+  sale: true
+})
+
+set(mybox, 'amount', 55)
+// mybox.amount === 55
+```
+
+### Boxes.on(box, callback(prop, oldValue))
+
+```js
+const { Box, set, on } = require('boxes')
+const mybox = new Box({ a: 1 })
+on(mybox, (prop, oldValue) => {
+  console.log('prop:', prop)
+  console.log('oldValue:', oldValue)
+})
+set(box, 'a', 99)
+// ==> prop: 'a'
+// ==> oldValue: 1
 ```

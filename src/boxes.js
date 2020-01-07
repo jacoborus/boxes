@@ -1,9 +1,11 @@
+const ae = require('arbitrary-emitter')
 const getModifiers = require('./modifiers.js')
 const arrayMethods = require('./array-methods.js')
 
 const ProtoBox = {}
 const links = new Map()
-const modifiers = getModifiers(links, assignValue)
+const ee = ae()
+const modifiers = getModifiers(links, assignAndReturn, ee.emit)
 
 function isBox (obj) {
   return Object.getPrototypeOf(obj) === ProtoBox
@@ -12,6 +14,12 @@ function isBox (obj) {
 function isPrimitive (value) {
   const t = typeof value
   return t === 'string' || t === 'number' || t === 'boolean'
+}
+
+function assignAndReturn (target, prop, value) {
+  const oldValue = target[prop]
+  assignValue(target, prop, value)
+  return oldValue
 }
 
 function assignValue (target, prop, value) {
@@ -64,4 +72,8 @@ function createArrayBox (origin) {
   return proxy
 }
 
-module.exports = { Box, ...modifiers }
+function on (box, fn) {
+  ee.on(box, fn)
+}
+
+module.exports = { Box, ...modifiers, on }

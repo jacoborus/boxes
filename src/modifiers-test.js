@@ -15,8 +15,9 @@ test('modifiers#set', t => {
     },
     c: [1, 2, 3, 4]
   })
-  set(box, 'a', 99)
+  const result = set(box, 'a', 99)
   t.is(box.a, 99)
+  t.is(result, 99)
 
   set(box.b, 'x', 99)
   t.is(box.b.x, 99)

@@ -3,7 +3,8 @@ module.exports = function (links, assign, emit) {
     set (proxy, prop, value) {
       const link = links.get(proxy)
       const oldValue = assign(link, prop, value)
-      emit(proxy, prop, oldValue)
+      emit(proxy, { prop, oldValue })
+      return oldValue
     },
     copyWithin (proxy, ...args) {
       const link = links.get(proxy)

@@ -5,7 +5,7 @@ const arrayMethods = require('./array-methods.js')
 const ProtoBox = {}
 const links = new Map()
 const ee = weakEmitter()
-const modifiers = getModifiers(links, assignAndReturn, ee.emit)
+const modifiers = getModifiers(links, assignValue, ee.emit)
 
 function isBox (obj) {
   return Object.getPrototypeOf(obj) === ProtoBox
@@ -16,16 +16,12 @@ function isPrimitive (value) {
   return t === 'string' || t === 'number' || t === 'boolean'
 }
 
-function assignAndReturn (target, prop, value) {
-  const oldValue = target[prop]
-  assignValue(target, prop, value)
-  return oldValue
-}
-
 function assignValue (target, prop, value) {
-  target[prop] = isPrimitive(value) || isBox(value)
+  const newValue = isPrimitive(value) || isBox(value)
     ? value
     : new Box(value)
+  target[prop] = newValue
+  return newValue
 }
 
 function Box (origin) {

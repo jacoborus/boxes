@@ -1,10 +1,10 @@
-const ae = require('arbitrary-emitter')
+const weakEmitter = require('weak-emitter')
 const getModifiers = require('./modifiers.js')
 const arrayMethods = require('./array-methods.js')
 
 const ProtoBox = {}
 const links = new Map()
-const ee = ae()
+const ee = weakEmitter()
 const modifiers = getModifiers(links, assignAndReturn, ee.emit)
 
 function isBox (obj) {

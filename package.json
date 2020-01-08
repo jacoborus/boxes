@@ -32,6 +32,6 @@
     "tape": "4.13.0"
   },
   "dependencies": {
-    "arbitrary-emitter": "2.0.1"
+    "weak-emitter": "3.0.0"
   }
 }

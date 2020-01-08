@@ -29,9 +29,9 @@
     "eslint-plugin-node": "11.0.0",
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-standard": "4.0.1",
-    "tape": "4.12.1"
+    "tape": "4.13.0"
   },
   "dependencies": {
-    "arbitrary-emitter": "1.1.0"
+    "arbitrary-emitter": "2.0.1"
   }
 }

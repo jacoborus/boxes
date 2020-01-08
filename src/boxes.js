@@ -29,11 +29,12 @@ function assignValue (target, prop, value) {
 }
 
 function Box (origin) {
+  if (typeof origin !== 'object' || origin === null) {
+    throw new Error('origin is not type object')
+  }
   return Array.isArray(origin)
     ? createArrayBox(origin)
-    : (typeof origin === 'object' && origin !== null)
-      ? createObjectBox(origin)
-      : null
+    : createObjectBox(origin)
 }
 
 function createObjectBox (origin) {

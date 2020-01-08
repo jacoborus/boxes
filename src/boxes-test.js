@@ -5,6 +5,18 @@ const Boxes = require('./boxes.js')
 const { Box } = Boxes
 
 test('Box', t => {
+  t.throws(
+    function () {
+      return new Box(null)
+    },
+    'throws when argument is null'
+  )
+  t.throws(
+    function () {
+      return new Box()
+    },
+    'throws when no argument is passed'
+  )
   const origin = { a: 1 }
   const box = new Box(origin)
 

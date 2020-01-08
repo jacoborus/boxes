@@ -15,7 +15,7 @@ import Boxes from 'Boxes'
 
 Create a new box. A box is like an object, but their values can't be assign without one of the Boxes mutability methods.
 
-Parameter origin should be a object, box or list
+Parameter origin should be a not null object.
 
 It internally creates a copy of your object, changing the inside objects with boxes and arrays with lists. Then creates a Proxy from this copy which handler only allows properties to be read, not changed.
 

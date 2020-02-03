@@ -36,7 +36,7 @@ test('Modifiers#fill', t => {
   list6.fill(4, -3, -2) // [4, 2, 3]
   list7.fill(4, NaN, NaN) // [1, 2, 3]
   list8.fill(4, 3, 5) // [1, 2, 3]
-  t.same(list1, [4, 4, 4], 'box is correctly modified')
+  t.same(list1, [4, 4, 4], 'array#fill')
   t.same(list2, [1, 4, 4])
   t.same(list3, [1, 4, 3])
   t.same(list4, [1, 2, 3])

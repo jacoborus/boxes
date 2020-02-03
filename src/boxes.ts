@@ -1,5 +1,6 @@
 import { weakEmitter } from 'weak-emitter'
 import arrayMethods from './array-methods'
+import modifiers from './modifiers'
 
 const ProtoBox = {}
 const links = new Map()
@@ -76,7 +77,7 @@ function createArrayBox (origin: List): Prox {
         return target[prop]
       }
 
-      const method = arrayMethods[prop]
+      const method = arrayMethods[prop] || modifiers[prop]
       return method
         ? method(target, proxy)
         : undefined

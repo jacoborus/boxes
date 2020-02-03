@@ -193,7 +193,9 @@ test('List#toLocaleString', t => {
   const prices = ['￥7', 500, 8123, 12]
   const list = Box(prices)
   t.is(
+    // @ts-ignore
     list.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' }),
+    // @ts-ignore
     prices.toLocaleString('ja-JP', { style: 'currency', currency: 'JPY' })
   )
   t.end()

@@ -1,4 +1,4 @@
-module.exports = function (links, assign, emit) {
+export default function (links, assign, emit) {
   return {
     set (proxy, prop, value) {
       const oldValue = proxy[prop]

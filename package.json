@@ -5,7 +5,7 @@
   "main": "boxes.js",
   "scripts": {
     "linter": "eslint src/**/**.js",
-    "test": "node src/tests.js && npm run linter"
+    "test": "tape -r ts-node/register/transpile-only src/tests.ts"
   },
   "repository": {
     "type": "git",
@@ -23,15 +23,21 @@
   },
   "homepage": "https://github.com/jacoborus/boxes",
   "devDependencies": {
+    "@types/node": "^13.7.0",
+    "@types/tape": "^4.2.33",
+    "@typescript-eslint/eslint-plugin": "2.17.0",
+    "@typescript-eslint/parser": "2.7.0",
     "eslint": "6.8.0",
     "eslint-config-standard": "14.1.0",
-    "eslint-plugin-import": "2.19.1",
+    "eslint-plugin-import": "2.20.1",
     "eslint-plugin-node": "11.0.0",
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-standard": "4.0.1",
-    "tape": "4.13.0"
+    "tape": "^4.13.0",
+    "ts-node": "8.6.2",
+    "typescript": "3.7.5"
   },
   "dependencies": {
-    "weak-emitter": "3.0.0"
+    "weak-emitter": "../weak-emitter"
   }
 }

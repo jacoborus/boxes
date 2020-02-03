@@ -25,17 +25,17 @@ test('emitter#set in object', t => {
   box.a = true
 })
 
-// test('emitter#set in array', t => {
-//   t.plan(2)
-//   const box = Box([1, 2, 3, 4])
-//   on(box, ({ prop, oldValue }: Msg) => {
-//     t.is(prop, '2', 'default call on all properties')
-//     t.is(oldValue, 3, 'default call on all properties')
-//   })
-//   box['2'] = 99
-//   clear(box)
-//   box['2'] = true
-// })
+test('emitter#set in array', t => {
+  t.plan(2)
+  const box = Box([1, 2, 3, 4])
+  on(box, ({ prop, oldValue }: Msg) => {
+    t.is(prop, '2', 'default call on all properties')
+    t.is(oldValue, 3, 'default call on all properties')
+  })
+  box['2'] = 99
+  clear(box)
+  box['2'] = true
+})
 
 // test('emitter#set only triggers emitter if value is different', t => {
 //   t.plan(2)

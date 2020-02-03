@@ -90,7 +90,14 @@ function createArrayBox (origin: List): Prox {
         ? method(target, proxy)
         : undefined
     },
-    set,
+    set (target: Prox, prop: string, value: any): any {
+      const oldValue = target[prop]
+      if (oldValue === value) return value
+      const link = links.get(target)
+      const newValue = assignValue(link, prop, value)
+      ee.emit(proxy, { prop, oldValue })
+      return newValue
+    },
     getPrototypeOf: () => ProtoBox,
     deleteProperty
   })

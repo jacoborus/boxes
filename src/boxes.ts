@@ -36,12 +36,6 @@ function assignValue (target: any, prop: string | number, value: any) {
 
 type Prox = { [index: string]: any }
 
-function deleteProperty (target: Prox, prop: string): any {
-  delete target[prop]
-  ee.emit(target, prop)
-  return true
-}
-
 function createObjectBox (origin: Prox): Prox {
   const obj = {}
   Object.keys(origin).forEach(key => {

@@ -36,15 +36,6 @@ function assignValue (target: any, prop: string | number, value: any) {
 
 type Prox = { [index: string]: any }
 
-function set (target: Prox, prop: string, value: any): any {
-  const oldValue = target[prop]
-  if (oldValue === value) return value
-  const link = links.get(target)
-  const newValue = assignValue(link, prop, value)
-  ee.emit(target, { prop, oldValue })
-  return newValue
-}
-
 function deleteProperty (target: Prox, prop: string): any {
   delete target[prop]
   ee.emit(target, prop)

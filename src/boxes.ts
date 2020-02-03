@@ -7,6 +7,7 @@ const ee = weakEmitter()
 
 export const on = ee.on
 export const off = ee.off
+export const clear = ee.clear
 export function isBox (target: any): boolean {
   return Object.getPrototypeOf(target) === ProtoBox
 }
@@ -58,7 +59,14 @@ function createObjectBox (origin: Prox): Prox {
   })
   const proxy = new Proxy(obj, {
     get: (...args) => Reflect.get(...args),
-    set,
+    set (target: Prox, prop: string, value: any) {
+      const oldValue = target[prop]
+      if (oldValue === value) return value
+      const link = links.get(target)
+      const newValue = assignValue(link, prop, value)
+      ee.emit(proxy, { prop, oldValue })
+      return newValue
+    },
     getPrototypeOf: () => ProtoBox,
     deleteProperty
   })

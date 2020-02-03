@@ -1,13 +1,8 @@
-'use strict'
-
-const test = require('tape')
-const Boxes = require('./boxes.js')
-const {
-  Box, set, copyWithin, fill, pop, push, reverse, shift, sort, splice, unshift
-} = Boxes
+import test from 'tape'
+import { Box } from './boxes'
 
 test('modifiers#set', t => {
-  const box = new Box({
+  const box = Box({
     a: 1,
     b: {
       x: 'x',
@@ -30,10 +25,10 @@ test('modifiers#set', t => {
 
 test('Modifiers#copyWithin', t => {
   const original = [1, 2, 3, 4, 5]
-  const list1 = new Box(original)
-  const list2 = new Box(original)
-  const list3 = new Box(original)
-  const list4 = new Box(original)
+  const list1 = Box(original)
+  const list2 = Box(original)
+  const list3 = Box(original)
+  const list4 = Box(original)
   const result1 = copyWithin(list1, -2)
   const result2 = copyWithin(list2, 0, 3)
   const result3 = copyWithin(list3, 0, 3, 4)
@@ -51,14 +46,14 @@ test('Modifiers#copyWithin', t => {
 
 test('Modifiers#fill', t => {
   const arr = [1, 2, 3]
-  const list1 = new Box(arr)
-  const list2 = new Box(arr)
-  const list3 = new Box(arr)
-  const list4 = new Box(arr)
-  const list5 = new Box(arr)
-  const list6 = new Box(arr)
-  const list7 = new Box(arr)
-  const list8 = new Box(arr)
+  const list1 = Box(arr)
+  const list2 = Box(arr)
+  const list3 = Box(arr)
+  const list4 = Box(arr)
+  const list5 = Box(arr)
+  const list6 = Box(arr)
+  const list7 = Box(arr)
+  const list8 = Box(arr)
   const result1 = fill(list1, 4) // [4, 4, 4]
   const result2 = fill(list2, 4, 1) // [1, 4, 4]
   const result3 = fill(list3, 4, 1, 2) // [1, 4, 3]
@@ -88,7 +83,7 @@ test('Modifiers#fill', t => {
 
 test('modifiers#pop', t => {
   const plants = ['broccoli', 'cauliflower', 'cabbage', 'kale', 'tomato']
-  const list = new Box(plants)
+  const list = Box(plants)
   const res1 = pop(list) // "tomato"
   t.is(res1, 'tomato')
   t.same(list, ['broccoli', 'cauliflower', 'cabbage', 'kale'])
@@ -99,7 +94,7 @@ test('modifiers#pop', t => {
 
 test('modifiers#push', t => {
   const animals = ['pigs', 'goats', 'sheep']
-  const list = new Box(animals)
+  const list = Box(animals)
   const count = push(list, 'cows')
   t.is(count, 4)
   t.same(list, ['pigs', 'goats', 'sheep', 'cows'])
@@ -110,7 +105,7 @@ test('modifiers#push', t => {
 
 test('modifiers#reverse', t => {
   const arr = ['one', 'two', 'three']
-  const list = new Box(arr)
+  const list = Box(arr)
   const reversed = reverse(list)
   t.same(reversed, ['three', 'two', 'one'])
   t.is(list, reversed)
@@ -119,7 +114,7 @@ test('modifiers#reverse', t => {
 
 test('modifiers#shift', t => {
   const arr = [1, 2, 3]
-  const list = new Box(arr)
+  const list = Box(arr)
   const firstElement = shift(list)
   t.same(list, [2, 3])
   t.is(firstElement, 1)
@@ -128,17 +123,17 @@ test('modifiers#shift', t => {
 
 test('modifiers#sort', t => {
   const months = ['March', 'Jan', 'Feb', 'Dec']
-  const list = new Box(months)
+  const list = Box(months)
   sort(list)
   t.same(list, ['Dec', 'Feb', 'Jan', 'March'])
 
   const arr = [1, 30, 4, 21, 100000]
 
-  const list1 = new Box(arr)
+  const list1 = Box(arr)
   sort(list1)
   t.same(list1, [1, 100000, 21, 30, 4])
 
-  const list2 = new Box(arr)
+  const list2 = Box(arr)
   sort(list2, (a, b) => a - b)
   t.same(list2, [1, 4, 21, 30, 100000])
   t.end()
@@ -146,7 +141,7 @@ test('modifiers#sort', t => {
 
 test('modifiers#splice', t => {
   const months = ['Jan', 'March', 'April', 'June']
-  const list = new Box(months)
+  const list = Box(months)
   const result = splice(list, 1, 0, 'Feb')
   t.is(result, list)
   t.same(list, ['Jan', 'Feb', 'March', 'April', 'June'])
@@ -158,7 +153,7 @@ test('modifiers#splice', t => {
 
 test('modifiers#unshift', t => {
   const arr = [1, 2, 3]
-  const list = new Box(arr)
+  const list = Box(arr)
   const result = unshift(list, 4, 5)
   t.is(result, 5)
   t.same(list, [4, 5, 1, 2, 3])

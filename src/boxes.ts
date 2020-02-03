@@ -58,8 +58,14 @@ function createObjectBox (origin: Prox): Prox {
       ee.emit(proxy, { prop, oldValue })
       return newValue
     },
-    getPrototypeOf: () => ProtoBox,
-    deleteProperty
+    deleteProperty (target: Prox, prop: string): any {
+      if (!(prop in target)) return true
+      const oldValue = target[prop]
+      delete target[prop]
+      ee.emit(proxy, { prop, oldValue })
+      return true
+    },
+    getPrototypeOf: () => ProtoBox
   })
   links.set(obj, obj)
   return proxy
@@ -89,8 +95,14 @@ function createArrayBox (origin: List): Prox {
       ee.emit(proxy, { prop, oldValue })
       return newValue
     },
-    getPrototypeOf: () => ProtoBox,
-    deleteProperty
+    deleteProperty (target: Prox, prop: string): any {
+      if (!(prop in target)) return true
+      const oldValue = target[prop]
+      delete target[prop]
+      ee.emit(proxy, { prop, oldValue })
+      return true
+    },
+    getPrototypeOf: () => ProtoBox
   })
   links.set(arr, arr)
   return proxy

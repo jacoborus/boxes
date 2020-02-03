@@ -49,3 +49,27 @@ test('emitter#set only triggers emitter if value is different', t => {
   clear(box)
   box['2'] = true
 })
+
+test('emitter#delete in object', t => {
+  t.plan(2)
+  const box = Box({ a: 1, b: 2 })
+  on(box, ({ prop, oldValue }: Msg) => {
+    t.is(prop, 'a', 'default call on all properties')
+    t.is(oldValue, 1, 'default call on all properties')
+  })
+  delete box.a
+  clear(box)
+  delete box.b
+})
+
+test('emitter#delete in array', t => {
+  t.plan(2)
+  const box = Box([1, 2, 3, 4])
+  on(box, ({ prop, oldValue }: Msg) => {
+    t.is(prop, '2', 'default call on all properties')
+    t.is(oldValue, 3, 'default call on all properties')
+  })
+  delete box['2']
+  clear(box)
+  delete box[0]
+})

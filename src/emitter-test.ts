@@ -37,16 +37,15 @@ test('emitter#set in array', t => {
   box['2'] = true
 })
 
-// test('emitter#set only triggers emitter if value is different', t => {
-//   t.plan(2)
-//   const box = Box([1, 2, 3, 4])
-//   on(box, () => t.pass())
-//   box[0] = 1
-//   box[0] = 1
-//   box[0] = 1
-//   box[0] = 1
-//   box[0] = 99
-//   off(box)
-//   box['2'] = true
-//   t.pass('ok off')
-// })
+test('emitter#set only triggers emitter if value is different', t => {
+  t.plan(1)
+  const box = Box([1, 2, 3, 4])
+  on(box, () => t.pass())
+  box[0] = 1
+  box[0] = 1
+  box[0] = 1
+  box[0] = 1
+  box[0] = 99
+  clear(box)
+  box['2'] = true
+})

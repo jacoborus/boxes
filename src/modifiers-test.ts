@@ -108,10 +108,8 @@ test('modifiers#sort', t => {
 test('modifiers#splice', t => {
   const months = ['Jan', 'March', 'April', 'June']
   const list = Box(months)
-  const result = list.splice(1, 0, 'Feb')
-  t.is(result, list)
+  list.splice(1, 0, 'Feb')
   t.same(list, ['Jan', 'Feb', 'March', 'April', 'June'])
-
   list.splice(3, 1, 'uno', 'dos')
   t.same(list, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June'])
   t.end()

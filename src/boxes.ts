@@ -22,13 +22,12 @@ export function Box (origin: any) {
     : createObjectBox(origin)
 }
 
-function isPrimitive (value: any) {
-  const t = typeof value
-  return t === 'string' || t === 'number' || t === 'boolean'
+function isObject (target: any): boolean {
+  return target && typeof target === 'object'
 }
 
 function assignValue (target: any, prop: string | number, value: any) {
-  const newValue = isPrimitive(value) || isBox(value)
+  const newValue = !isObject(value) || isBox(value)
     ? value
     : Box(value)
   target[prop] = newValue
@@ -36,6 +35,15 @@ function assignValue (target: any, prop: string | number, value: any) {
 }
 
 type Prox = { [index: string]: any }
+
+function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
+  const oldValue = target[prop]
+  if (oldValue === value) return value
+  const link = links.get(target)
+  const newValue = assignValue(link, prop, value)
+  ee.emit(proxy, { prop, oldValue, newValue })
+  return newValue
+}
 
 function createObjectBox (origin: Prox): Prox {
   const obj = {}
@@ -45,19 +53,12 @@ function createObjectBox (origin: Prox): Prox {
   })
   const proxy = new Proxy(obj, {
     get: (...args) => Reflect.get(...args),
-    set (target: Prox, prop: string, value: any) {
-      const oldValue = target[prop]
-      if (oldValue === value) return value
-      const link = links.get(target)
-      const newValue = assignValue(link, prop, value)
-      ee.emit(proxy, { prop, oldValue })
-      return newValue
-    },
+    set: setHandler,
     deleteProperty (target: Prox, prop: string): any {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
-      ee.emit(proxy, { prop, oldValue })
+      ee.emit(proxy, { prop, oldValue, deleted: true })
       return true
     },
     getPrototypeOf: () => ProtoBox
@@ -68,33 +69,24 @@ function createObjectBox (origin: Prox): Prox {
 
 type List = any[]
 
+function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
+  const method = arrayMethods[prop] || modifiers[prop]
+  return method
+    ? method(target, proxy, ee)
+    : target[prop]
+}
+
 function createArrayBox (origin: List): Prox {
   const arr: [] = []
   origin.forEach((value, i) => assignValue(arr, i, value))
   const proxy: Prox = new Proxy(arr, {
-    get (target: Prox, prop: string) {
-      if (typeof prop === 'string' && !isNaN(prop as any)) {
-        return target[prop]
-      }
-
-      const method = arrayMethods[prop] || modifiers[prop]
-      return method
-        ? method(target, proxy)
-        : undefined
-    },
-    set (target: Prox, prop: string, value: any): any {
-      const oldValue = target[prop]
-      if (oldValue === value) return value
-      const link = links.get(target)
-      const newValue = assignValue(link, prop, value)
-      ee.emit(proxy, { prop, oldValue })
-      return newValue
-    },
+    get: arrGetHandler,
+    set: setHandler,
     deleteProperty (target: Prox, prop: string): any {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
-      ee.emit(proxy, { prop, oldValue })
+      ee.emit(proxy, { prop, oldValue, deleted: true })
       return true
     },
     getPrototypeOf: () => ProtoBox

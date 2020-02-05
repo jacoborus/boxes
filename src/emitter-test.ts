@@ -73,3 +73,76 @@ test('emitter#delete in array', t => {
   clear(box)
   delete box[0]
 })
+
+test('emitter#push in array', t => {
+  t.plan(4)
+  const box = Box([1, 2, 3, 4])
+  // console.log(box)
+  on(box, () => {
+    t.pass()
+  })
+  box.push(999, 5, 6)
+  console.log('len:', box.length)
+  clear(box)
+  box['2'] = true
+  setTimeout(() => t.end(), 500)
+})
+
+test('emitter#pop in array', t => {
+  // t.plan(11)
+  const box = Box([1, 2, 3])
+  // console.log(box)
+  on(box, function () {
+    console.log(arguments[0])
+    t.pass()
+  })
+  box.shift()
+  // box.push(1,2,3)
+  console.log('======')
+  console.log(box)
+  console.log('======')
+  clear(box)
+  // box.pop()
+  setTimeout(() => t.end(), 500)
+})
+
+// all array modifiers should be represented with 4 params:
+// - replace
+// - insert
+// - remove
+// - sort
+
+// const arr = []
+// const args = {
+//   start: 1,
+//   end: 2,
+//   newItems: []
+// }
+//
+// const mods = {
+//   fill: 'auto', // replace (interception needed to return proxy)
+//   pop: 'auto', // replace + length (no interception needed)
+//   push: {
+//     replace: [],
+//     length: true // (interception needed to trigger length handlers)
+//   },
+//   shift: { // interception needed to trigger only 2 handlers:
+//     remove: 0, // 0 is the index of the item to remove
+//     length: true
+//   },
+//   reverse: {
+//     sort: true,
+//     length: false,
+//     sort: true,
+//     reverse: true
+//   },
+//   sort: {
+//     diff: { start: 0, end: arr.length },
+//     length: false,
+//     sort: true
+//   },
+//   shift: 1,
+//   unshift: 1,
+//   splice: {},
+//   copyWithin: 2
+// }

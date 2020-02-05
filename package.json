@@ -45,6 +45,6 @@
     "typescript": "3.7.5"
   },
   "dependencies": {
-    "weak-emitter": "../weak-emitter"
+    "weak-emitter": "4.2.0"
   }
 }

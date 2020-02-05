@@ -5,9 +5,10 @@
   "type": "module",
   "main": "boxes.js",
   "scripts": {
+    "dist": "rollup --config",
     "linter": "eslint src/**/**.js",
     "build": "rm -rf lib && tsc",
-    "test": "tape -r ts-node/register src/tests.ts"
+    "test": "tape -r ts-node/register/transpile-only src/tests.ts"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,8 @@
   },
   "homepage": "https://github.com/jacoborus/boxes",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "11.0.2",
+    "@rollup/plugin-node-resolve": "7.1.1",
     "@types/node": "13.7.0",
     "@types/tape": "4.2.33",
     "@typescript-eslint/eslint-plugin": "2.17.0",
@@ -35,11 +38,13 @@
     "eslint-plugin-node": "11.0.0",
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-standard": "4.0.1",
+    "rollup": "1.31.0",
     "tape": "4.13.0",
+    "terser": "^4.6.3",
     "ts-node": "8.6.2",
     "typescript": "3.7.5"
   },
   "dependencies": {
-    "weak-emitter": "4.2.0"
+    "weak-emitter": "../weak-emitter"
   }
 }

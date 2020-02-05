@@ -1,6 +1,6 @@
 const arr = [
   require('./boxes-test.ts'),
-  require('./array-test.ts'),
+  require('./methods-test.ts'),
   require('./modifiers-test.ts'),
   require('./emitter-test.ts')
 ]

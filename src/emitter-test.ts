@@ -93,10 +93,10 @@ test('emitter#pop in array', t => {
   const box = Box([1, 2, 3])
   // console.log(box)
   on(box, function () {
-    console.log(arguments[0])
+    console.log('===>', arguments[0])
     t.pass()
   })
-  box.shift()
+  box.push(5, 5)
   // box.push(1,2,3)
   console.log('======')
   console.log(box)

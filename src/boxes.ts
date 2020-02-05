@@ -1,10 +1,13 @@
 import { weakEmitter } from 'weak-emitter'
-import arrayMethods from './array-methods'
+import arrayMethods from './methods'
 import modifiers from './modifiers'
 
 const ProtoBox = {}
 const links = new Map()
 const ee = weakEmitter()
+
+type Prox = { [index: string]: any }
+type List = any[]
 
 export const on = ee.on
 export const off = ee.off
@@ -22,19 +25,17 @@ export function Box (origin: any) {
     : createObjectBox(origin)
 }
 
-function isObject (target: any): boolean {
+function isObject (target: Prox): boolean {
   return target && typeof target === 'object'
 }
 
-function assignValue (target: any, prop: string | number, value: any) {
+function assignValue (target: Prox, prop: string | number, value: any) {
   const newValue = !isObject(value) || isBox(value)
     ? value
     : Box(value)
   target[prop] = newValue
   return newValue
 }
-
-type Prox = { [index: string]: any }
 
 function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   const oldValue = target[prop]
@@ -66,8 +67,6 @@ function createObjectBox (origin: Prox): Prox {
   links.set(obj, obj)
   return proxy
 }
-
-type List = any[]
 
 function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
   const method = arrayMethods[prop] || modifiers[prop]

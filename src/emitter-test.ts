@@ -181,6 +181,23 @@ test('emitter#shift', t => {
   t.end()
 })
 
+test.skip('emitter#sort', t => t.end())
+test.skip('emitter#splice', t => t.end())
+
+test('emitter#unshift', t => {
+  const arr = [1, 2, 3]
+  const list = Box(arr)
+  const results = [
+    ['insert', 0, 5],
+    ['insert', 0, 4],
+    ['length', 5]
+  ]
+  t.plan(results.length)
+  on(list, change => t.same(change, results.shift()))
+  list.unshift(4, 5)
+  t.end()
+})
+
 // all array modifiers should be represented with 4 params:
 // - replace
 // - insert

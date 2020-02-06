@@ -91,8 +91,14 @@ const modifiers: Modifiers = {
     }
   },
 
-  unshift: (target: any[]) => function () {
-    return target.unshift(...arguments)
+  unshift: (target: any[], proxy: []) => function () {
+    Object.keys(arguments).reverse().forEach((i: string) => {
+      const value = arguments[i as any]
+      target.unshift(value)
+      ee.emit(proxy, ['insert', 0, value])
+    })
+    ee.emit(proxy, ['length', target.length])
+    return target.length
   }
 }
 

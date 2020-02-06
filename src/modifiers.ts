@@ -70,7 +70,12 @@ const modifiers: Modifiers = {
     }
   },
 
-  shift: (target: []) => () => target.shift(),
+  shift: (target: [], proxy: []) => () => {
+    const result = target.shift()
+    ee.emit(proxy, ['remove', 0, result])
+    ee.emit(proxy, ['length', target.length])
+    return result
+  },
 
   sort (target: [], proxy: []) {
     return function (fn: (a: any, b: any) => number) {

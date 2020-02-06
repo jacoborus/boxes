@@ -65,6 +65,7 @@ const modifiers: Modifiers = {
   reverse (target: [], proxy: []) {
     return function () {
       target.reverse()
+      ee.emit(proxy, ['reverse'])
       return proxy
     }
   },

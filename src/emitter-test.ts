@@ -158,6 +158,16 @@ test('emitter#push', t => {
   t.end()
 })
 
+test('emitter#reverse', t => {
+  t.plan(1)
+  const arr = ['one', 'two', 'three']
+  const list = Box(arr)
+  const result = ['reverse']
+  on(list, change => t.same(change, result))
+  list.reverse()
+  t.end()
+})
+
 // all array modifiers should be represented with 4 params:
 // - replace
 // - insert

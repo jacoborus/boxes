@@ -113,11 +113,55 @@ test('modifiers#splice', t => {
   list.splice(3, 1, 'uno', 'dos')
   t.same(list, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June'])
 
+  // Remove 0 (zero) elements from index 2, and insert 'drum'
   const myFish = ['angel', 'clown', 'mandarin', 'sturgeon']
   const box = Box(myFish)
   const removed = box.splice(2, 0, 'drum')
   t.same(box, ['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
   t.notOk(removed.length)
+
+  // Remove 0 (zero) elements from index 2, and insert 'drum' and 'guitar'
+  const box2 = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
+  const removed2 = box2.splice(2, 0, 'drum', 'guitar')
+  t.same(box2, ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon'])
+  t.notOk(removed2.length)
+
+  // Remove 1 element from index 3
+  const box3 = Box(['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
+  const removed3 = box3.splice(3, 1)
+  t.same(removed3, ['mandarin'])
+  t.same(box3, ['angel', 'clown', 'drum', 'sturgeon'])
+
+  // Remove 1 element from index 2, and insert 'trumpet'
+  const box4 = ['angel', 'clown', 'drum', 'sturgeon']
+  const removed4 = box4.splice(2, 1, 'trumpet')
+  t.same(box4, ['angel', 'clown', 'trumpet', 'sturgeon'])
+  t.is(removed4.length, 1)
+
+  // Remove 2 elements from index 0, and insert 'parrot', 'anemone' and 'blue'
+  const box5 = ['angel', 'clown', 'trumpet', 'sturgeon']
+  const removed5 = box5.splice(0, 2, 'parrot', 'anemone', 'blue')
+  t.same(box5, ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon'])
+  t.same(removed5, ['angel', 'clown'])
+
+  // Remove 2 elements from index 2
+  const box6 = ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']
+  const removed6 = box6.splice(2, 2)
+  t.same(box6, ['parrot', 'anemone', 'sturgeon'])
+  t.same(removed6, ['blue', 'trumpet'])
+
+  // Remove 1 element from index -2
+  const box7 = ['angel', 'clown', 'mandarin', 'sturgeon']
+  const removed7 = box7.splice(-2, 1)
+  t.same(box7, ['angel', 'clown', 'sturgeon'])
+  t.same(removed7, ['mandarin'])
+
+  // Remove all elements after index 2 (incl.)
+  const box8 = ['angel', 'clown', 'mandarin', 'sturgeon']
+  const removed8 = box8.splice(2)
+  t.same(box8, ['angel', 'clown'])
+  t.same(removed8, ['mandarin', 'sturgeon'])
+
   t.end()
 })
 

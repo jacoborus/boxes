@@ -20,10 +20,9 @@ const modifiers: Modifiers = {
     }
   },
 
-  // set([
-  //   [position, oldValue, newValue],
-  //   [position, oldValue, newValue],
-  //   ...
+  // set([position, oldValue, newValue])
+  // set([position, oldValue, newValue])
+  // ...
   // ])
   fill (target: any[], proxy: any[]) {
     return function (value: any, start = 0, end = target.length) {
@@ -55,9 +54,11 @@ const modifiers: Modifiers = {
 
   push: (target: any[], proxy: any[], ee: Emitter) => function () {
     Object.keys(arguments).forEach((i: string) => {
-      proxy[target.length] = arguments[i as any]
+      const value = arguments[i as any]
+      target[target.length] = value
+      ee.emit(proxy, ['insert', target.length - 1, value])
     })
-    ee.emit(proxy, 'length')
+    ee.emit(proxy, ['length', target.length])
     return target.length
   },
 

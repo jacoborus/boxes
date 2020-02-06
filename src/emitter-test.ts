@@ -140,6 +140,24 @@ test('emitter#pop', t => {
   t.end()
 })
 
+test('emitter#push', t => {
+  const animals = ['pigs', 'goats', 'sheep']
+  const list = Box(animals)
+  const results = [
+    ['insert', 3, 'cows'],
+    ['length', 4],
+    ['insert', 4, 'chickens'],
+    ['insert', 5, 'cats'],
+    ['insert', 6, 'dogs'],
+    ['length', 7]
+  ]
+  t.plan(results.length)
+  on(list, change => t.same(change, results.shift()))
+  list.push('cows')
+  list.push('chickens', 'cats', 'dogs')
+  t.end()
+})
+
 // all array modifiers should be represented with 4 params:
 // - replace
 // - insert

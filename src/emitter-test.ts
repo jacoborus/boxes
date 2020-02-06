@@ -126,6 +126,20 @@ test('Modifiers#fill', t => {
   setTimeout(() => t.end(), 50)
 })
 
+test('emitter#pop', t => {
+  t.plan(2)
+  const plants = ['broccoli', 'cauliflower', 'cabbage', 'kale', 'tomato']
+  const results = [
+    ['remove', 4, 'tomato'],
+    ['remove', 3, 'kale']
+  ]
+  const list = Box(plants)
+  on(list, change => t.same(change, results.shift()))
+  list.pop() // "tomato"
+  list.pop()
+  t.end()
+})
+
 // all array modifiers should be represented with 4 params:
 // - replace
 // - insert

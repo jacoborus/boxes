@@ -1,5 +1,8 @@
+import ee from './ee'
+
 type Modifiers = { [index: string]: any }
 type Handler = (...args: any[]) => void
+
 interface Emitter {
     on(key: object, handler: Handler): void
     once(key: object, handler: Handler): void
@@ -16,12 +19,40 @@ const modifiers: Modifiers = {
       return proxy
     }
   },
+
+  // set([
+  //   [position, oldValue, newValue],
+  //   [position, oldValue, newValue],
+  //   ...
+  // ])
   fill (target: any[], proxy: any[]) {
     return function (value: any, start = 0, end = target.length) {
-      target.fill(value, start, end)
+      const len = target.length
+      start = start < 0 ? len + start : start
+      end = end < 0
+        ? len + end
+        : end > target.length
+          ? target.length
+          : end
+      if (end <= start) return
+      while (start < end) {
+        const oldValue = target[start]
+        target[start] = value
+        ee.emit(proxy, ['set', start, oldValue, value])
+        ++start
+      }
       return proxy
     }
   },
+
+  pop (target: any[], proxy: []) {
+    return function () {
+      const result = target.pop()
+      // ee.emit(proxy, ['remove', target.length, result])
+      return result
+    }
+  },
+
   push: (target: any[], proxy: any[], ee: Emitter) => function () {
     Object.keys(arguments).forEach((i: string) => {
       proxy[target.length] = arguments[i as any]
@@ -29,25 +60,30 @@ const modifiers: Modifiers = {
     ee.emit(proxy, 'length')
     return target.length
   },
+
   reverse (target: [], proxy: []) {
     return function () {
       target.reverse()
       return proxy
     }
   },
-  // shift: (target: []) => () => target.shift(),
+
+  shift: (target: []) => () => target.shift(),
+
   sort (target: [], proxy: []) {
     return function (fn: (a: any, b: any) => number) {
       target.sort(fn)
       return proxy
     }
   },
+
   splice: (target: any[], proxy: []) => {
     return function (start: number, deleteCount: number, ...items: []) {
       target.splice(start, deleteCount, ...items)
       return proxy
     }
   },
+
   unshift: (target: any[]) => function () {
     return target.unshift(...arguments)
   }

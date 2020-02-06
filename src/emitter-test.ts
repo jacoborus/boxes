@@ -25,6 +25,18 @@ test('emitter#set in object', t => {
   box.a = true
 })
 
+test('emitter#delete in object', t => {
+  t.plan(2)
+  const box = Box({ a: 1, b: 2 })
+  on(box, ({ prop, oldValue }: Msg) => {
+    t.is(prop, 'a', 'default call on all properties')
+    t.is(oldValue, 1, 'default call on all properties')
+  })
+  delete box.a
+  clear(box)
+  delete box.b
+})
+
 test('emitter#set in array', t => {
   t.plan(2)
   const box = Box([1, 2, 3, 4])
@@ -50,18 +62,6 @@ test('emitter#set only triggers emitter if value is different', t => {
   box['2'] = true
 })
 
-test('emitter#delete in object', t => {
-  t.plan(2)
-  const box = Box({ a: 1, b: 2 })
-  on(box, ({ prop, oldValue }: Msg) => {
-    t.is(prop, 'a', 'default call on all properties')
-    t.is(oldValue, 1, 'default call on all properties')
-  })
-  delete box.a
-  clear(box)
-  delete box.b
-})
-
 test('emitter#delete in array', t => {
   t.plan(2)
   const box = Box([1, 2, 3, 4])
@@ -74,36 +74,56 @@ test('emitter#delete in array', t => {
   delete box[0]
 })
 
-test('emitter#push in array', t => {
-  t.plan(4)
-  const box = Box([1, 2, 3, 4])
-  // console.log(box)
-  on(box, () => {
-    t.pass()
-  })
-  box.push(999, 5, 6)
-  console.log('len:', box.length)
-  clear(box)
-  box['2'] = true
-  setTimeout(() => t.end(), 500)
-})
+test('Modifiers#fill', t => {
+  t.plan(7)
+  const arr = [1, 2, 3]
+  const list1 = Box(arr)
+  const list2 = Box(arr)
+  const list3 = Box(arr)
+  const list4 = Box(arr)
+  const list5 = Box(arr)
+  const list6 = Box(arr)
+  const list7 = Box(arr)
+  const list8 = Box(arr)
+  const res1 = [
+    ['set', 0, 1, 4],
+    ['set', 1, 2, 4],
+    ['set', 2, 3, 4]
+  ]
+  on(list1, change => t.same(res1.shift(), change))
+  list1.fill(4) // [4, 4, 4]
 
-test('emitter#pop in array', t => {
-  // t.plan(11)
-  const box = Box([1, 2, 3])
-  // console.log(box)
-  on(box, function () {
-    console.log('===>', arguments[0])
-    t.pass()
-  })
-  box.push(5, 5)
-  // box.push(1,2,3)
-  console.log('======')
-  console.log(box)
-  console.log('======')
-  clear(box)
-  // box.pop()
-  setTimeout(() => t.end(), 500)
+  const res2 = [
+    ['set', 1, 2, 4],
+    ['set', 2, 3, 4]
+  ]
+  on(list2, change => t.same(res2.shift(), change))
+  list2.fill(4, 1) // [1, 4, 4]
+
+  const res3 = [
+    ['set', 1, 2, 4]
+  ]
+  on(list3, change => t.same(res3.shift(), change))
+  list3.fill(4, 1, 2) // [1, 4, 3]
+
+  on(list4, () => t.fail())
+  list4.fill(4, 1, 1) // [1, 2, 3]
+
+  on(list5, () => t.fail())
+  list5.fill(4, 3, 3) // [1, 2, 3]
+
+  const res6 = [
+    ['set', 0, 1, 4]
+  ]
+  on(list6, change => t.same(res6.shift(), change))
+  list6.fill(4, -3, -2) // [4, 2, 3]
+
+  on(list7, () => t.fail())
+  list7.fill(4, NaN, NaN) // [1, 2, 3]
+
+  on(list8, () => t.fail())
+  list8.fill(4, 3, 5) // [1, 2, 3]
+  setTimeout(() => t.end(), 50)
 })
 
 // all array modifiers should be represented with 4 params:

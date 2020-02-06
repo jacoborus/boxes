@@ -1,10 +1,9 @@
-import { weakEmitter } from 'weak-emitter'
 import arrayMethods from './methods'
+import ee from './ee'
 import modifiers from './modifiers'
 
 const ProtoBox = {}
 const links = new Map()
-const ee = weakEmitter()
 
 type Prox = { [index: string]: any }
 type List = any[]
@@ -42,7 +41,7 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   if (oldValue === value) return value
   const link = links.get(target)
   const newValue = assignValue(link, prop, value)
-  ee.emit(proxy, { prop, oldValue, newValue })
+  ee.emit(proxy, { prop, oldValue, newValue, kind: 'set' })
   return newValue
 }
 
@@ -59,7 +58,7 @@ function createObjectBox (origin: Prox): Prox {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
-      ee.emit(proxy, { prop, oldValue, deleted: true })
+      ee.emit(proxy, { prop, oldValue, kind: 'delete' })
       return true
     },
     getPrototypeOf: () => ProtoBox
@@ -75,17 +74,26 @@ function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
     : target[prop]
 }
 
+function arraySetHandler (target: Prox, prop: string, value: any, proxy: Prox) {
+  const oldValue = target[prop]
+  if (oldValue === value) return value
+  const link = links.get(target)
+  const newValue = assignValue(link, prop, value)
+  ee.emit(proxy, { prop, oldValue, newValue, kind: 'set' })
+  return newValue
+}
+
 function createArrayBox (origin: List): Prox {
   const arr: [] = []
   origin.forEach((value, i) => assignValue(arr, i, value))
   const proxy: Prox = new Proxy(arr, {
     get: arrGetHandler,
-    set: setHandler,
+    set: arraySetHandler,
     deleteProperty (target: Prox, prop: string): any {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
-      ee.emit(proxy, { prop, oldValue, deleted: true })
+      ee.emit(proxy, { prop, oldValue, kind: 'delete' })
       return true
     },
     getPrototypeOf: () => ProtoBox

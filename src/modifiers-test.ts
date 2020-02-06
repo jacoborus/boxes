@@ -112,6 +112,12 @@ test('modifiers#splice', t => {
   t.same(list, ['Jan', 'Feb', 'March', 'April', 'June'])
   list.splice(3, 1, 'uno', 'dos')
   t.same(list, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June'])
+
+  const myFish = ['angel', 'clown', 'mandarin', 'sturgeon']
+  const box = Box(myFish)
+  const removed = box.splice(2, 0, 'drum')
+  t.same(box, ['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
+  t.notOk(removed.length)
   t.end()
 })
 

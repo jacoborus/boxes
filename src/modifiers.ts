@@ -84,10 +84,10 @@ const modifiers: Modifiers = {
     }
   },
 
-  splice: (target: any[], proxy: []) => {
+  splice: (target: any[]) => {
     return function (start: number, deleteCount: number, ...items: []) {
-      target.splice(start, deleteCount, ...items)
-      return proxy
+      const removed = target.splice(start, deleteCount, ...items)
+      return removed
     }
   },
 

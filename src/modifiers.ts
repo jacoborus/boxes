@@ -20,10 +20,6 @@ const modifiers: Modifiers = {
     }
   },
 
-  // set([position, oldValue, newValue])
-  // set([position, oldValue, newValue])
-  // ...
-  // ])
   fill (target: any[], proxy: any[]) {
     return function (value: any, start = 0, end = target.length) {
       const len = target.length

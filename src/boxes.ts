@@ -74,21 +74,12 @@ function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
     : target[prop]
 }
 
-function arraySetHandler (target: Prox, prop: string, value: any, proxy: Prox) {
-  const oldValue = target[prop]
-  if (oldValue === value) return value
-  const link = links.get(target)
-  const newValue = assignValue(link, prop, value)
-  ee.emit(proxy, { prop, oldValue, newValue, kind: 'set' })
-  return newValue
-}
-
 function createArrayBox (origin: List): Prox {
   const arr: [] = []
   origin.forEach((value, i) => assignValue(arr, i, value))
   const proxy: Prox = new Proxy(arr, {
     get: arrGetHandler,
-    set: arraySetHandler,
+    set: setHandler,
     deleteProperty (target: Prox, prop: string): any {
       if (!(prop in target)) return true
       const oldValue = target[prop]

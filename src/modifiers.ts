@@ -84,9 +84,52 @@ const modifiers: Modifiers = {
     }
   },
 
-  splice: (target: any[]) => {
-    return function (start: number, deleteCount: number, ...items: []) {
-      const removed = target.splice(start, deleteCount, ...items)
+  splice: (target: any[], proxy: []) => {
+    return function (start: number, deleteCount?: number, ...items: []) {
+      const originalStart = start
+      const originalCount = deleteCount
+      const len = target.length
+      items = items || []
+      start = start > len
+        ? len
+        : start > -1
+          ? start
+          : len > -start
+            ? len + start
+            : 0
+
+      const diff = len - start
+      deleteCount = '1' in arguments && deleteCount as number < diff
+        ? deleteCount as number
+        : diff
+
+      const iLen = items.length
+      const changes = []
+      const min = Math.min(deleteCount, iLen)
+
+      let count = 0
+      while (count < min) {
+        const pos = start + count
+        changes.push(['set', pos, target[pos], items[count]])
+        count++
+      }
+      if (deleteCount < iLen) {
+        while (count < iLen) {
+          changes.push(['insert', start + count, items[count]])
+          count++
+        }
+        changes.push(['length', target.length + iLen - deleteCount])
+      } else if (deleteCount > iLen) {
+        while (count < deleteCount) {
+          const pos = start + count
+          changes.push(['remove', pos, target[pos]])
+          count++
+        }
+        changes.push(['length', target.length + iLen - deleteCount])
+      }
+
+      const removed = target.splice(originalStart, originalCount, ...items)
+      changes.forEach(change => ee.emit(proxy, change))
       return removed
     }
   },

@@ -5,9 +5,10 @@
   "type": "module",
   "main": "boxes.js",
   "scripts": {
-    "dist": "rollup --config",
-    "linter": "eslint src/**/**.js",
     "build": "rm -rf lib && tsc",
+    "dist": "rollup --config",
+    "compress": "terser -c -m -o bundle.min.js -- bundle.js",
+    "linter": "eslint src/**/**.js",
     "test": "tape -r ts-node/register/transpile-only src/tests.ts"
   },
   "repository": {

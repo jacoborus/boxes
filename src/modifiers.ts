@@ -52,10 +52,13 @@ const modifiers: Modifiers = {
     }
   },
 
-  push: (target: any[], proxy: any[]) => function () {
+  push: (target: any[], proxy: any[], Box: any) => function () {
     Object.keys(arguments).forEach((i: string) => {
       const value = arguments[i as any]
-      proxy[target.length] = value
+      const len = target.length
+      const newValue = Box(value)
+      target[len] = newValue
+      ee.emit(proxy, ['insert', '' + len, newValue])
     })
     ee.emit(proxy, ['length', target.length])
     return target.length

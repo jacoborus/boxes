@@ -7,16 +7,12 @@ const links = new Map()
 type Prox = { [index: string]: any }
 
 function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
-  const isSet = prop in target
   const oldValue = target[prop]
   if (oldValue === value) return value
   const link = links.get(target)
   const newValue = Box(value)
   link[prop] = newValue
-  ee.emit(proxy, isSet
-    ? ['set', prop, oldValue, newValue]
-    : ['insert', prop, newValue]
-  )
+  ee.emit(proxy, ['set', prop, oldValue, newValue])
   return newValue
 }
 

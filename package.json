@@ -8,7 +8,7 @@
     "build": "rm -rf lib && tsc",
     "dist": "rollup --config",
     "compress": "terser -c -m -o bundle.min.js -- bundle.js",
-    "linter": "eslint src/**/**.js",
+    "linter": "eslint src/**/**.ts",
     "test": "tape -r ts-node/register/transpile-only src/tests.ts"
   },
   "repository": {

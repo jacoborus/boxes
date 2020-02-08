@@ -1,8 +1,8 @@
 import arrayMethods from './methods'
 import ee from './ee'
 import modifiers from './modifiers'
+import { isObject, isBox, setHiddenKey } from './tools'
 
-const ProtoBox = {}
 const links = new Map()
 
 type Prox = { [index: string]: any }
@@ -11,9 +11,6 @@ type List = any[]
 export const on = ee.on
 export const off = ee.off
 export const clear = ee.clear
-export function isBox (target: any): boolean {
-  return Object.getPrototypeOf(target) === ProtoBox
-}
 
 export function Box (origin: any) {
   if (typeof origin !== 'object' || origin === null) {
@@ -22,10 +19,6 @@ export function Box (origin: any) {
   return Array.isArray(origin)
     ? createArrayBox(origin)
     : createObjectBox(origin)
-}
-
-function isObject (target: Prox): boolean {
-  return target && typeof target === 'object'
 }
 
 function assignValue (target: Prox, prop: string | number, value: any) {
@@ -47,6 +40,7 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
 
 function createObjectBox (origin: Prox): Prox {
   const obj = {}
+  setHiddenKey(obj, '__isBox', true)
   Object.keys(origin).forEach(key => {
     const value = origin[key]
     assignValue(obj, key, value)
@@ -60,8 +54,7 @@ function createObjectBox (origin: Prox): Prox {
       delete target[prop]
       ee.emit(proxy, { prop, oldValue, kind: 'delete' })
       return true
-    },
-    getPrototypeOf: () => ProtoBox
+    }
   })
   links.set(obj, obj)
   return proxy
@@ -76,6 +69,7 @@ function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
 
 function createArrayBox (origin: List): Prox {
   const arr: [] = []
+  setHiddenKey(arr, '__isBox', true)
   origin.forEach((value, i) => assignValue(arr, i, value))
   const proxy: Prox = new Proxy(arr, {
     get: arrGetHandler,
@@ -86,8 +80,7 @@ function createArrayBox (origin: List): Prox {
       delete target[prop]
       ee.emit(proxy, { prop, oldValue, kind: 'delete' })
       return true
-    },
-    getPrototypeOf: () => ProtoBox
+    }
   })
   links.set(arr, arr)
   return proxy

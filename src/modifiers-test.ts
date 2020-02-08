@@ -193,3 +193,15 @@ test('modifiers#unshift', t => {
   t.same(list, [4, 5, 1, 2, 3])
   t.end()
 })
+
+test('Modifiers#unshift add boxes', t => {
+  const arr = [1, 2, 3]
+  const item1 = { a: 1 }
+  const item2 = { a: 2 }
+  const box = Box(arr)
+  box.unshift(item1, item2)
+  t.ok(box[0].__isBox)
+  t.ok(box[1].__isBox)
+  t.end()
+})
+

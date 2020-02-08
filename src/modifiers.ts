@@ -1,4 +1,5 @@
 import ee from './ee'
+import { Box } from './boxes'
 
 type Modifiers = { [index: string]: any }
 type Handler = (...args: any[]) => void
@@ -129,12 +130,13 @@ const modifiers: Modifiers = {
     }
   },
 
-  unshift: (target: any[], proxy: []) => function () {
-    Object.keys(arguments).reverse().forEach((i: string) => {
-      const value = arguments[i as any]
+  unshift: (target: any[], proxy: any[]) => function () {
+    let i = arguments.length
+    while (i--) {
+      const value = Box(arguments[i])
       target.unshift(value)
       ee.emit(proxy, ['insert', 0, value])
-    })
+    }
     ee.emit(proxy, ['length', target.length])
     return target.length
   }

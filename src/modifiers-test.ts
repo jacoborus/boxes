@@ -18,9 +18,6 @@ test('Modifiers#copyWithin', t => {
   t.end()
 })
 
-// TODO
-test.skip('Modifiers#copyWithin add boxes', t => t.fail())
-
 test('Modifiers#fill', t => {
   const arr = [1, 2, 3]
   const list1 = Box(arr)

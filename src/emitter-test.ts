@@ -77,7 +77,45 @@ test('emitter#delete in array', t => {
   t.end()
 })
 
-test.skip('Modifiers#copyWithin', t => t.fail())
+test('emitter#copyWithin', t => {
+  const original = [1, 2, 3, 4, 5]
+  const list1 = Box(original)
+  const list2 = Box(original)
+  const list3 = Box(original)
+  const list4 = Box(original)
+  t.plan(7)
+  const results1 = [
+    ['set', '3', 4, 1],
+    ['set', '4', 5, 2]
+  ]
+  on(list1, change => t.same(change, results1.shift(), '::1'))
+  // [1, 2, 3, 1, 2]
+  list1.copyWithin(-2)
+
+  const results2 = [
+    ['set', '0', 1, 4],
+    ['set', '1', 2, 5]
+  ]
+  // [4, 5, 3, 4, 5]
+  on(list2, change => t.same(change, results2.shift(), '::2'))
+  list2.copyWithin(0, 3)
+
+  const results3 = [
+    ['set', '0', 1, 4]
+  ]
+  on(list3, change => t.same(change, results3.shift(), '::3'))
+  // [4, 2, 3, 4, 5]
+  list3.copyWithin(0, 3, 4)
+
+  const results4 = [
+    ['set', '3', 4, 3],
+    ['set', '4', 5, 4]
+  ]
+  on(list4, change => t.same(change, results4.shift(), '::4'))
+  // [1, 2, 3, 3, 4]
+  list4.copyWithin(-2, -3, -1)
+  t.end()
+})
 
 test('emitter#fill', t => {
   t.plan(7)
@@ -95,20 +133,20 @@ test('emitter#fill', t => {
     ['set', '1', 2, 4],
     ['set', '2', 3, 4]
   ]
-  on(list1, change => t.same(res1.shift(), change))
+  on(list1, change => t.same(res1.shift(), change, '1'))
   list1.fill(4) // [4, 4, 4]
 
   const res2 = [
     ['set', '1', 2, 4],
     ['set', '2', 3, 4]
   ]
-  on(list2, change => t.same(res2.shift(), change))
+  on(list2, change => t.same(res2.shift(), change, '2'))
   list2.fill(4, 1) // [1, 4, 4]
 
   const res3 = [
     ['set', '1', 2, 4]
   ]
-  on(list3, change => t.same(res3.shift(), change))
+  on(list3, change => t.same(res3.shift(), change, '3'))
   list3.fill(4, 1, 2) // [1, 4, 3]
 
   on(list4, () => t.fail())
@@ -120,7 +158,7 @@ test('emitter#fill', t => {
   const res6 = [
     ['set', '0', 1, 4]
   ]
-  on(list6, change => t.same(res6.shift(), change))
+  on(list6, change => t.same(res6.shift(), change, '6'))
   list6.fill(4, -3, -2) // [4, 2, 3]
 
   on(list7, () => t.fail())
@@ -188,6 +226,7 @@ test('emitter#shift', t => {
   t.end()
 })
 
+// TODO
 test.skip('emitter#sort', t => t.end())
 
 test('emitter#splice', t => {

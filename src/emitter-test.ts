@@ -74,6 +74,8 @@ test('emitter#delete in array', t => {
   delete box[0]
 })
 
+test.skip('Modifiers#fill', t => t.fail())
+
 test('Modifiers#fill', t => {
   t.plan(7)
   const arr = [1, 2, 3]
@@ -127,12 +129,14 @@ test('Modifiers#fill', t => {
 })
 
 test('emitter#pop', t => {
-  t.plan(2)
   const plants = ['broccoli', 'cauliflower', 'cabbage', 'kale', 'tomato']
   const results = [
     ['remove', 4, 'tomato'],
-    ['remove', 3, 'kale']
+    ['length', 4],
+    ['remove', 3, 'kale'],
+    ['length', 3]
   ]
+  t.plan(results.length)
   const list = Box(plants)
   on(list, change => t.same(change, results.shift()))
   list.pop() // "tomato"

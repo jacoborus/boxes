@@ -43,7 +43,9 @@ const modifiers: Modifiers = {
   pop (target: any[], proxy: []) {
     return function () {
       const result = target.pop()
-      ee.emit(proxy, ['remove', target.length, result])
+      const len = target.length
+      ee.emit(proxy, ['remove', len, result])
+      ee.emit(proxy, ['length', len])
       return result
     }
   },

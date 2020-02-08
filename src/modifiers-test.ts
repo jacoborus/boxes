@@ -18,6 +18,9 @@ test('Modifiers#copyWithin', t => {
   t.end()
 })
 
+// TODO
+test.skip('Modifiers#copyWithin add boxes', t => t.fail())
+
 test('Modifiers#fill', t => {
   const arr = [1, 2, 3]
   const list1 = Box(arr)
@@ -185,6 +188,20 @@ test('modifiers#splice', t => {
   t.end()
 })
 
+test('Modifiers#splice add boxes', t => {
+  const months = ['Jan', 'March', 'April', 'June']
+  const feb = { month: 'Feb' }
+  const uno = { a: 1 }
+  const dos = { a: 2 }
+  const list = Box(months)
+  list.splice(1, 0, feb)
+  t.ok(list[1].__isBox)
+  list.splice(3, 1, uno, dos)
+  t.ok(list[3].__isBox)
+  t.ok(list[4].__isBox)
+  t.end()
+})
+
 test('modifiers#unshift', t => {
   const arr = [1, 2, 3]
   const list = Box(arr)
@@ -204,4 +221,3 @@ test('Modifiers#unshift add boxes', t => {
   t.ok(box[1].__isBox)
   t.end()
 })
-

@@ -81,11 +81,13 @@ const modifiers: Modifiers = {
   },
 
   splice: (target: any[], proxy: []) => {
-    return function (start: number, deleteCount?: number, ...items: []) {
+    return function (start: number, deleteCount?: number, ...entries: []) {
       const originalStart = start
       const originalCount = deleteCount
       const len = target.length
-      items = items || []
+      const items = entries
+        ? entries.map(Box)
+        : []
       start = start > len
         ? len
         : start > -1
@@ -106,7 +108,11 @@ const modifiers: Modifiers = {
       let count = 0
       while (count < min) {
         const pos = start + count
-        changes.push(['set', pos, target[pos], items[count]])
+        const oldValue = target[pos]
+        const newValue = items[count]
+        if (oldValue !== newValue) {
+          changes.push(['set', pos, oldValue, newValue])
+        }
         count++
       }
       if (deleteCount < iLen) {
@@ -124,7 +130,7 @@ const modifiers: Modifiers = {
         changes.push(['length', target.length + iLen - deleteCount])
       }
 
-      const removed = target.splice(originalStart, originalCount, ...items)
+      const removed = target.splice(originalStart, originalCount as number, ...items)
       changes.forEach(change => ee.emit(proxy, change))
       return removed
     }

@@ -47,6 +47,15 @@ test('Modifiers#fill', t => {
   t.end()
 })
 
+test('Modifiers#fill add boxes', t => {
+  const arr = [1, 2, 3]
+  const item = { a: 1 }
+  const box = Box(arr)
+  box.fill(item)
+  t.ok(box[0].__isBox)
+  t.end()
+})
+
 test('modifiers#pop', t => {
   const plants = ['broccoli', 'cauliflower', 'cabbage', 'kale', 'tomato']
   const list = Box(plants)

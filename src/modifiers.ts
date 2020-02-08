@@ -31,9 +31,7 @@ const modifiers: Modifiers = {
           : end
       if (end <= start) return
       while (start < end) {
-        const oldValue = target[start]
-        target[start] = value
-        ee.emit(proxy, ['set', start, oldValue, value])
+        proxy[start] = value
         ++start
       }
       return proxy

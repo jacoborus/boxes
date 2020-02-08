@@ -1,13 +1,8 @@
 import test from 'tape'
 import { Box, on, clear } from './boxes'
 
-interface Msg {
-  prop: string
-  oldValue: any
-}
-
 test('emitter#set in object', t => {
-  t.plan(2)
+  t.plan(4)
   const box = Box({
     a: 1,
     b: {
@@ -16,37 +11,43 @@ test('emitter#set in object', t => {
     },
     c: [1, 2, 3, 4]
   })
-  on(box, ({ prop, oldValue }: Msg) => {
+  // ee.emit(proxy, ['set', prop, oldValue, newValue])
+  on(box, ([kind, prop, oldValue, newValue]) => {
+    t.is(kind, 'set', 'default call on all properties')
     t.is(prop, 'a', 'default call on all properties')
     t.is(oldValue, 1, 'default call on all properties')
+    t.is(newValue, 99, 'default call on all properties')
   })
   box.a = 99
   clear(box)
   box.a = true
+  t.end()
 })
 
 test('emitter#delete in object', t => {
-  t.plan(2)
   const box = Box({ a: 1, b: 2 })
-  on(box, ({ prop, oldValue }: Msg) => {
-    t.is(prop, 'a', 'default call on all properties')
-    t.is(oldValue, 1, 'default call on all properties')
-  })
+  const results = [
+    ['delete', 'a', 1]
+  ]
+  t.plan(results.length)
+  on(box, change => t.same(change, results.shift()))
   delete box.a
   clear(box)
   delete box.b
+  t.end()
 })
 
 test('emitter#set in array', t => {
-  t.plan(2)
   const box = Box([1, 2, 3, 4])
-  on(box, ({ prop, oldValue }: Msg) => {
-    t.is(prop, '2', 'default call on all properties')
-    t.is(oldValue, 3, 'default call on all properties')
-  })
+  const results = [
+    ['set', '2', 3, 99]
+  ]
+  t.plan(results.length)
+  on(box, change => t.same(change, results.shift()))
   box['2'] = 99
   clear(box)
   box['2'] = true
+  t.end()
 })
 
 test('emitter#set only triggers emitter if value is different', t => {
@@ -60,23 +61,25 @@ test('emitter#set only triggers emitter if value is different', t => {
   box[0] = 99
   clear(box)
   box['2'] = true
+  t.end()
 })
 
 test('emitter#delete in array', t => {
-  t.plan(2)
   const box = Box([1, 2, 3, 4])
-  on(box, ({ prop, oldValue }: Msg) => {
-    t.is(prop, '2', 'default call on all properties')
-    t.is(oldValue, 3, 'default call on all properties')
-  })
+  const results = [
+    ['delete', '2', 3]
+  ]
+  t.plan(results.length)
+  on(box, change => t.same(change, results.shift()))
   delete box['2']
   clear(box)
   delete box[0]
+  t.end()
 })
 
-test.skip('Modifiers#fill', t => t.fail())
+test.skip('Modifiers#copyWithin', t => t.fail())
 
-test('Modifiers#fill', t => {
+test('emitter#fill', t => {
   t.plan(7)
   const arr = [1, 2, 3]
   const list1 = Box(arr)
@@ -88,22 +91,22 @@ test('Modifiers#fill', t => {
   const list7 = Box(arr)
   const list8 = Box(arr)
   const res1 = [
-    ['set', 0, 1, 4],
-    ['set', 1, 2, 4],
-    ['set', 2, 3, 4]
+    ['set', '0', 1, 4],
+    ['set', '1', 2, 4],
+    ['set', '2', 3, 4]
   ]
   on(list1, change => t.same(res1.shift(), change))
   list1.fill(4) // [4, 4, 4]
 
   const res2 = [
-    ['set', 1, 2, 4],
-    ['set', 2, 3, 4]
+    ['set', '1', 2, 4],
+    ['set', '2', 3, 4]
   ]
   on(list2, change => t.same(res2.shift(), change))
   list2.fill(4, 1) // [1, 4, 4]
 
   const res3 = [
-    ['set', 1, 2, 4]
+    ['set', '1', 2, 4]
   ]
   on(list3, change => t.same(res3.shift(), change))
   list3.fill(4, 1, 2) // [1, 4, 3]
@@ -115,7 +118,7 @@ test('Modifiers#fill', t => {
   list5.fill(4, 3, 3) // [1, 2, 3]
 
   const res6 = [
-    ['set', 0, 1, 4]
+    ['set', '0', 1, 4]
   ]
   on(list6, change => t.same(res6.shift(), change))
   list6.fill(4, -3, -2) // [4, 2, 3]
@@ -125,7 +128,7 @@ test('Modifiers#fill', t => {
 
   on(list8, () => t.fail())
   list8.fill(4, 3, 5) // [1, 2, 3]
-  setTimeout(() => t.end(), 50)
+  t.end()
 })
 
 test('emitter#pop', t => {

@@ -81,10 +81,3 @@ test('List', t => {
 
   t.end()
 })
-
-// test('List (deep)', t => {
-//   const ori = [2, 3, [4, 5]]
-//   const list = Box(ori)
-//   t.same(ori, list, 'list has same props as origin')
-//   t.end()
-// })

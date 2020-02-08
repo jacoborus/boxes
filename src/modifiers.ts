@@ -5,12 +5,12 @@ type Modifiers = { [index: string]: any }
 type Handler = (...args: any[]) => void
 
 interface Emitter {
-    on(key: object, handler: Handler): void
-    once(key: object, handler: Handler): void
-    emit(key: object, ...args: any[]): void
-    clear(key: object): void
-    off(key: object, handler: Handler): void
-    transfer(origin: object, destination: object): void
+  on(key: object, handler: Handler): void
+  once(key: object, handler: Handler): void
+  emit(key: object, ...args: any[]): void
+  clear(key: object): void
+  off(key: object, handler: Handler): void
+  transfer(origin: object, destination: object): void
 }
 
 const modifiers: Modifiers = {
@@ -89,7 +89,15 @@ const modifiers: Modifiers = {
 
   sort (target: [], proxy: []) {
     return function (fn: (a: any, b: any) => number) {
+      const copy = [...target]
       target.sort(fn)
+      Object.keys(target).forEach(i => {
+        const oldValue = copy[i]
+        const value = target[i]
+        if (value !== oldValue) {
+          ee.emit(proxy, ['set', i, oldValue, value])
+        }
+      })
       return proxy
     }
   },

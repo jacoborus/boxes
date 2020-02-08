@@ -226,8 +226,20 @@ test('emitter#shift', t => {
   t.end()
 })
 
-// TODO
-test.skip('emitter#sort', t => t.end())
+test.only('emitter#sort', t => {
+  const arr = [1, 30, 4, 21, 100000]
+  const list = Box(arr)
+  const results = [
+    ['set', '1', 30, 4],
+    ['set', '2', 4, 21],
+    ['set', '3', 21, 30]
+  ]
+  t.plan(results.length)
+  // [1, 4, 21, 30, 100000]
+  on(list, change => t.same(change, results.shift()))
+  list.sort((a: number, b: number) => a - b)
+  t.end()
+})
 
 test('emitter#splice', t => {
   const list = Box(['Jan', 'March', 'April', 'June'])

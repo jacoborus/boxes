@@ -2,36 +2,17 @@ import arrayMethods from './methods'
 import ee from './ee'
 import modifiers from './modifiers'
 import { isObject, isBox, setHiddenKey } from './tools'
-
 const links = new Map()
 
 type Prox = { [index: string]: any }
-
-export const on = ee.on
-export const off = ee.off
-export const clear = ee.clear
-
-export function Box (origin: any) {
-  if (typeof origin !== 'object' || origin === null) {
-    throw new Error('origin is not type object')
-  }
-  return createBox(origin)
-}
-
-function assignValue (target: Prox, prop: string | number, value: any) {
-  const newValue = !isObject(value) || isBox(value)
-    ? value
-    : Box(value)
-  target[prop] = newValue
-  return newValue
-}
 
 function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   const isSet = prop in target
   const oldValue = target[prop]
   if (oldValue === value) return value
   const link = links.get(target)
-  const newValue = assignValue(link, prop, value)
+  const newValue = Box(value)
+  link[prop] = newValue
   ee.emit(proxy, isSet
     ? ['set', prop, oldValue, newValue]
     : ['insert', prop, newValue]
@@ -46,12 +27,15 @@ function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
     : target[prop]
 }
 
-function createBox (origin: Prox): Prox {
+export function Box (origin: any): Prox {
+  if (!origin || !isObject(origin) || isBox(origin)) {
+    return origin
+  }
   const isArray = Array.isArray(origin)
-  const target = isArray ? [] : {}
+  const target: Prox = isArray ? [] : {}
   setHiddenKey(target, '__isBox', true)
   Object.keys(origin).forEach(key => {
-    assignValue(target, key, origin[key])
+    target[key] = Box(origin[key])
   })
   const proxy = new Proxy(target, {
     get: isArray
@@ -69,3 +53,7 @@ function createBox (origin: Prox): Prox {
   links.set(target, target)
   return proxy
 }
+
+export const on = ee.on
+export const off = ee.off
+export const clear = ee.clear

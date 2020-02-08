@@ -226,7 +226,7 @@ test('emitter#shift', t => {
   t.end()
 })
 
-test.only('emitter#sort', t => {
+test('emitter#sort', t => {
   const arr = [1, 30, 4, 21, 100000]
   const list = Box(arr)
   const results = [

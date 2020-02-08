@@ -91,11 +91,10 @@ const modifiers: Modifiers = {
     return function (fn: (a: any, b: any) => number) {
       const copy = [...target]
       target.sort(fn)
-      Object.keys(target).forEach(i => {
+      target.forEach((item, i) => {
         const oldValue = copy[i]
-        const value = target[i]
-        if (value !== oldValue) {
-          ee.emit(proxy, ['set', i, oldValue, value])
+        if (item !== oldValue) {
+          ee.emit(proxy, ['set', '' + i, oldValue, item])
         }
       })
       return proxy

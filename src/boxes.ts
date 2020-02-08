@@ -6,7 +6,6 @@ import { isObject, isBox, setHiddenKey } from './tools'
 const links = new Map()
 
 type Prox = { [index: string]: any }
-type List = any[]
 
 export const on = ee.on
 export const off = ee.off
@@ -16,9 +15,7 @@ export function Box (origin: any) {
   if (typeof origin !== 'object' || origin === null) {
     throw new Error('origin is not type object')
   }
-  return Array.isArray(origin)
-    ? createArrayBox(origin)
-    : createObjectBox(origin)
+  return createBox(origin)
 }
 
 function assignValue (target: Prox, prop: string | number, value: any) {
@@ -38,28 +35,6 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   return newValue
 }
 
-function createObjectBox (origin: Prox): Prox {
-  const obj = {}
-  setHiddenKey(obj, '__isBox', true)
-  Object.keys(origin).forEach(key => {
-    const value = origin[key]
-    assignValue(obj, key, value)
-  })
-  const proxy = new Proxy(obj, {
-    get: (...args) => Reflect.get(...args),
-    set: setHandler,
-    deleteProperty (target: Prox, prop: string): any {
-      if (!(prop in target)) return true
-      const oldValue = target[prop]
-      delete target[prop]
-      ee.emit(proxy, { prop, oldValue, kind: 'delete' })
-      return true
-    }
-  })
-  links.set(obj, obj)
-  return proxy
-}
-
 function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
   const method = arrayMethods[prop] || modifiers[prop]
   return method
@@ -67,12 +42,17 @@ function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
     : target[prop]
 }
 
-function createArrayBox (origin: List): Prox {
-  const arr: [] = []
-  setHiddenKey(arr, '__isBox', true)
-  origin.forEach((value, i) => assignValue(arr, i, value))
-  const proxy: Prox = new Proxy(arr, {
-    get: arrGetHandler,
+function createBox (origin: Prox): Prox {
+  const isArray = Array.isArray(origin)
+  const target = isArray ? [] : {}
+  setHiddenKey(target, '__isBox', true)
+  Object.keys(origin).forEach(key => {
+    assignValue(target, key, origin[key])
+  })
+  const proxy = new Proxy(target, {
+    get: isArray
+      ? arrGetHandler
+      : (...args) => Reflect.get(...args),
     set: setHandler,
     deleteProperty (target: Prox, prop: string): any {
       if (!(prop in target)) return true
@@ -82,6 +62,6 @@ function createArrayBox (origin: List): Prox {
       return true
     }
   })
-  links.set(arr, arr)
+  links.set(target, target)
   return proxy
 }

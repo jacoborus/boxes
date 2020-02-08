@@ -7,7 +7,8 @@ export function setHiddenKey (target: Prox, key: string, value: any) {
     configurable: true
   })
 }
-export const isObject = (target: Prox): boolean => {
+
+export function isObject (target: Prox): boolean {
   return target && typeof target === 'object'
 }
 

@@ -1,17 +1,6 @@
 import ee from './ee'
-import { Box } from './boxes'
 
 type Modifiers = { [index: string]: any }
-type Handler = (...args: any[]) => void
-
-interface Emitter {
-  on(key: object, handler: Handler): void
-  once(key: object, handler: Handler): void
-  emit(key: object, ...args: any[]): void
-  clear(key: object): void
-  off(key: object, handler: Handler): void
-  transfer(origin: object, destination: object): void
-}
 
 const modifiers: Modifiers = {
   copyWithin (target: [], proxy: []) {
@@ -63,7 +52,7 @@ const modifiers: Modifiers = {
     }
   },
 
-  push: (target: any[], proxy: any[], ee: Emitter) => function () {
+  push: (target: any[], proxy: any[]) => function () {
     Object.keys(arguments).forEach((i: string) => {
       const value = arguments[i as any]
       proxy[target.length] = value
@@ -101,7 +90,7 @@ const modifiers: Modifiers = {
     }
   },
 
-  splice: (target: any[], proxy: []) => {
+  splice: (target: any[], proxy: [], Box: any) => {
     return function (start: number, deleteCount?: number, ...entries: []) {
       const originalStart = start
       const originalCount = deleteCount
@@ -157,7 +146,7 @@ const modifiers: Modifiers = {
     }
   },
 
-  unshift: (target: any[], proxy: any[]) => function () {
+  unshift: (target: any[], proxy: any[], Box: any) => function () {
     let i = arguments.length
     while (i--) {
       const value = Box(arguments[i])

@@ -23,7 +23,7 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
 function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
   const method = arrayMethods[prop] || modifiers[prop]
   return method
-    ? method(target, proxy, ee)
+    ? method(target, proxy, Box)
     : target[prop]
 }
 

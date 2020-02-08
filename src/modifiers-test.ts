@@ -78,6 +78,17 @@ test('modifiers#push', t => {
   t.end()
 })
 
+test('Modifiers#push add boxes', t => {
+  const arr = [1, 2, 3]
+  const item1 = { a: 1 }
+  const item2 = { a: 2 }
+  const box = Box(arr)
+  box.push(item1, item2)
+  t.ok(box[3].__isBox)
+  t.ok(box[4].__isBox)
+  t.end()
+})
+
 test('modifiers#reverse', t => {
   const arr = ['one', 'two', 'three']
   const list = Box(arr)

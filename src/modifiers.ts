@@ -51,8 +51,7 @@ const modifiers: Modifiers = {
   push: (target: any[], proxy: any[], ee: Emitter) => function () {
     Object.keys(arguments).forEach((i: string) => {
       const value = arguments[i as any]
-      target[target.length] = value
-      ee.emit(proxy, ['insert', target.length - 1, value])
+      proxy[target.length] = value
     })
     ee.emit(proxy, ['length', target.length])
     return target.length

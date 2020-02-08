@@ -151,11 +151,11 @@ test('emitter#push', t => {
   const animals = ['pigs', 'goats', 'sheep']
   const list = Box(animals)
   const results = [
-    ['insert', 3, 'cows'],
+    ['insert', '3', 'cows'],
     ['length', 4],
-    ['insert', 4, 'chickens'],
-    ['insert', 5, 'cats'],
-    ['insert', 6, 'dogs'],
+    ['insert', '4', 'chickens'],
+    ['insert', '5', 'cats'],
+    ['insert', '6', 'dogs'],
     ['length', 7]
   ]
   t.plan(results.length)

@@ -27,11 +27,15 @@ function assignValue (target: Prox, prop: string | number, value: any) {
 }
 
 function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
+  const isSet = prop in target
   const oldValue = target[prop]
   if (oldValue === value) return value
   const link = links.get(target)
   const newValue = assignValue(link, prop, value)
-  ee.emit(proxy, ['set', prop, oldValue, newValue])
+  ee.emit(proxy, isSet
+    ? ['set', prop, oldValue, newValue]
+    : ['insert', prop, newValue]
+  )
   return newValue
 }
 

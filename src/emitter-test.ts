@@ -257,10 +257,10 @@ test('emitter#sort', t => {
 test('emitter#splice', t => {
   const list = Box(['Jan', 'March', 'April', 'June'])
   const results = [
-    ['insert', 1, 'Feb'],
+    ['insert', '1', 'Feb'],
     ['length', 5, 2],
-    ['set', 3, 'April', 'uno'],
-    ['insert', 4, 'dos'],
+    ['set', '3', 'April', 'uno'],
+    ['insert', '4', 'dos'],
     ['length', 6, 5]
   ]
   t.plan(results.length)
@@ -274,7 +274,7 @@ test('emitter#splice1', t => {
   // Remove 0 (zero) elements from index 2, and insert 'drum'
   const box = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['insert', 2, 'drum'],
+    ['insert', '2', 'drum'],
     ['length', 5, 3]
   ]
   t.plan(results.length)
@@ -288,8 +288,8 @@ test('emitter#splice2', t => {
   // Remove 0 (zero) elements from index 2, and insert 'drum' and 'guitar'
   const box = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['insert', 2, 'drum'],
-    ['insert', 3, 'guitar'],
+    ['insert', '2', 'drum'],
+    ['insert', '3', 'guitar'],
     ['length', 6, 3]
   ]
   t.plan(results.length)
@@ -303,7 +303,7 @@ test('emitter#splice3', t => {
   // Remove 1 element from index 3
   const box3 = Box(['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 3, 'mandarin'],
+    ['remove', '3', 'mandarin'],
     ['length', 4, 3]
   ]
   t.plan(results.length)
@@ -317,7 +317,7 @@ test('emitter#splice4', t => {
   // Remove 1 element from index 2, and insert 'trumpet'
   const box4 = Box(['angel', 'clown', 'drum', 'sturgeon'])
   const results = [
-    ['set', 2, 'drum', 'trumpet']
+    ['set', '2', 'drum', 'trumpet']
   ]
   t.plan(results.length)
   on(box4, change => t.same(change, results.shift()))
@@ -330,9 +330,9 @@ test('emitter#splice5', t => {
   // Remove 2 elements from index 0, and insert 'parrot', 'anemone' and 'blue'
   const box5 = Box(['angel', 'clown', 'trumpet', 'sturgeon'])
   const results = [
-    ['set', 0, 'angel', 'parrot'],
-    ['set', 1, 'clown', 'anemone'],
-    ['insert', 2, 'blue'],
+    ['set', '0', 'angel', 'parrot'],
+    ['set', '1', 'clown', 'anemone'],
+    ['insert', '2', 'blue'],
     ['length', 5, 3]
   ]
   t.plan(results.length)
@@ -346,8 +346,8 @@ test('emitter#splice6', t => {
   // Remove 2 elements from index 2
   const box6 = Box(['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon'])
   const results = [
-    ['remove', 2, 'blue'],
-    ['remove', 3, 'trumpet'],
+    ['remove', '2', 'blue'],
+    ['remove', '3', 'trumpet'],
     ['length', 3, 2]
   ]
   t.plan(results.length)
@@ -361,7 +361,7 @@ test('emitter#splice7', t => {
   // Remove 1 element from index -2
   const box7 = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 2, 'mandarin'],
+    ['remove', '2', 'mandarin'],
     ['length', 3, 2]
   ]
   t.plan(results.length)
@@ -375,8 +375,8 @@ test('emitter#splice8', t => {
   // Remove all elements after index 2 (incl.)
   const box8 = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 2, 'mandarin'],
-    ['remove', 3, 'sturgeon'],
+    ['remove', '2', 'mandarin'],
+    ['remove', '3', 'sturgeon'],
     ['length', 2, 2]
   ]
   t.plan(results.length)
@@ -390,8 +390,8 @@ test('emitter#unshift', t => {
   const arr = [1, 2, 3]
   const list = Box(arr)
   const results = [
-    ['insert', 0, 5],
-    ['insert', 0, 4],
+    ['insert', '0', 5],
+    ['insert', '0', 4],
     ['length', 5, 2]
   ]
   t.plan(results.length)

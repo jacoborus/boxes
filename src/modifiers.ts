@@ -131,7 +131,7 @@ const modifiers: Modifiers = {
         const oldValue = target[index]
         const newValue = items[count]
         if (oldValue !== newValue) {
-          changes.push(['set', index, oldValue, newValue])
+          changes.push(['set', '' + index, oldValue, newValue])
         }
         count++
       }
@@ -143,7 +143,7 @@ const modifiers: Modifiers = {
         indexChanged = true
         while (count < iLen) {
           const index = start + count
-          changes.push(['insert', index, items[count]])
+          changes.push(['insert', '' + index, items[count]])
           count++
         }
       } else if (deleteCount > iLen) {
@@ -151,7 +151,7 @@ const modifiers: Modifiers = {
         indexChanged = true
         while (count < deleteCount) {
           const index = start + count
-          changes.push(['remove', index, target[index]])
+          changes.push(['remove', '' + index, target[index]])
           count++
         }
       }
@@ -171,7 +171,7 @@ const modifiers: Modifiers = {
     while (i--) {
       const value = Box(arguments[i])
       target.unshift(value)
-      ee.emit(proxy, ['insert', 0, value])
+      ee.emit(proxy, ['insert', '0', value])
     }
     ee.emit(proxy, ['length', target.length, firstIndexChanged])
     return target.length

@@ -131,37 +131,26 @@ const modifiers: Modifiers = {
       let indexChanged = false
       let firstIndexChanged
       if (deleteCount < iLen) {
+        firstIndexChanged = start + count + 1
+        indexChanged = true
         while (count < iLen) {
           const pos = start + count
-          if (!indexChanged) {
-            firstIndexChanged = pos + 1
-            indexChanged = true
-          }
           changes.push(['insert', pos, items[count]])
           count++
         }
-        if (indexChanged) {
-          changes.push(['length', target.length + iLen - deleteCount, firstIndexChanged])
-        } else {
-          changes.push(['length', target.length + iLen - deleteCount])
-        }
       } else if (deleteCount > iLen) {
+        firstIndexChanged = start + count
+        indexChanged = true
         while (count < deleteCount) {
           const pos = start + count
-          if (!indexChanged) {
-            firstIndexChanged = pos
-            indexChanged = true
-          }
           changes.push(['remove', pos, target[pos]])
           count++
         }
-        if (indexChanged) {
-          changes.push(['length', target.length + iLen - deleteCount, firstIndexChanged])
-        } else {
-          changes.push(['length', target.length + iLen - deleteCount])
-        }
       }
 
+      if (indexChanged) {
+        changes.push(['length', target.length + iLen - deleteCount, firstIndexChanged])
+      }
       const removed = target.splice(originalStart, originalCount as number, ...items)
       changes.forEach(change => ee.emit(proxy, change))
       return removed

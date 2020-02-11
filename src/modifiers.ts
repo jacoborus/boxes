@@ -67,12 +67,13 @@ const modifiers: Modifiers = {
   reverse (target: [], proxy: []) {
     return function () {
       const len = target.length
-      const half = Math.floor(len / 2)
       target.reverse()
+      const half = Math.floor(len / 2)
       const changes = []
       let count = 0
+      const dist = len - 1
       while (count < half) {
-        changes.push(['swap', '' + count, len - count - 1 + ''])
+        changes.push(['swap', '' + count, dist - count + ''])
         ++count
       }
       changes.forEach(change => ee.emit(proxy, change))

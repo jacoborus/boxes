@@ -230,7 +230,7 @@ test('emitter#shift', t => {
   const arr = [1, 2, 3]
   const list = Box(arr)
   const results = [
-    ['remove', 0, 1],
+    ['remove', '0', 1],
     ['length', 2, 0]
   ]
   t.plan(results.length)

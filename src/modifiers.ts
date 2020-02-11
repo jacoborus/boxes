@@ -52,9 +52,8 @@ const modifiers: Modifiers = {
     }
   },
 
-  push: (target: any[], proxy: any[], Box: any) => function () {
-    Object.keys(arguments).forEach((i: string) => {
-      const value = arguments[i as any]
+  push: (target: any[], proxy: any[], Box: any) => function (...args: []) {
+    args.forEach((value: any) => {
       const len = target.length
       const newValue = Box(value)
       target[len] = newValue

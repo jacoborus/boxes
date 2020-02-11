@@ -95,8 +95,6 @@ const modifiers: Modifiers = {
 
   splice: (target: any[], proxy: [], Box: any) => {
     return function (start: number, deleteCount?: number, ...entries: []) {
-      const originalStart = start
-      const originalCount = deleteCount
       const len = target.length
       const items = entries
         ? entries.map(Box)
@@ -120,30 +118,31 @@ const modifiers: Modifiers = {
 
       let count = 0
       while (count < min) {
-        const pos = start + count
-        const oldValue = target[pos]
+        const index = start + count
+        const oldValue = target[index]
         const newValue = items[count]
         if (oldValue !== newValue) {
-          changes.push(['set', pos, oldValue, newValue])
+          changes.push(['set', index, oldValue, newValue])
         }
         count++
       }
+
       let indexChanged = false
       let firstIndexChanged
       if (deleteCount < iLen) {
         firstIndexChanged = start + count + 1
         indexChanged = true
         while (count < iLen) {
-          const pos = start + count
-          changes.push(['insert', pos, items[count]])
+          const index = start + count
+          changes.push(['insert', index, items[count]])
           count++
         }
       } else if (deleteCount > iLen) {
         firstIndexChanged = start + count
         indexChanged = true
         while (count < deleteCount) {
-          const pos = start + count
-          changes.push(['remove', pos, target[pos]])
+          const index = start + count
+          changes.push(['remove', index, target[index]])
           count++
         }
       }
@@ -151,7 +150,7 @@ const modifiers: Modifiers = {
       if (indexChanged) {
         changes.push(['length', target.length + iLen - deleteCount, firstIndexChanged])
       }
-      const removed = target.splice(originalStart, originalCount as number, ...items)
+      const removed = target.splice(start, deleteCount as number, ...items)
       changes.forEach(change => ee.emit(proxy, change))
       return removed
     }

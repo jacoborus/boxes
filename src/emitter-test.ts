@@ -203,12 +203,25 @@ test('emitter#push', t => {
   t.end()
 })
 
-test('emitter#reverse', t => {
+test('emitter#reverse odd', t => {
   t.plan(1)
   const arr = ['one', 'two', 'three']
   const list = Box(arr)
-  const result = ['reverse']
-  on(list, change => t.same(change, result))
+  const results = [['swap', '0', '2']]
+  on(list, change => t.same(change, results.shift()))
+  list.reverse()
+  t.end()
+})
+
+test('emitter#reverse even', t => {
+  const arr = ['one', 'two', 'three', 'four']
+  const list = Box(arr)
+  const results = [
+    ['swap', '0', '3'],
+    ['swap', '1', '2']
+  ]
+  t.plan(results.length)
+  on(list, change => t.same(change, results.shift()))
   list.reverse()
   t.end()
 })

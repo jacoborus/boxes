@@ -6,8 +6,8 @@ const modifiers: Modifiers = {
   copyWithin (target: [], proxy: []) {
     return function (targ: number, start = 0, end: number = target.length) {
       const len = target.length
-      if (targ >= len) return
       if (targ < 0) targ = len + targ
+      if (targ >= len) return
       if (start < 0) start = len + start
       if (end < 0) end = len + end
       const total = end - start

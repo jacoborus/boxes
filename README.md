@@ -32,11 +32,30 @@ box.a = 'hello'
 
 Boxes will emit the changes made in the observed objects.
 
-Change signatures:
+### Change signatures:
 
-- set (objects and arrays): `['set', prop/index, oldValue, newValue]` (literal assignation)
-- delete (objects and arrays): `['delete', prop/index, oldValue]` (delete operator)
-- insert (arrays): `['insert', index, newValue]` (push, splice, unshift)
-- remove (arrays): `['remove', index, oldValue]` (pop, shift, splice)
-- swap (arrays): `['swap', firstIndex, secondIndex]` (sort, reverse)
-- length (arrays): `['length', length, firstPositionChanged]`
+Object:
+
+- set: `['set', prop/index, oldValue, newValue]` (literal assignation, Object.assign, ...)
+- delete: `['delete', prop/index, oldValue]` (delete operator)
+
+Array:
+
+- set:
+  - signature: `(arrays)['set', prop/index, oldValue, newValue]`
+  - on: copyWithin, fill, splice and literal assignation
+- delete:
+  - signature: `['delete', prop/index, oldValue]`
+  - on: delete operator
+- insert:
+  - signature: `['insert', index, newValue]`
+  - on: push, splice, unshift
+- remove:
+  - signature: `['remove', index, oldValue]`
+  - on: pop, shift, splice
+- swap (WIP):
+  - signature: `['swap', firstIndex, secondIndex]`
+  - on: sort, reverse
+- length (WIP):
+  - signature: `['length', length, firstPositionChanged]`
+  - on: pop, push, shift, splice, unshift

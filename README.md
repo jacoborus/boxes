@@ -34,8 +34,9 @@ Boxes will emit the changes made in the observed objects.
 
 Change signatures:
 
-- set (objects and arrays): `['set', position/prop, oldValue, newValue]`
-- delete (objects and arrays): `['delete', position/prop, oldValue]`
-- insert (arrays): `['insert', position/prop, newValue]`
-- remove (arrays): `['remove', position/prop, oldValue]`
-- length (arrays): `['length', position/prop, firstPositionChanged]`
+- set (objects and arrays): `['set', prop/index, oldValue, newValue]` (literal assignation)
+- delete (objects and arrays): `['delete', prop/index, oldValue]` (delete operator)
+- insert (arrays): `['insert', index, newValue]` (push, splice, unshift)
+- remove (arrays): `['remove', index, oldValue]` (pop, shift, splice)
+- swap (arrays): `['swap', firstIndex, secondIndex]` (sort, reverse)
+- length (arrays): `['length', length, firstPositionChanged]`

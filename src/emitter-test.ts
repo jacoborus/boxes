@@ -218,7 +218,7 @@ test('emitter#shift', t => {
   const list = Box(arr)
   const results = [
     ['remove', 0, 1],
-    ['length', 2]
+    ['length', 2, 0]
   ]
   t.plan(results.length)
   on(list, change => t.same(change, results.shift()))
@@ -245,10 +245,10 @@ test('emitter#splice', t => {
   const list = Box(['Jan', 'March', 'April', 'June'])
   const results = [
     ['insert', 1, 'Feb'],
-    ['length', 5],
+    ['length', 5, 2],
     ['set', 3, 'April', 'uno'],
     ['insert', 4, 'dos'],
-    ['length', 6]
+    ['length', 6, 5]
   ]
   t.plan(results.length)
   on(list, change => t.same(change, results.shift()))
@@ -262,11 +262,12 @@ test('emitter#splice1', t => {
   const box = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
     ['insert', 2, 'drum'],
-    ['length', 5]
+    ['length', 5, 3]
   ]
   t.plan(results.length)
   on(box, change => t.same(change, results.shift()))
   box.splice(2, 0, 'drum')
+  // ['angel', 'clown', 'drum', ''mandarin', 'sturgeon']
   t.end()
 })
 
@@ -276,7 +277,7 @@ test('emitter#splice2', t => {
   const results = [
     ['insert', 2, 'drum'],
     ['insert', 3, 'guitar'],
-    ['length', 6]
+    ['length', 6, 3]
   ]
   t.plan(results.length)
   on(box, change => t.same(change, results.shift()))
@@ -290,7 +291,7 @@ test('emitter#splice3', t => {
   const box3 = Box(['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
   const results = [
     ['remove', 3, 'mandarin'],
-    ['length', 4]
+    ['length', 4, 3]
   ]
   t.plan(results.length)
   on(box3, change => t.same(change, results.shift()))
@@ -319,7 +320,7 @@ test('emitter#splice5', t => {
     ['set', 0, 'angel', 'parrot'],
     ['set', 1, 'clown', 'anemone'],
     ['insert', 2, 'blue'],
-    ['length', 5]
+    ['length', 5, 3]
   ]
   t.plan(results.length)
   on(box5, change => t.same(change, results.shift()))
@@ -334,7 +335,7 @@ test('emitter#splice6', t => {
   const results = [
     ['remove', 2, 'blue'],
     ['remove', 3, 'trumpet'],
-    ['length', 3]
+    ['length', 3, 2]
   ]
   t.plan(results.length)
   on(box6, change => t.same(change, results.shift()))
@@ -348,7 +349,7 @@ test('emitter#splice7', t => {
   const box7 = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
     ['remove', 2, 'mandarin'],
-    ['length', 3]
+    ['length', 3, 2]
   ]
   t.plan(results.length)
   on(box7, change => t.same(change, results.shift()))
@@ -363,7 +364,7 @@ test('emitter#splice8', t => {
   const results = [
     ['remove', 2, 'mandarin'],
     ['remove', 3, 'sturgeon'],
-    ['length', 2]
+    ['length', 2, 2]
   ]
   t.plan(results.length)
   on(box8, change => t.same(change, results.shift()))
@@ -378,51 +379,10 @@ test('emitter#unshift', t => {
   const results = [
     ['insert', 0, 5],
     ['insert', 0, 4],
-    ['length', 5]
+    ['length', 5, 2]
   ]
   t.plan(results.length)
   on(list, change => t.same(change, results.shift()))
   list.unshift(4, 5)
   t.end()
 })
-
-// all array modifiers should be represented with 4 params:
-// - replace
-// - insert
-// - remove
-// - sort
-
-// const arr = []
-// const args = {
-//   start: 1,
-//   end: 2,
-//   newItems: []
-// }
-//
-// const mods = {
-//   fill: 'auto', // replace (interception needed to return proxy)
-//   pop: 'auto', // replace + length (no interception needed)
-//   push: {
-//     replace: [],
-//     length: true // (interception needed to trigger length handlers)
-//   },
-//   shift: { // interception needed to trigger only 2 handlers:
-//     remove: 0, // 0 is the index of the item to remove
-//     length: true
-//   },
-//   reverse: {
-//     sort: true,
-//     length: false,
-//     sort: true,
-//     reverse: true
-//   },
-//   sort: {
-//     diff: { start: 0, end: arr.length },
-//     length: false,
-//     sort: true
-//   },
-//   shift: 1,
-//   unshift: 1,
-//   splice: {},
-//   copyWithin: 2
-// }

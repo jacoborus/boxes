@@ -90,6 +90,8 @@ Array:
 - swap (WIP):
   - signature: `['swap', firstIndex, secondIndex]`
   - on: sort, reverse
-- length (WIP):
+- length:
   - signature: `['length', length, firstIndexChanged]`
   - on: pop, push, shift, splice, unshift
+  - firstIndexChanged will be passed only on shift, splice and unshift
+    because on pop and push no index will change

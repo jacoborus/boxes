@@ -75,7 +75,7 @@ const modifiers: Modifiers = {
   shift: (target: [], proxy: []) => () => {
     const result = target.shift()
     ee.emit(proxy, ['remove', 0, result])
-    ee.emit(proxy, ['length', target.length])
+    ee.emit(proxy, ['length', target.length, 0])
     return result
   },
 
@@ -128,19 +128,38 @@ const modifiers: Modifiers = {
         }
         count++
       }
+      let indexChanged = false
+      let firstIndexChanged
       if (deleteCount < iLen) {
         while (count < iLen) {
-          changes.push(['insert', start + count, items[count]])
+          const pos = start + count
+          if (!indexChanged) {
+            firstIndexChanged = pos + 1
+            indexChanged = true
+          }
+          changes.push(['insert', pos, items[count]])
           count++
         }
-        changes.push(['length', target.length + iLen - deleteCount])
+        if (indexChanged) {
+          changes.push(['length', target.length + iLen - deleteCount, firstIndexChanged])
+        } else {
+          changes.push(['length', target.length + iLen - deleteCount])
+        }
       } else if (deleteCount > iLen) {
         while (count < deleteCount) {
           const pos = start + count
+          if (!indexChanged) {
+            firstIndexChanged = pos
+            indexChanged = true
+          }
           changes.push(['remove', pos, target[pos]])
           count++
         }
-        changes.push(['length', target.length + iLen - deleteCount])
+        if (indexChanged) {
+          changes.push(['length', target.length + iLen - deleteCount, firstIndexChanged])
+        } else {
+          changes.push(['length', target.length + iLen - deleteCount])
+        }
       }
 
       const removed = target.splice(originalStart, originalCount as number, ...items)
@@ -150,13 +169,14 @@ const modifiers: Modifiers = {
   },
 
   unshift: (target: any[], proxy: any[], Box: any) => function () {
-    let i = arguments.length
+    const firstIndexChanged = arguments.length
+    let i = firstIndexChanged
     while (i--) {
       const value = Box(arguments[i])
       target.unshift(value)
       ee.emit(proxy, ['insert', 0, value])
     }
-    ee.emit(proxy, ['length', target.length])
+    ee.emit(proxy, ['length', target.length, firstIndexChanged])
     return target.length
   }
 }

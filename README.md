@@ -87,9 +87,9 @@ Array:
 - remove:
   - signature: `['remove', index, oldValue]`
   - on: pop, shift, splice
-- swap (WIP):
+- swap:
   - signature: `['swap', firstIndex, secondIndex]`
-  - on: sort, reverse
+  - on: reverse (working), sort (WIP, using 'set' ATM)
 - length:
   - signature: `['length', length, firstIndexChanged]`
   - on: pop, push, shift, splice, unshift

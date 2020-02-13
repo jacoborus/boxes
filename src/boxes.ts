@@ -52,4 +52,3 @@ export function Box (origin: any): Prox {
 
 export const on = ee.on
 export const off = ee.off
-export const clear = ee.clear

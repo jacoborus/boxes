@@ -76,22 +76,25 @@ Object:
 Array:
 
 - set:
-  - signature: `['set', index, oldValue, newValue]`
+  - signature: `['set', oldValue, newValue]`
   - on: copyWithin, fill, splice and literal assignation
 - delete:
-  - signature: `['delete', index, oldValue]`
+  - signature: `['delete', oldValue]`
   - on: delete operator
 - insert:
-  - signature: `['insert', index, newValue]`
+  - signature: `['insert', undefined, newValue]`
   - on: push, splice, unshift
 - remove:
-  - signature: `['remove', index, oldValue]`
+  - signature: `['remove', oldValue]`
   - on: pop, shift, splice
 - swap:
-  - signature: `['swap', firstIndex, secondIndex]`
+  - signature: `['swap', oldValue, newValue, encore]`
+  - swap will be called twice (one per index changed):
+    - `['swap', oldValue, newValue, false]`
+    - `['swap', oldValue, newValue, true]`
   - on: reverse (working), sort (WIP, using 'set' ATM)
 - length:
-  - signature: `['length', length, firstIndexChanged]`
+  - signature: `[length, firstIndexChanged]`
   - on: pop, push, shift, splice, unshift
   - firstIndexChanged will be passed only on shift, splice and unshift
     because on pop and push no index will change

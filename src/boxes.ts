@@ -12,7 +12,7 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   const link = links.get(target)
   const newValue = Box(value)
   link[prop] = newValue
-  ee.emit(proxy, ['set', prop, oldValue, newValue])
+  ee.emit(proxy, prop, 'set', oldValue, newValue)
   return newValue
 }
 
@@ -42,7 +42,7 @@ export function Box (origin: any): Prox {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
-      ee.emit(proxy, ['delete', prop, oldValue])
+      ee.emit(proxy, prop, 'delete', oldValue)
       return true
     }
   })

@@ -15,17 +15,18 @@ const modifiers: Modifiers = {
       let count = 0
       while (count < total && targ + count < len) {
         const pos = targ + count
-        changes.push(['set', '' + pos, target[pos], target[start + count]])
+        changes.push(['' + pos, 'set', target[pos], target[start + count]])
         count++
       }
       target.copyWithin(targ, start, end)
-      changes.forEach(change => ee.emit(proxy, change))
+      changes.forEach(change => ee.emit(proxy, ...change as [string, string]))
       return proxy
     }
   },
 
-  fill (target: any[], proxy: any[]) {
+  fill (target: any[], proxy: any[], Box: any) {
     return function (value: any, start = 0, end = target.length) {
+      value = Box(value)
       const len = target.length
       start = start < 0 ? len + start : start
       end = end < 0
@@ -35,21 +36,21 @@ const modifiers: Modifiers = {
           : end
       if (end <= start) return
       while (start < end) {
-        proxy[start] = value
+        const oldValue = target[start]
+        target[start] = value
+        if (oldValue !== value) ee.emit(proxy, start + '', 'set', oldValue, value)
         ++start
       }
       return proxy
     }
   },
 
-  pop (target: any[], proxy: []) {
-    return function () {
-      const result = target.pop()
-      const len = target.length
-      ee.emit(proxy, ['remove', len, result])
-      ee.emit(proxy, ['length', len])
-      return result
-    }
+  pop: (target: any[], proxy: []) => () => {
+    const result = target.pop()
+    const len = target.length
+    ee.emit(proxy, len + '', 'remove', result)
+    ee.emit(proxy, 'length', len)
+    return result
   },
 
   push: (target: any[], proxy: any[], Box: any) => function (...args: []) {
@@ -57,34 +58,35 @@ const modifiers: Modifiers = {
       const len = target.length
       const newValue = Box(value)
       target[len] = newValue
-      ee.emit(proxy, ['insert', '' + len, newValue])
+      ee.emit(proxy, '' + len, 'insert', undefined, newValue)
     })
-    ee.emit(proxy, ['length', target.length])
+    ee.emit(proxy, 'length', target.length)
     return target.length
   },
 
-  reverse (target: [], proxy: []) {
-    return function () {
-      const len = target.length
-      target.reverse()
-      const half = Math.floor(len / 2)
-      const changes = []
-      let count = 0
-      const dist = len - 1
-      while (count < half) {
-        changes.push(['swap', '' + count, dist - count + ''])
-        ++count
-      }
-      changes.forEach(change => ee.emit(proxy, change))
-      return proxy
+  reverse: (target: [], proxy: []) => () => {
+    const len = target.length
+    target.reverse()
+    const half = Math.floor(len / 2)
+    const changes = []
+    let count = 0
+    const dist = len - 1
+    while (count < half) {
+      const oldValue = target[dist - count]
+      const newValue = target[count]
+      changes.push([count + '', 'swap', oldValue, newValue, false])
+      changes.push([dist - count + '', 'swap', newValue, oldValue, true])
+      ++count
     }
+    changes.forEach(change => ee.emit(proxy, ...change as [string, string, any, any, boolean]))
+    return proxy
   },
 
   shift: (target: [], proxy: []) => () => {
-    const result = target.shift()
-    ee.emit(proxy, ['remove', '0', result])
-    ee.emit(proxy, ['length', target.length, 0])
-    return result
+    const shifted = target.shift()
+    ee.emit(proxy, '0', 'remove', shifted)
+    ee.emit(proxy, 'length', target.length, 0)
+    return shifted
   },
 
   sort (target: [], proxy: []) {
@@ -94,7 +96,7 @@ const modifiers: Modifiers = {
       target.forEach((item, i) => {
         const oldValue = copy[i]
         if (item !== oldValue) {
-          ee.emit(proxy, ['set', '' + i, oldValue, item])
+          ee.emit(proxy, '' + i, 'set', oldValue, item)
         }
       })
       return proxy
@@ -130,7 +132,7 @@ const modifiers: Modifiers = {
         const oldValue = target[index]
         const newValue = items[count]
         if (oldValue !== newValue) {
-          changes.push(['set', '' + index, oldValue, newValue])
+          changes.push(['' + index, 'set', oldValue, newValue])
         }
         count++
       }
@@ -142,7 +144,7 @@ const modifiers: Modifiers = {
         indexChanged = true
         while (count < iLen) {
           const index = start + count
-          changes.push(['insert', '' + index, items[count]])
+          changes.push(['' + index, 'insert', undefined, items[count]])
           count++
         }
       } else if (deleteCount > iLen) {
@@ -150,7 +152,7 @@ const modifiers: Modifiers = {
         indexChanged = true
         while (count < deleteCount) {
           const index = start + count
-          changes.push(['remove', '' + index, target[index]])
+          changes.push(['' + index, 'remove', target[index]])
           count++
         }
       }
@@ -159,7 +161,7 @@ const modifiers: Modifiers = {
         changes.push(['length', target.length + iLen - deleteCount, firstIndexChanged])
       }
       const removed = target.splice(start, deleteCount as number, ...items)
-      changes.forEach(change => ee.emit(proxy, change))
+      changes.forEach(change => ee.emit(proxy, ...change as [string, string]))
       return removed
     }
   },
@@ -170,9 +172,9 @@ const modifiers: Modifiers = {
     while (i--) {
       const value = Box(arguments[i])
       target.unshift(value)
-      ee.emit(proxy, ['insert', '0', value])
+      ee.emit(proxy, '0', 'insert', undefined, value)
     }
-    ee.emit(proxy, ['length', target.length, firstIndexChanged])
+    ee.emit(proxy, 'length', target.length, firstIndexChanged)
     return target.length
   }
 }

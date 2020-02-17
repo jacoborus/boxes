@@ -16,47 +16,38 @@ const box = Box(origin)
 box // { a: 1 }
 box === origin // false
 
-on(box, change => console.log(change))
+on(box, 'a', (...change) => console.log(change))
 box.a = 'hello'
 // logs: ['set', 'a', 1, 'hello']
 ```
 
 ## API
 
-- Box
+- createBox
 - on
 - off
-- clear
 
-### on(box, handler)
+### on(box, prop, handler)
 
 Adds `handler` to box
 
 ```js
 const box = Box({ a: 1 })
-const handler = change => console.log(change)
-boxes.on(box, handler)
+const handler = (...change) => console.log(change)
+boxes.on(box, 'a', handler)
 
 box.a = 'hello'
 // logs: ['set', 'a', 1, 'hello']
 ```
 
-### off(box, handler)
+### off(box, prop, handler)
 
 Removes `handler` from the box
 
 ```js
-boxes.off(box, action)
+boxes.off(box, 'propName', action)
 ```
 
-
-### clear(box)
-
-Removes all the handlers of the box
-
-```js
-emitter.clear(box)
-```
 
 ## Emitter
 
@@ -96,5 +87,5 @@ Array:
 - length:
   - signature: `[length, firstIndexChanged]`
   - on: pop, push, shift, splice, unshift
-  - firstIndexChanged will be passed only on shift, splice and unshift
+  - `firstIndexChanged` will be passed only on shift, splice and unshift
     because on pop and push no index will change

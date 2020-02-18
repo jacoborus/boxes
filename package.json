@@ -1,6 +1,6 @@
 {
   "name": "boxes",
-  "version": "0.20.0",
+  "version": "0.30.0",
   "description": "Reactive state containers for js apps",
   "type": "module",
   "main": "boxes.js",
@@ -46,6 +46,6 @@
     "typescript": "3.7.5"
   },
   "dependencies": {
-    "weak-emitter": "5.0.0"
+    "weak-emitter": "^5.1.0"
   }
 }

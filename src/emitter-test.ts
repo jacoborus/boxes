@@ -1,8 +1,8 @@
 import test from 'tape'
-import { Box, on, off } from './boxes'
+import { getBox, on, off } from './boxes'
 
 test('emitter#set in object', t => {
-  const box = Box({
+  const box = getBox({
     a: 1,
     b: {
       x: 'x',
@@ -16,7 +16,6 @@ test('emitter#set in object', t => {
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
   on(box, 'a', handler)
-  t.plan(results.length)
   box.a = 99
   off(box, 'a', handler)
   box.a = true
@@ -24,7 +23,7 @@ test('emitter#set in object', t => {
 })
 
 test('emitter#delete in object', t => {
-  const box = Box({ a: 1, b: 2 })
+  const box = getBox({ a: 1, b: 2 })
   const results = [
     ['delete', 1],
     ['delete', 2]
@@ -39,7 +38,7 @@ test('emitter#delete in object', t => {
 })
 
 test('emitter#set in array', t => {
-  const box = Box([1, 2, 3, 4])
+  const box = getBox([1, 2, 3, 4])
   const results = [
     ['set', 3, 99]
   ]
@@ -54,7 +53,7 @@ test('emitter#set in array', t => {
 
 test('emitter#set only triggers emitter if value is different', t => {
   t.plan(1)
-  const box = Box([1, 2, 3, 4])
+  const box = getBox([1, 2, 3, 4])
   const handler = () => t.pass()
   on(box, '0', handler)
   box[0] = 1
@@ -68,7 +67,7 @@ test('emitter#set only triggers emitter if value is different', t => {
 })
 
 test('emitter#delete in array', t => {
-  const box = Box([1, 2, 3, 4])
+  const box = getBox([1, 2, 3, 4])
   const results = [
     ['delete', 2]
   ]
@@ -83,10 +82,10 @@ test('emitter#delete in array', t => {
 
 test('emitter#copyWithin', t => {
   const original = [1, 2, 3, 4, 5]
-  const list1 = Box(original)
-  const list2 = Box(original)
-  const list3 = Box(original)
-  const list4 = Box(original)
+  const list1 = getBox(original)
+  const list2 = getBox(original)
+  const list3 = getBox(original)
+  const list4 = getBox(original)
   t.plan(7)
   const results1 = [
     ['set', 4, 1],
@@ -131,14 +130,14 @@ test('emitter#copyWithin', t => {
 test('emitter#fill', t => {
   t.plan(7)
   const arr = [1, 2, 3]
-  const list1 = Box(arr)
-  const list2 = Box(arr)
-  const list3 = Box(arr)
-  const list4 = Box(arr)
-  const list5 = Box(arr)
-  const list6 = Box(arr)
-  const list7 = Box(arr)
-  const list8 = Box(arr)
+  const list1 = getBox(arr)
+  const list2 = getBox(arr)
+  const list3 = getBox(arr)
+  const list4 = getBox(arr)
+  const list5 = getBox(arr)
+  const list6 = getBox(arr)
+  const list7 = getBox(arr)
+  const list8 = getBox(arr)
   const res1 = [
     ['set', 1, 4],
     ['set', 2, 4],
@@ -198,7 +197,7 @@ test('emitter#pop', t => {
     [3]
   ]
   t.plan(results.length + lengthResults.length)
-  const list = Box(plants)
+  const list = getBox(plants)
   on(list, '4', (...change) => t.same(change, results.shift()))
   on(list, '3', (...change) => t.same(change, results.shift()))
   on(list, 'length', (...change) => t.same(change, lengthResults.shift()))
@@ -209,7 +208,7 @@ test('emitter#pop', t => {
 
 test('emitter#push', t => {
   const animals = ['pigs', 'goats', 'sheep']
-  const list = Box(animals)
+  const list = getBox(animals)
   const lengthResults = [
     [4],
     [7]
@@ -234,7 +233,7 @@ test('emitter#push', t => {
 
 test('emitter#reverse odd', t => {
   const arr = ['one', 'two', 'three']
-  const list = Box(arr)
+  const list = getBox(arr)
   const results = [
     ['swap', 'one', 'three', false],
     ['swap', 'three', 'one', true]
@@ -249,7 +248,7 @@ test('emitter#reverse odd', t => {
 
 test('emitter#reverse even', t => {
   const arr = ['one', 'two', 'three', 'four']
-  const list = Box(arr)
+  const list = getBox(arr)
   const results = [
     ['swap', 'one', 'four', false],
     ['swap', 'four', 'one', true],
@@ -268,7 +267,7 @@ test('emitter#reverse even', t => {
 
 test('emitter#shift', t => {
   const arr = [1, 2, 3]
-  const list = Box(arr)
+  const list = getBox(arr)
   const results = [
     ['remove', 1],
     [2, 0]
@@ -282,7 +281,7 @@ test('emitter#shift', t => {
 
 test('emitter#sort', t => {
   const arr = [1, 30, 4, 21, 100000]
-  const list = Box(arr)
+  const list = getBox(arr)
   const results = [
     ['set', 30, 4],
     ['set', 4, 21],
@@ -300,7 +299,7 @@ test('emitter#sort', t => {
 })
 
 test('emitter#splice', t => {
-  const list = Box(['Jan', 'March', 'April', 'June'])
+  const list = getBox(['Jan', 'March', 'April', 'June'])
   const results = [
     ['insert', undefined, 'Feb'],
     [5, 2],
@@ -321,7 +320,7 @@ test('emitter#splice', t => {
 
 test('emitter#splice1', t => {
   // Remove 0 (zero) elements from index 2, and insert 'drum'
-  const box = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
+  const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
     ['insert', undefined, 'drum'],
     [5, 3]
@@ -337,7 +336,7 @@ test('emitter#splice1', t => {
 
 test('emitter#splice2', t => {
   // Remove 0 (zero) elements from index 2, and insert 'drum' and 'guitar'
-  const box = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
+  const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
     ['insert', undefined, 'drum'],
     ['insert', undefined, 'guitar'],
@@ -355,7 +354,7 @@ test('emitter#splice2', t => {
 
 test('emitter#splice3', t => {
   // Remove 1 element from index 3
-  const box = Box(['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
+  const box = getBox(['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
   const results = [
     ['remove', 'mandarin'],
     [4, 3]
@@ -371,7 +370,7 @@ test('emitter#splice3', t => {
 
 test('emitter#splice4', t => {
   // Remove 1 element from index 2, and insert 'trumpet'
-  const box = Box(['angel', 'clown', 'drum', 'sturgeon'])
+  const box = getBox(['angel', 'clown', 'drum', 'sturgeon'])
   const results = [
     ['set', 'drum', 'trumpet']
   ]
@@ -386,7 +385,7 @@ test('emitter#splice4', t => {
 
 test('emitter#splice5', t => {
   // Remove 2 elements from index 0, and insert 'parrot', 'anemone' and 'blue'
-  const box = Box(['angel', 'clown', 'trumpet', 'sturgeon'])
+  const box = getBox(['angel', 'clown', 'trumpet', 'sturgeon'])
   const results = [
     ['set', 'angel', 'parrot'],
     ['set', 'clown', 'anemone'],
@@ -406,7 +405,7 @@ test('emitter#splice5', t => {
 
 test('emitter#splice6', t => {
   // Remove 2 elements from index 2
-  const box = Box(['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon'])
+  const box = getBox(['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon'])
   const results = [
     ['remove', 'blue'],
     ['remove', 'trumpet'],
@@ -424,7 +423,7 @@ test('emitter#splice6', t => {
 
 test('emitter#splice7', t => {
   // Remove 1 element from index -2
-  const box = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
+  const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
     ['remove', 'mandarin'],
     [3, 2]
@@ -440,7 +439,7 @@ test('emitter#splice7', t => {
 
 test('emitter#splice8', t => {
   // Remove all elements after index 2 (incl.)
-  const box = Box(['angel', 'clown', 'mandarin', 'sturgeon'])
+  const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
     ['remove', 'mandarin'],
     ['remove', 'sturgeon'],
@@ -458,7 +457,7 @@ test('emitter#splice8', t => {
 
 test('emitter#unshift', t => {
   const arr = [1, 2, 3]
-  const list = Box(arr)
+  const list = getBox(arr)
   // TODO: this is difficult to track
   // TODO: firstIndexChanged should start from 1 or add arguments in order
   const results = [

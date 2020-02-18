@@ -6,13 +6,13 @@ Boxes
 Reactive state containers focused on DOM performance
 
 ```js
-import { Box, on } from 'Boxes'
+import { getBox, on } from 'Boxes'
 
 const origin = {
   a: 1
 }
 
-const box = Box(origin)
+const box = getBox(origin)
 box // { a: 1 }
 box === origin // false
 
@@ -23,7 +23,7 @@ box.a = 'hello'
 
 ## API
 
-- createBox
+- getBox
 - on
 - off
 
@@ -32,7 +32,7 @@ box.a = 'hello'
 Adds `handler` to box
 
 ```js
-const box = Box({ a: 1 })
+const box = getBox({ a: 1 })
 const handler = (...change) => console.log(change)
 boxes.on(box, 'a', handler)
 

@@ -1,14 +1,14 @@
 import test from 'tape'
-import { Box } from './boxes'
+import { getBox } from './boxes'
 
-test('Box', t => {
+test('getBox', t => {
   const origin = { a: 1 }
-  const box = Box(origin)
+  const box = getBox(origin)
 
   // {}
   t.is(typeof box, 'object')
-  t.is(Object.keys(origin).length, 1, 'Box has same props as origin')
-  t.is(box.a, origin.a, 'Box has same props as origin')
+  t.is(Object.keys(origin).length, 1, 'getBox has same props as origin')
+  t.is(box.a, origin.a, 'getBox has same props as origin')
 
   // changing origin does not change box
   origin.a = 9
@@ -38,7 +38,7 @@ test('Box', t => {
 
 test('List', t => {
   const origin = [2, 3, 4]
-  const list = Box(origin)
+  const list = getBox(origin)
 
   t.is(Array.isArray(list), true, 'is array')
   t.is(list.length, 3, 'list has same props as origin')

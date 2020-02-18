@@ -1,9 +1,9 @@
 import test from 'tape'
-import { Box } from './boxes'
+import { getBox } from './boxes'
 
 test('List#every', t => {
   const origin = [0, 1, 2]
-  const list = Box(origin)
+  const list = getBox(origin)
   const positiveResult = list.every((value: any, _: number, arr: []) => {
     t.isNot(arr, origin, 'does not expose real array')
     return value < 10
@@ -16,7 +16,7 @@ test('List#every', t => {
 
 test('List#filter', t => {
   const origin = [0, 1, 2]
-  const list = Box(origin)
+  const list = getBox(origin)
   const result = list.filter((value: any, _: number, arr: []) => {
     t.isNot(arr, origin, 'does not expose real array')
     return value < 2
@@ -27,7 +27,7 @@ test('List#filter', t => {
 
 test('List#find', t => {
   const origin = [0, 1, 2]
-  const list = Box(origin)
+  const list = getBox(origin)
   const result = list.find((value: any, _: any, arr: []) => {
     t.isNot(arr, origin, 'does not expose real array')
     return value > 0
@@ -38,7 +38,7 @@ test('List#find', t => {
 
 test('List#findIndex', t => {
   const origin = [0, 1, 2]
-  const list = Box(origin)
+  const list = getBox(origin)
   const result = list.findIndex((value: any, _: number, arr: []) => {
     t.isNot(arr, origin, 'does not expose real array')
     return value > 0
@@ -49,7 +49,7 @@ test('List#findIndex', t => {
 
 test('List#flatMap', t => {
   const arr = [1, 2, 3, 4]
-  const list = Box(arr)
+  const list = getBox(arr)
   t.same(list.map((x: number) => [x * 2]), [[2], [4], [6], [8]])
   t.same(list.flatMap((x: number) => [x * 2]), [2, 4, 6, 8])
   // only one level is flattened
@@ -60,7 +60,7 @@ test('List#flatMap', t => {
 test('List#forEach', t => {
   const origin = [0, 1, 2]
   let result = ''
-  const list = Box(origin)
+  const list = getBox(origin)
   list.forEach((value: any, _: number, __: []) => {
     result += value
   })
@@ -70,7 +70,7 @@ test('List#forEach', t => {
 
 test('List#map', t => {
   const origin = [0, 1, 2]
-  const list = Box(origin)
+  const list = getBox(origin)
   const result = list.map((value: any, _: number, __: []) => {
     return value + 10
   })
@@ -81,7 +81,7 @@ test('List#map', t => {
 test('List#reduce', t => {
   const array1 = [1, 2, 3, 4]
   const reducer = (accumulator: number, currentValue: number) => accumulator + currentValue
-  const list = Box(array1)
+  const list = getBox(array1)
   t.is(list.reduce(reducer), 10)
   t.is(list.reduce(reducer, 5), 15)
   t.end()
@@ -89,7 +89,7 @@ test('List#reduce', t => {
 
 test('List#reduceRight', t => {
   const array1 = [[0, 1], [2, 3], [4, 5]]
-  const list = Box(array1)
+  const list = getBox(array1)
   const result = list.reduceRight((acc: [], cur: []) => acc.concat(cur))
   t.same(result, [4, 5, 2, 3, 0, 1])
   t.end()
@@ -101,8 +101,8 @@ test('List#some', t => {
   }
   const origin1 = [2, 5, 8, 1, 4]
   const origin2 = [12, 5, 8, 1, 4]
-  const list1 = Box(origin1)
-  const list2 = Box(origin2)
+  const list1 = getBox(origin1)
+  const list2 = getBox(origin2)
   t.notOk(list1.some(isBiggerThan10))
   t.ok(list2.some(isBiggerThan10))
   t.end()

@@ -10,7 +10,7 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   const oldValue = target[prop]
   if (oldValue === value) return value
   const link = links.get(target)
-  const newValue = Box(value)
+  const newValue = getBox(value)
   link[prop] = newValue
   ee.emit(proxy, prop, 'set', oldValue, newValue)
   return newValue
@@ -19,11 +19,11 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
 function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
   const method = arrayMethods[prop] || modifiers[prop]
   return method
-    ? method(target, proxy, Box)
+    ? method(target, proxy, getBox)
     : target[prop]
 }
 
-export function Box (origin: any): Prox {
+export function getBox (origin: any): Prox {
   if (!origin || !isObject(origin) || isBox(origin)) {
     return origin
   }
@@ -31,7 +31,7 @@ export function Box (origin: any): Prox {
   const target: Prox = isArray ? [] : {}
   setHiddenKey(target, '__isBox', true)
   Object.keys(origin).forEach(key => {
-    target[key] = Box(origin[key])
+    target[key] = getBox(origin[key])
   })
   const proxy = new Proxy(target, {
     get: isArray

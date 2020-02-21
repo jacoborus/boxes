@@ -1,9 +1,9 @@
 {
   "name": "boxes",
-  "version": "0.30.0",
+  "version": "0.30.1",
   "description": "Reactive state containers for js apps",
   "type": "module",
-  "main": "boxes.js",
+  "main": "lib/boxes.js",
   "scripts": {
     "build": "rm -rf lib && tsc",
     "dist": "rollup --config",

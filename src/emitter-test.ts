@@ -165,10 +165,10 @@ test('emitter#fill', t => {
   on(list3, '1', handler3)
   list3.fill(4, 1, 2) // [1, 4, 3]
 
-  on(list4, list4, () => t.fail(':::4'))
+  on(list4, '0', () => t.fail(':::4'))
   list4.fill(4, 1, 1) // [1, 2, 3]
 
-  on(list5, list5, () => t.fail(':::5'))
+  on(list5, '0', () => t.fail(':::5'))
   list5.fill(4, 3, 3) // [1, 2, 3]
 
   const res6 = [
@@ -178,10 +178,10 @@ test('emitter#fill', t => {
   on(list6, '0', handler6)
   list6.fill(4, -3, -2) // [4, 2, 3]
 
-  on(list7, list7, () => t.fail())
+  on(list7, '0', () => t.fail())
   list7.fill(4, NaN, NaN) // [1, 2, 3]
 
-  on(list8, list8, () => t.fail())
+  on(list8, '0', () => t.fail())
   list8.fill(4, 3, 5) // [1, 2, 3]
   t.end()
 })

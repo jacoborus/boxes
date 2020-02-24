@@ -9,7 +9,7 @@
     "dist": "rollup --config",
     "compress": "terser -c -m -o bundle.min.js -- bundle.js",
     "linter": "eslint src/**/**.ts",
-    "test": "tape -r ts-node/register/transpile-only src/tests.ts"
+    "test": "tape -r ts-node/register src/tests.ts"
   },
   "repository": {
     "type": "git",
@@ -46,6 +46,6 @@
     "typescript": "3.7.5"
   },
   "dependencies": {
-    "weak-emitter": "^5.1.0"
+    "weak-emitter": "5.2.0"
   }
 }

@@ -3,14 +3,12 @@ type Methods = { [index: string]: any }
 
 // only the array methods that expose the target of the proxy
 const methods: Methods = {
-  // entries ??
   every: (arr: [], proxy: []) => (fn: Fn) => arr.every((val, i) => fn(val, i, proxy)),
   filter: (arr: [], proxy: []) => (fn: Fn) => arr.filter((val, i) => fn(val, i, proxy)),
   find: (arr: [], proxy: []) => (fn: Fn) => arr.find((val, i) => fn(val, i, proxy)),
   findIndex: (arr: [], proxy: []) => (fn: Fn) => arr.findIndex((val, i) => fn(val, i, proxy)),
   flatMap: (arr: [], proxy: []) => (fn: Fn) => arr.flatMap((val, i) => fn(val, i, proxy)),
   forEach: (arr: [], proxy: []) => (fn: Fn) => arr.forEach((val, i) => fn(val, i, proxy)),
-  // keys ?
   map: (arr: [], proxy: []) => (fn: Fn) => arr.map((val, i) => fn(val, i, proxy)),
   reduce: (arr: any[], proxy: []) => function (fn: Fn, init?: any) {
     return '1' in arguments

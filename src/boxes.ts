@@ -1,5 +1,6 @@
 import arrayMethods from './methods'
 import ee from './ee'
+import { EventController } from 'weak-emitter'
 import modifiers from './modifiers'
 import { isObject, isBox, setHiddenKey } from './tools'
 const links = new Map()
@@ -50,5 +51,46 @@ export function getBox (origin: any): Prox {
   return proxy
 }
 
-export const on = ee.on
+type EventHandler = (...args: any[]) => void
+
+// TODO: fix this slow mess
+export function on (box: Prox, prop: string, handler: EventHandler) {
+  if (!prop.includes('.')) {
+    ee.on(box, prop, handler)
+    return
+  }
+  const props = prop.split('.')
+  let len = props.length - 1
+  const propName = props[len]
+
+  const scopes = [box]
+  props.forEach(propName => {
+    const localBox = scopes[scopes.length - 1][propName] || {}
+    scopes.push(localBox)
+  })
+
+  const controllers: EventController[] = []
+  const finalEventController = ee.on(scopes[len], propName, handler)
+  controllers.unshift(finalEventController)
+
+  while (--len >= 0) {
+    const localProp = props[len]
+    const localScope = scopes[len]
+    const n = len + 1
+    const eventController = ee.on(localScope, localProp, (_, oldValue, newValue) => {
+      const nextController = controllers[n]
+      const currentProp = props[n]
+      const nextScope = typeof newValue === 'object' ? newValue : {}
+      const prevScope = oldValue && typeof oldValue === 'object' ? oldValue : {}
+      const nextValue = nextScope[currentProp]
+      const prevValue = prevScope[currentProp]
+      nextController.transfer(nextScope)
+      if (nextValue !== prevValue) {
+        nextController.emit('set', prevValue, nextValue)
+      }
+    })
+    controllers.unshift(eventController)
+  }
+}
+
 export const off = ee.off

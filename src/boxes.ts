@@ -59,6 +59,7 @@ export function on (box: Prox, prop: string, handler: EventHandler) {
     ee.on(box, prop, handler)
     return
   }
+
   const props = prop.split('.')
   let len = props.length - 1
   const propName = props[len]
@@ -85,9 +86,8 @@ export function on (box: Prox, prop: string, handler: EventHandler) {
       const nextValue = nextScope[currentProp]
       const prevValue = prevScope[currentProp]
       nextController.transfer(nextScope)
-      if (nextValue !== prevValue) {
+      nextValue !== prevValue &&
         nextController.emit('set', prevValue, nextValue)
-      }
     })
     controllers.unshift(eventController)
   }

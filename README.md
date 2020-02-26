@@ -37,7 +37,21 @@ const handler = (...change) => console.log(change)
 boxes.on(box, 'a', handler)
 
 box.a = 'hello'
-// logs: ['set', 'a', 1, 'hello']
+// logs: ['set', 1, 'hello']
+```
+
+It also works with dot notation:
+
+```js
+const box = getBox({ o: { a: 1  } })
+const handler = (...change) => console.log(change)
+boxes.on(box, 'o.a', handler)
+
+box.o.a = 'hello'
+// logs: ['set', 1, 'hello']
+
+box.o = { a: 'bye' }
+// logs: ['set', 'hello', 'bye']
 ```
 
 ### off(box, prop, handler)

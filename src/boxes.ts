@@ -6,6 +6,12 @@ import { isObject, isBox, setHiddenKey } from './tools'
 const links = new Map()
 
 type Prox = { [index: string]: any }
+type EventHandler = (...args: any[]) => void
+
+export interface BoxController {
+  emit: EventHandler
+  off: () => void
+}
 
 function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   const oldValue = target[prop]
@@ -51,10 +57,8 @@ export function getBox (origin: any): Prox {
   return proxy
 }
 
-type EventHandler = (...args: any[]) => void
-
 // TODO: fix this slow mess
-export function on (box: Prox, prop: string, handler: EventHandler) {
+export function on (box: Prox, prop: string, handler: EventHandler): BoxController {
   if (!prop.includes('.')) {
     const { off, emit } = ee.on(box, prop, handler)
     return { off, emit }

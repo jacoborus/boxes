@@ -38,13 +38,63 @@ test('Dot notation: simple array', t => {
     number: 'Zero'
   }])
   t.plan(3)
-  on(box, '1.number', function (...change) {
-    console.log(change)
-    t.pass()
-  })
+  on(box, '1.number', () => t.pass())
   box[1] = {}
   box[1].number = 'uno'
   box[1] = { number: 'dos' }
   box[1].number = 'tres'
   t.end()
 })
+
+test('Dot notation: eventController#off', t => {
+  const team = {
+    director: {
+      name: 'uno'
+    }
+  }
+  const box = getBox(team)
+  t.plan(1)
+  const eventController = on(box, 'director.name', () => t.fail())
+  eventController.off()
+  box.director.name = 'dos'
+  t.pass()
+  t.end()
+})
+
+test('Dot notation: eventController#emit', t => {
+  const team = {
+    director: {
+      name: 'uno'
+    }
+  }
+  const box = getBox(team)
+  t.plan(2)
+  const eventController = on(box, 'director.name', (...change) => {
+    t.same(change, [1, 2, 3, 4])
+  })
+  eventController.emit(1, 2, 3, 4)
+  eventController.emit(1, 2, 3, 4)
+  t.end()
+})
+
+// test('Dot notation: eventController#transfer', t => {
+//   const team2 = {
+//     director: {
+//       name: 'dos'
+//     }
+//   }
+//   const box = getBox({
+//     director: {
+//       name: 'uno'
+//     }
+//   })
+//   t.plan(2)
+//   const eventController = on(box, 'director.name', (...change) => {
+//     console.log(change)
+//     t.pass()
+//   })
+//   eventController.transfer(team2)
+//   console.log(box)
+//   box.director.name = 'tres'
+//   t.end()
+// })

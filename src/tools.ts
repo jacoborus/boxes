@@ -1,4 +1,4 @@
-type Prox = { [index: string]: any }
+export type Prox = { [index: string]: any }
 
 export function setHiddenKey (target: Prox, key: string, value: any) {
   Object.defineProperty(target, key, {

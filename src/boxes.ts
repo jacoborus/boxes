@@ -56,8 +56,7 @@ type EventHandler = (...args: any[]) => void
 // TODO: fix this slow mess
 export function on (box: Prox, prop: string, handler: EventHandler) {
   if (!prop.includes('.')) {
-    ee.on(box, prop, handler)
-    return
+    return ee.on(box, prop, handler)
   }
 
   const props = prop.split('.')
@@ -90,6 +89,12 @@ export function on (box: Prox, prop: string, handler: EventHandler) {
         nextController.emit('set', prevValue, nextValue)
     })
     controllers.unshift(eventController)
+  }
+  return {
+    emit: handler,
+    off () {
+      controllers.forEach(controller => controller.off())
+    }
   }
 }
 

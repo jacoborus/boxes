@@ -56,7 +56,8 @@ type EventHandler = (...args: any[]) => void
 // TODO: fix this slow mess
 export function on (box: Prox, prop: string, handler: EventHandler) {
   if (!prop.includes('.')) {
-    return ee.on(box, prop, handler)
+    const { off, emit } = ee.on(box, prop, handler)
+    return { off, emit }
   }
 
   const props = prop.split('.')

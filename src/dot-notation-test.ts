@@ -76,25 +76,3 @@ test('Dot notation: eventController#emit', t => {
   eventController.emit(1, 2, 3, 4)
   t.end()
 })
-
-// test('Dot notation: eventController#transfer', t => {
-//   const team2 = {
-//     director: {
-//       name: 'dos'
-//     }
-//   }
-//   const box = getBox({
-//     director: {
-//       name: 'uno'
-//     }
-//   })
-//   t.plan(2)
-//   const eventController = on(box, 'director.name', (...change) => {
-//     console.log(change)
-//     t.pass()
-//   })
-//   eventController.transfer(team2)
-//   console.log(box)
-//   box.director.name = 'tres'
-//   t.end()
-// })

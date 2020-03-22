@@ -1,6 +1,6 @@
 import arrayMethods from './methods'
 import ee from './ee'
-import { EventController } from 'weak-emitter'
+import { WeakEventController } from 'weak-emitter'
 import modifiers from './modifiers'
 import { isObject, isBox, setHiddenKey } from './tools'
 const links = new Map()
@@ -74,7 +74,7 @@ export function on (box: Prox, prop: string, handler: EventHandler): BoxControll
     scopes.push(localBox)
   })
 
-  const controllers: EventController[] = []
+  const controllers: WeakEventController[] = []
   const finalEventController = ee.on(scopes[len], propName, handler)
   controllers.unshift(finalEventController)
 
@@ -104,3 +104,4 @@ export function on (box: Prox, prop: string, handler: EventHandler): BoxControll
 }
 
 export const off = ee.off
+export { Box } from './tools'

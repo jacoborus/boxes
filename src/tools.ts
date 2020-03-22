@@ -1,5 +1,10 @@
 export type Prox = { [index: string]: any }
 
+export interface Box {
+  __isBox: true
+  [ index: string ]: any
+}
+
 export function setHiddenKey (target: Prox, key: string, value: any) {
   Object.defineProperty(target, key, {
     value,

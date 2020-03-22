@@ -88,8 +88,8 @@ test('emitter#copyWithin', t => {
   const list4 = getBox(original)
   t.plan(7)
   const results1 = [
-    ['set', 4, 1],
-    ['set', 5, 2]
+    ['set', 4, 1, [1, 2, 3, 1, 2]],
+    ['set', 5, 2, [1, 2, 3, 1, 2]]
   ]
   const handler1 = (...change: []) => t.same(change, results1.shift(), '::1')
   on(list1, '3', handler1)
@@ -98,8 +98,8 @@ test('emitter#copyWithin', t => {
   list1.copyWithin(-2)
 
   const results2 = [
-    ['set', 1, 4],
-    ['set', 2, 5]
+    ['set', 1, 4, [4, 5, 3, 4, 5]],
+    ['set', 2, 5, [4, 5, 3, 4, 5]]
   ]
   // [4, 5, 3, 4, 5]
   const handler2 = (...change: []) => t.same(change, results2.shift(), '::2')
@@ -108,7 +108,7 @@ test('emitter#copyWithin', t => {
   list2.copyWithin(0, 3)
 
   const results3 = [
-    ['set', 1, 4]
+    ['set', 1, 4, [4, 2, 3, 4, 5]]
   ]
   const handler3 = (...change: []) => t.same(change, results3.shift(), '::3')
   on(list3, '0', handler3)
@@ -116,8 +116,8 @@ test('emitter#copyWithin', t => {
   list3.copyWithin(0, 3, 4)
 
   const results4 = [
-    ['set', 4, 3],
-    ['set', 5, 4]
+    ['set', 4, 3, [1, 2, 3, 3, 4]],
+    ['set', 5, 4, [1, 2, 3, 3, 4]]
   ]
   const handler4 = (...change: []) => t.same(change, results4.shift(), '::4')
   on(list4, '3', handler4)
@@ -139,29 +139,29 @@ test('emitter#fill', t => {
   const list7 = getBox(arr)
   const list8 = getBox(arr)
   const res1 = [
-    ['set', 1, 4],
-    ['set', 2, 4],
-    ['set', 3, 4]
+    ['set', 1, 4, [4, 4, 4]],
+    ['set', 2, 4, [4, 4, 4]],
+    ['set', 3, 4, [4, 4, 4]]
   ]
-  const handler1 = (...change: []) => t.same(res1.shift(), change, ':::1')
+  const handler1 = (...change: []) => t.same(change, res1.shift(), ':::1')
   on(list1, '0', handler1)
   on(list1, '1', handler1)
   on(list1, '2', handler1)
   list1.fill(4) // [4, 4, 4]
 
   const res2 = [
-    ['set', 2, 4],
-    ['set', 3, 4]
+    ['set', 2, 4, [1, 4, 4]],
+    ['set', 3, 4, [1, 4, 4]]
   ]
-  const handler2 = (...change: []) => t.same(res2.shift(), change, ':::2')
+  const handler2 = (...change: []) => t.same(change, res2.shift(), ':::2')
   on(list2, '1', handler2)
   on(list2, '2', handler2)
   list2.fill(4, 1) // [1, 4, 4]
 
   const res3 = [
-    ['set', 2, 4]
+    ['set', 2, 4, [1, 4, 3]]
   ]
-  const handler3 = (...change: []) => t.same(res3.shift(), change, ':::3')
+  const handler3 = (...change: []) => t.same(change, res3.shift(), ':::3')
   on(list3, '1', handler3)
   list3.fill(4, 1, 2) // [1, 4, 3]
 
@@ -172,9 +172,9 @@ test('emitter#fill', t => {
   list5.fill(4, 3, 3) // [1, 2, 3]
 
   const res6 = [
-    ['set', 1, 4]
+    ['set', 1, 4, [4, 2, 3]]
   ]
-  const handler6 = (...change: []) => t.same(res6.shift(), change, ':::6')
+  const handler6 = (...change: []) => t.same(change, res6.shift(), ':::6')
   on(list6, '0', handler6)
   list6.fill(4, -3, -2) // [4, 2, 3]
 
@@ -189,12 +189,12 @@ test('emitter#fill', t => {
 test('emitter#pop', t => {
   const plants = ['broccoli', 'cauliflower', 'cabbage', 'kale', 'tomato']
   const results = [
-    ['remove', 'tomato'],
-    ['remove', 'kale']
+    ['remove', 'tomato', undefined, ['broccoli', 'cauliflower', 'cabbage', 'kale']],
+    ['remove', 'kale', undefined, ['broccoli', 'cauliflower', 'cabbage']]
   ]
   const lengthResults = [
-    [4],
-    [3]
+    [4, undefined, ['broccoli', 'cauliflower', 'cabbage', 'kale']],
+    [3, undefined, ['broccoli', 'cauliflower', 'cabbage']]
   ]
   t.plan(results.length + lengthResults.length)
   const list = getBox(plants)
@@ -210,14 +210,14 @@ test('emitter#push', t => {
   const animals = ['pigs', 'goats', 'sheep']
   const list = getBox(animals)
   const lengthResults = [
-    [4],
-    [7]
+    [4, undefined, ['pigs', 'goats', 'sheep', 'cows']],
+    [7, undefined, ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats', 'dogs']]
   ]
   const results = [
-    ['insert', undefined, 'cows'],
-    ['insert', undefined, 'chickens'],
-    ['insert', undefined, 'cats'],
-    ['insert', undefined, 'dogs']
+    ['insert', undefined, 'cows', ['pigs', 'goats', 'sheep', 'cows']],
+    ['insert', undefined, 'chickens', ['pigs', 'goats', 'sheep', 'cows', 'chickens']],
+    ['insert', undefined, 'cats', ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats']],
+    ['insert', undefined, 'dogs', ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats', 'dogs']]
   ]
   t.plan(results.length + lengthResults.length)
   on(list, '3', (...change: []) => t.same(change, results.shift()))
@@ -235,8 +235,8 @@ test('emitter#reverse odd', t => {
   const arr = ['one', 'two', 'three']
   const list = getBox(arr)
   const results = [
-    ['swap', 'one', 'three', false],
-    ['swap', 'three', 'one', true]
+    ['swap', 'one', 'three', false, ['three', 'two', 'one']],
+    ['swap', 'three', 'one', true, ['three', 'two', 'one']]
   ]
   t.plan(results.length)
   on(list, '0', (...change: []) => t.same(change, results.shift()))
@@ -250,10 +250,10 @@ test('emitter#reverse even', t => {
   const arr = ['one', 'two', 'three', 'four']
   const list = getBox(arr)
   const results = [
-    ['swap', 'one', 'four', false],
-    ['swap', 'four', 'one', true],
-    ['swap', 'two', 'three', false],
-    ['swap', 'three', 'two', true]
+    ['swap', 'one', 'four', false, ['four', 'three', 'two', 'one']],
+    ['swap', 'four', 'one', true, ['four', 'three', 'two', 'one']],
+    ['swap', 'two', 'three', false, ['four', 'three', 'two', 'one']],
+    ['swap', 'three', 'two', true, ['four', 'three', 'two', 'one']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -269,8 +269,8 @@ test('emitter#shift', t => {
   const arr = [1, 2, 3]
   const list = getBox(arr)
   const results = [
-    ['remove', 1],
-    [2, 0]
+    ['remove', 1, undefined, [2, 3]],
+    [2, 0, undefined, [2, 3]]
   ]
   t.plan(results.length)
   on(list, '0', (...change: []) => t.same(change, results.shift()))
@@ -283,9 +283,9 @@ test('emitter#sort', t => {
   const arr = [1, 30, 4, 21, 100000]
   const list = getBox(arr)
   const results = [
-    ['set', 30, 4],
-    ['set', 4, 21],
-    ['set', 21, 30]
+    ['set', 30, 4, [1, 4, 21, 30, 100000]],
+    ['set', 4, 21, [1, 4, 21, 30, 100000]],
+    ['set', 21, 30, [1, 4, 21, 30, 100000]]
   ]
   t.plan(results.length)
   // [1, 4, 21, 30, 100000]
@@ -301,11 +301,11 @@ test('emitter#sort', t => {
 test('emitter#splice', t => {
   const list = getBox(['Jan', 'March', 'April', 'June'])
   const results = [
-    ['insert', undefined, 'Feb'],
-    [5, 2],
-    ['set', 'April', 'uno'],
-    ['insert', undefined, 'dos'],
-    [6, 5]
+    ['insert', undefined, 'Feb', ['Jan', 'Feb', 'March', 'April', 'June']],
+    [5, 2, undefined, ['Jan', 'Feb', 'March', 'April', 'June']],
+    ['set', 'April', 'uno', ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']],
+    ['insert', undefined, 'dos', ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']],
+    [6, 5, undefined, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -322,8 +322,8 @@ test('emitter#splice1', t => {
   // Remove 0 (zero) elements from index 2, and insert 'drum'
   const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['insert', undefined, 'drum'],
-    [5, 3]
+    ['insert', undefined, 'drum', ['angel', 'clown', 'drum', 'mandarin', 'sturgeon']],
+    [5, 3, undefined, ['angel', 'clown', 'drum', 'mandarin', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -338,9 +338,9 @@ test('emitter#splice2', t => {
   // Remove 0 (zero) elements from index 2, and insert 'drum' and 'guitar'
   const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['insert', undefined, 'drum'],
-    ['insert', undefined, 'guitar'],
-    [6, 3]
+    ['insert', undefined, 'drum', ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']],
+    ['insert', undefined, 'guitar', ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']],
+    [6, 3, undefined, ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -356,8 +356,8 @@ test('emitter#splice3', t => {
   // Remove 1 element from index 3
   const box = getBox(['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 'mandarin'],
-    [4, 3]
+    ['remove', 'mandarin', undefined, ['angel', 'clown', 'drum', 'sturgeon']],
+    [4, 3, undefined, ['angel', 'clown', 'drum', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -372,7 +372,7 @@ test('emitter#splice4', t => {
   // Remove 1 element from index 2, and insert 'trumpet'
   const box = getBox(['angel', 'clown', 'drum', 'sturgeon'])
   const results = [
-    ['set', 'drum', 'trumpet']
+    ['set', 'drum', 'trumpet', ['angel', 'clown', 'trumpet', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -387,10 +387,10 @@ test('emitter#splice5', t => {
   // Remove 2 elements from index 0, and insert 'parrot', 'anemone' and 'blue'
   const box = getBox(['angel', 'clown', 'trumpet', 'sturgeon'])
   const results = [
-    ['set', 'angel', 'parrot'],
-    ['set', 'clown', 'anemone'],
-    ['insert', undefined, 'blue'],
-    [5, 3]
+    ['set', 'angel', 'parrot', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
+    ['set', 'clown', 'anemone', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
+    ['insert', undefined, 'blue', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
+    [5, 3, undefined, ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -407,9 +407,9 @@ test('emitter#splice6', t => {
   // Remove 2 elements from index 2
   const box = getBox(['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon'])
   const results = [
-    ['remove', 'blue'],
-    ['remove', 'trumpet'],
-    [3, 2]
+    ['remove', 'blue', undefined, ['parrot', 'anemone', 'sturgeon']],
+    ['remove', 'trumpet', undefined, ['parrot', 'anemone', 'sturgeon']],
+    [3, 2, undefined, ['parrot', 'anemone', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -425,8 +425,8 @@ test('emitter#splice7', t => {
   // Remove 1 element from index -2
   const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 'mandarin'],
-    [3, 2]
+    ['remove', 'mandarin', undefined, ['angel', 'clown', 'sturgeon']],
+    [3, 2, undefined, ['angel', 'clown', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -441,9 +441,9 @@ test('emitter#splice8', t => {
   // Remove all elements after index 2 (incl.)
   const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 'mandarin'],
-    ['remove', 'sturgeon'],
-    [2, 2]
+    ['remove', 'mandarin', undefined, ['angel', 'clown']],
+    ['remove', 'sturgeon', undefined, ['angel', 'clown']],
+    [2, 2, undefined, ['angel', 'clown']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -461,9 +461,9 @@ test('emitter#unshift', t => {
   // TODO: this is difficult to track
   // TODO: firstIndexChanged should start from 1 or add arguments in order
   const results = [
-    ['insert', undefined, 5],
-    ['insert', undefined, 4],
-    [5, 2]
+    ['insert', undefined, 5, [5, 1, 2, 3]],
+    ['insert', undefined, 4, [4, 5, 1, 2, 3]],
+    [5, 2, [4, 5, 1, 2, 3]]
   ]
   t.plan(results.length)
   on(list, '0', (...change: []) => t.same(change, results.shift()))

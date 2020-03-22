@@ -1,5 +1,5 @@
 import test from 'tape'
-import { getBox, on, off } from './boxes'
+import { getBox, on, off } from '../src/boxes'
 
 test('emitter#set in object', t => {
   const box = getBox({

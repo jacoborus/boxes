@@ -1,5 +1,5 @@
 import test from 'tape'
-import { getBox } from './boxes'
+import { getBox } from '../src/boxes'
 
 test('getBox', t => {
   const origin = { a: 1 }

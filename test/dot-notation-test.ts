@@ -1,5 +1,5 @@
 import test from 'tape'
-import { getBox, on } from './boxes'
+import { getBox, on } from '../src/boxes'
 
 test('Dot notation: simple object', t => {
   const team = {

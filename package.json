@@ -10,7 +10,7 @@
     "compress": "terser -c -m -o bundle.min.js -- bundle.js",
     "linter": "eslint src/**/**.ts",
     "prepublish": "rm -rf lib && tsc",
-    "test": "tape -r ts-node/register src/tests.ts"
+    "test": "tape -r ts-node/register test/tests.ts"
   },
   "repository": {
     "type": "git",

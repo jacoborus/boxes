@@ -1,5 +1,5 @@
 import test from 'tape'
-import { getBox } from './boxes'
+import { getBox } from '../src/boxes'
 
 test('List#every', t => {
   const origin = [0, 1, 2]

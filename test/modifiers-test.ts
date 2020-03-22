@@ -1,5 +1,5 @@
 import test from 'tape'
-import { getBox } from './boxes'
+import { getBox } from '../src/boxes'
 
 test('Modifiers#copyWithin', t => {
   const original = [1, 2, 3, 4, 5]

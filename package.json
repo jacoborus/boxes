@@ -1,6 +1,6 @@
 {
   "name": "boxes",
-  "version": "0.35.0",
+  "version": "0.36.0",
   "description": "Reactive state containers for js apps",
   "type": "module",
   "main": "lib/boxes.js",
@@ -10,7 +10,7 @@
     "compress": "terser -c -m -o bundle.min.js -- bundle.js",
     "linter": "eslint src/**/**.ts",
     "prepublish": "rm -rf lib && tsc",
-    "test": "tape -r ts-node/register test/tests.ts"
+    "test": "tape -r ts-node/register --project tsconfig-test.json test/tests.ts"
   },
   "repository": {
     "type": "git",

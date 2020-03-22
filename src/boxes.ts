@@ -2,10 +2,9 @@ import arrayMethods from './methods'
 import ee from './ee'
 import { WeakEventController } from 'weak-emitter'
 import modifiers from './modifiers'
-import { isObject, isBox, setHiddenKey } from './tools'
+import { isObject, isBox, setHiddenKey, Box } from './tools'
 const links = new Map()
 
-type Prox = { [index: string]: any }
 type EventHandler = (...args: any[]) => void
 
 export interface BoxController {
@@ -13,7 +12,7 @@ export interface BoxController {
   off: () => void
 }
 
-function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
+function setHandler (target: Box, prop: string, value: any, proxy: Box) {
   const oldValue = target[prop]
   if (oldValue === value) return value
   const link = links.get(target)
@@ -23,19 +22,19 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   return newValue
 }
 
-function arrGetHandler (target: Prox, prop: string, proxy: Prox) {
+function arrGetHandler (target: Box, prop: string, proxy: Box) {
   const method = arrayMethods[prop] || modifiers[prop]
   return method
     ? method(target, proxy, getBox)
     : target[prop]
 }
 
-export function getBox (origin: any): Prox {
+export function getBox (origin: any): Box {
   if (!origin || !isObject(origin) || isBox(origin)) {
     return origin
   }
   const isArray = Array.isArray(origin)
-  const target: Prox = isArray ? [] : {}
+  const target = isArray ? [] : {}
   setHiddenKey(target, '__isBox', true)
   Object.keys(origin).forEach(key => {
     target[key] = getBox(origin[key])
@@ -45,7 +44,7 @@ export function getBox (origin: any): Prox {
       ? arrGetHandler
       : (...args) => Reflect.get(...args),
     set: setHandler,
-    deleteProperty (target: Prox, prop: string): any {
+    deleteProperty (target: Box, prop: string): any {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
@@ -54,11 +53,11 @@ export function getBox (origin: any): Prox {
     }
   })
   links.set(target, target)
-  return proxy
+  return proxy as Box
 }
 
 // TODO: fix this slow mess
-export function on (box: Prox, prop: string, handler: EventHandler): BoxController {
+export function on (box: Box, prop: string, handler: EventHandler): BoxController {
   if (!prop.includes('.')) {
     const { off, emit } = ee.on(box, prop, handler)
     return { off, emit }

@@ -5,7 +5,7 @@ export interface Box {
   [ index: string ]: any
 }
 
-export function setHiddenKey (target: Prox, key: string, value: any) {
+export function setHiddenKey (target: Prox, key: string, value: any): asserts target is Box {
   Object.defineProperty(target, key, {
     value,
     enumerable: false,

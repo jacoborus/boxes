@@ -19,7 +19,7 @@ function setHandler (target: Prox, prop: string, value: any, proxy: Prox) {
   const link = links.get(target)
   const newValue = getBox(value)
   link[prop] = newValue
-  ee.emit(proxy, prop, 'set', oldValue, newValue)
+  ee.emit(proxy, prop, 'set', oldValue, newValue, proxy)
   return newValue
 }
 
@@ -49,7 +49,7 @@ export function getBox (origin: any): Prox {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
-      ee.emit(proxy, prop, 'delete', oldValue)
+      ee.emit(proxy, prop, 'delete', oldValue, undefined, proxy)
       return true
     }
   })
@@ -91,7 +91,7 @@ export function on (box: Prox, prop: string, handler: EventHandler): BoxControll
       const prevValue = prevScope[currentProp]
       nextController.transfer(nextScope)
       nextValue !== prevValue &&
-        nextController.emit('set', prevValue, nextValue)
+        nextController.emit('set', prevValue, nextValue, nextScope)
     })
     controllers.unshift(eventController)
   }

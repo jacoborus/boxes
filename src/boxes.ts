@@ -14,12 +14,12 @@ export interface BoxController {
 
 function setHandler (target: Box, prop: string, value: any, proxy: Box) {
   const oldValue = target[prop]
-  if (oldValue === value) return value
+  if (oldValue === value) return true
   const link = links.get(target)
   const newValue = getBox(value)
   link[prop] = newValue
   ee.emit(proxy, prop, 'set', oldValue, newValue, proxy)
-  return newValue
+  return true
 }
 
 function arrGetHandler (target: Box, prop: string, proxy: Box) {

@@ -110,7 +110,7 @@ const modifiers: Modifiers = {
       target.forEach((item, i) => {
         const oldValue = copy[i]
         if (item !== oldValue) {
-          ee.emit(proxy, '' + i, 'set', oldValue, item, proxy)
+          ee.emit(proxy, '' + i, 'swap', '' + i, oldValue, item, proxy)
         }
       })
       return proxy

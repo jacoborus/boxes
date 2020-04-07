@@ -97,8 +97,9 @@ const modifiers: Modifiers = {
 
   shift: (target: [], proxy: []) => () => {
     const shifted = target.shift()
-    ee.emit(proxy, '0', 'remove', shifted, undefined, proxy)
-    ee.emit(proxy, 'length', target.length, 0, undefined, proxy)
+    ee.emit(proxy, '0', 'remove', '0', shifted, undefined, proxy)
+    const len = target.length
+    ee.emit(proxy, 'length', 'length', '0', len + 1, len, proxy)
     return shifted
   },
 

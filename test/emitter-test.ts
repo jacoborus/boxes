@@ -269,8 +269,8 @@ test('emitter#shift', t => {
   const arr = [1, 2, 3]
   const list = getBox(arr)
   const results = [
-    ['remove', 1, undefined, [2, 3]],
-    [2, 0, undefined, [2, 3]]
+    ['remove', '0', 1, undefined, [2, 3]],
+    ['length', '0', 3, 2, [2, 3]]
   ]
   t.plan(results.length)
   on(list, '0', (...change: []) => t.same(change, results.shift()))

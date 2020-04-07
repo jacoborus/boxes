@@ -11,7 +11,7 @@ test('emitter#set in object', t => {
     c: [1, 2, 3, 4]
   })
   const results = [
-    ['set', 1, 99, box]
+    ['set', 'a', 1, 99, box]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -25,8 +25,8 @@ test('emitter#set in object', t => {
 test('emitter#delete in object', t => {
   const box = getBox({ a: 1, b: 2 })
   const results = [
-    ['delete', 1, undefined, box],
-    ['delete', 2, undefined, box]
+    ['delete', 'a', 1, undefined, box],
+    ['delete', 'b', 2, undefined, box]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())

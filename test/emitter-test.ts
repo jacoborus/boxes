@@ -40,7 +40,7 @@ test('emitter#delete in object', t => {
 test('emitter#set in array', t => {
   const box = getBox([1, 2, 3, 4])
   const results = [
-    ['set', 3, 99, box]
+    ['set', '2', 3, 99, box]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -69,7 +69,7 @@ test('emitter#set only triggers emitter if value is different', t => {
 test('emitter#delete in array', t => {
   const box = getBox([1, 2, 3, 4])
   const results = [
-    ['delete', 2, undefined, box]
+    ['delete', '1', 2, undefined, box]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())

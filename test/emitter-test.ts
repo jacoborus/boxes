@@ -210,14 +210,14 @@ test('emitter#push', t => {
   const animals = ['pigs', 'goats', 'sheep']
   const list = getBox(animals)
   const lengthResults = [
-    [4, undefined, ['pigs', 'goats', 'sheep', 'cows']],
-    [7, undefined, ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats', 'dogs']]
+    ['length', undefined, 3, 4, ['pigs', 'goats', 'sheep', 'cows']],
+    ['length', undefined, 4, 7, ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats', 'dogs']]
   ]
   const results = [
-    ['insert', undefined, 'cows', ['pigs', 'goats', 'sheep', 'cows']],
-    ['insert', undefined, 'chickens', ['pigs', 'goats', 'sheep', 'cows', 'chickens']],
-    ['insert', undefined, 'cats', ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats']],
-    ['insert', undefined, 'dogs', ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats', 'dogs']]
+    ['insert', '3', undefined, 'cows', ['pigs', 'goats', 'sheep', 'cows']],
+    ['insert', '4', undefined, 'chickens', ['pigs', 'goats', 'sheep', 'cows', 'chickens']],
+    ['insert', '5', undefined, 'cats', ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats']],
+    ['insert', '6', undefined, 'dogs', ['pigs', 'goats', 'sheep', 'cows', 'chickens', 'cats', 'dogs']]
   ]
   t.plan(results.length + lengthResults.length)
   on(list, '3', (...change: []) => t.same(change, results.shift()))

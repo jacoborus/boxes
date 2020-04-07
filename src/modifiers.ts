@@ -62,14 +62,15 @@ const modifiers: Modifiers = {
     return result
   },
 
-  push: (target: any[], proxy: any[], Box: any) => function (...args: []) {
+  push: (target: any[], proxy: any[], getBox: any) => function (...args: []) {
     args.forEach((value: any) => {
       const len = target.length
-      const newValue = Box(value)
+      const newValue = getBox(value)
       target[len] = newValue
-      ee.emit(proxy, '' + len, 'insert', undefined, newValue, proxy)
+      ee.emit(proxy, '' + len, 'insert', '' + len, undefined, newValue, proxy)
     })
-    ee.emit(proxy, 'length', target.length, undefined, proxy)
+    const len = target.length
+    ee.emit(proxy, 'length', 'length', undefined, len - args.length, len, proxy)
     return target.length
   },
 

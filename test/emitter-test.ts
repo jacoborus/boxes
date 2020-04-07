@@ -235,8 +235,8 @@ test('emitter#reverse odd', t => {
   const arr = ['one', 'two', 'three']
   const list = getBox(arr)
   const results = [
-    ['swap', 'one', 'three', false, ['three', 'two', 'one']],
-    ['swap', 'three', 'one', true, ['three', 'two', 'one']]
+    ['swap', '0', 'one', 'three', ['three', 'two', 'one']],
+    ['swap', '2', 'three', 'one', ['three', 'two', 'one']]
   ]
   t.plan(results.length)
   on(list, '0', (...change: []) => t.same(change, results.shift()))

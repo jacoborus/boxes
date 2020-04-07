@@ -1,5 +1,4 @@
 import ee from './ee'
-import { Box } from './tools'
 
 type Modifiers = { [index: string]: any }
 
@@ -22,15 +21,15 @@ const modifiers: Modifiers = {
       target.copyWithin(targ, start, end)
       changes.forEach(change => {
         const [pos, kind, oldVal, newVal] = change
-        ee.emit(proxy, pos, kind, oldVal, newVal, proxy)
+        ee.emit(proxy, pos, kind, pos, oldVal, newVal, proxy)
       })
       return proxy
     }
   },
 
-  fill (target: any[], proxy: any[], Box: any) {
+  fill (target: any[], proxy: any[], getBox: any) {
     return function (value: any, start = 0, end = target.length) {
-      value = Box(value)
+      value = getBox(value)
       const len = target.length
       start = start < 0 ? len + start : start
       end = end < 0
@@ -48,7 +47,7 @@ const modifiers: Modifiers = {
       }
       changes.forEach(change => {
         const [, pos, , oldValue, newVal] = change
-        ee.emit(proxy, pos, 'set', oldValue, newVal, proxy)
+        ee.emit(proxy, pos, 'set', pos, oldValue, newVal, proxy)
       })
       return proxy
     }

@@ -88,8 +88,8 @@ test('emitter#copyWithin', t => {
   const list4 = getBox(original)
   t.plan(7)
   const results1 = [
-    ['set', 4, 1, [1, 2, 3, 1, 2]],
-    ['set', 5, 2, [1, 2, 3, 1, 2]]
+    ['set', '3', 4, 1, [1, 2, 3, 1, 2]],
+    ['set', '4', 5, 2, [1, 2, 3, 1, 2]]
   ]
   const handler1 = (...change: []) => t.same(change, results1.shift(), '::1')
   on(list1, '3', handler1)
@@ -98,8 +98,8 @@ test('emitter#copyWithin', t => {
   list1.copyWithin(-2)
 
   const results2 = [
-    ['set', 1, 4, [4, 5, 3, 4, 5]],
-    ['set', 2, 5, [4, 5, 3, 4, 5]]
+    ['set', '0', 1, 4, [4, 5, 3, 4, 5]],
+    ['set', '1', 2, 5, [4, 5, 3, 4, 5]]
   ]
   // [4, 5, 3, 4, 5]
   const handler2 = (...change: []) => t.same(change, results2.shift(), '::2')
@@ -108,7 +108,7 @@ test('emitter#copyWithin', t => {
   list2.copyWithin(0, 3)
 
   const results3 = [
-    ['set', 1, 4, [4, 2, 3, 4, 5]]
+    ['set', '0', 1, 4, [4, 2, 3, 4, 5]]
   ]
   const handler3 = (...change: []) => t.same(change, results3.shift(), '::3')
   on(list3, '0', handler3)
@@ -116,8 +116,8 @@ test('emitter#copyWithin', t => {
   list3.copyWithin(0, 3, 4)
 
   const results4 = [
-    ['set', 4, 3, [1, 2, 3, 3, 4]],
-    ['set', 5, 4, [1, 2, 3, 3, 4]]
+    ['set', '3', 4, 3, [1, 2, 3, 3, 4]],
+    ['set', '4', 5, 4, [1, 2, 3, 3, 4]]
   ]
   const handler4 = (...change: []) => t.same(change, results4.shift(), '::4')
   on(list4, '3', handler4)
@@ -139,9 +139,9 @@ test('emitter#fill', t => {
   const list7 = getBox(arr)
   const list8 = getBox(arr)
   const res1 = [
-    ['set', 1, 4, [4, 4, 4]],
-    ['set', 2, 4, [4, 4, 4]],
-    ['set', 3, 4, [4, 4, 4]]
+    ['set', '0', 1, 4, [4, 4, 4]],
+    ['set', '1', 2, 4, [4, 4, 4]],
+    ['set', '2', 3, 4, [4, 4, 4]]
   ]
   const handler1 = (...change: []) => t.same(change, res1.shift(), ':::1')
   on(list1, '0', handler1)
@@ -150,8 +150,8 @@ test('emitter#fill', t => {
   list1.fill(4) // [4, 4, 4]
 
   const res2 = [
-    ['set', 2, 4, [1, 4, 4]],
-    ['set', 3, 4, [1, 4, 4]]
+    ['set', '1', 2, 4, [1, 4, 4]],
+    ['set', '2', 3, 4, [1, 4, 4]]
   ]
   const handler2 = (...change: []) => t.same(change, res2.shift(), ':::2')
   on(list2, '1', handler2)
@@ -159,7 +159,7 @@ test('emitter#fill', t => {
   list2.fill(4, 1) // [1, 4, 4]
 
   const res3 = [
-    ['set', 2, 4, [1, 4, 3]]
+    ['set', '1', 2, 4, [1, 4, 3]]
   ]
   const handler3 = (...change: []) => t.same(change, res3.shift(), ':::3')
   on(list3, '1', handler3)
@@ -172,7 +172,7 @@ test('emitter#fill', t => {
   list5.fill(4, 3, 3) // [1, 2, 3]
 
   const res6 = [
-    ['set', 1, 4, [4, 2, 3]]
+    ['set', '0', 1, 4, [4, 2, 3]]
   ]
   const handler6 = (...change: []) => t.same(change, res6.shift(), ':::6')
   on(list6, '0', handler6)

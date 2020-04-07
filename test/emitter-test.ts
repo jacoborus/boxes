@@ -189,12 +189,12 @@ test('emitter#fill', t => {
 test('emitter#pop', t => {
   const plants = ['broccoli', 'cauliflower', 'cabbage', 'kale', 'tomato']
   const results = [
-    ['remove', 'tomato', undefined, ['broccoli', 'cauliflower', 'cabbage', 'kale']],
-    ['remove', 'kale', undefined, ['broccoli', 'cauliflower', 'cabbage']]
+    ['remove', '4', 'tomato', undefined, ['broccoli', 'cauliflower', 'cabbage', 'kale']],
+    ['remove', '3', 'kale', undefined, ['broccoli', 'cauliflower', 'cabbage']]
   ]
   const lengthResults = [
-    [4, undefined, ['broccoli', 'cauliflower', 'cabbage', 'kale']],
-    [3, undefined, ['broccoli', 'cauliflower', 'cabbage']]
+    ['length', undefined, 5, 4, ['broccoli', 'cauliflower', 'cabbage', 'kale']],
+    ['length', undefined, 4, 3, ['broccoli', 'cauliflower', 'cabbage']]
   ]
   t.plan(results.length + lengthResults.length)
   const list = getBox(plants)

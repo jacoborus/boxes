@@ -84,13 +84,13 @@ const modifiers: Modifiers = {
     while (count < half) {
       const oldValue = target[dist - count]
       const newValue = target[count]
-      changes.push(['' + count, 'swap', oldValue, newValue, false])
-      changes.push(['' + (dist - count) + '', 'swap', newValue, oldValue, true])
+      changes.push(['' + count, oldValue, newValue])
+      changes.push(['' + (dist - count), newValue, oldValue])
       ++count
     }
     changes.forEach(change => {
-      const [pos, , oldVal, newVal, encore] = change
-      ee.emit(proxy, pos as string, 'swap', oldVal, newVal, encore, proxy)
+      const [pos, oldVal, newVal] = change
+      ee.emit(proxy, pos as string, 'swap', pos, oldVal, newVal, proxy)
     })
     return proxy
   },

@@ -250,10 +250,10 @@ test('emitter#reverse even', t => {
   const arr = ['one', 'two', 'three', 'four']
   const list = getBox(arr)
   const results = [
-    ['swap', 'one', 'four', false, ['four', 'three', 'two', 'one']],
-    ['swap', 'four', 'one', true, ['four', 'three', 'two', 'one']],
-    ['swap', 'two', 'three', false, ['four', 'three', 'two', 'one']],
-    ['swap', 'three', 'two', true, ['four', 'three', 'two', 'one']]
+    ['swap', '0', 'one', 'four', ['four', 'three', 'two', 'one']],
+    ['swap', '3', 'four', 'one', ['four', 'three', 'two', 'one']],
+    ['swap', '1', 'two', 'three', ['four', 'three', 'two', 'one']],
+    ['swap', '2', 'three', 'two', ['four', 'three', 'two', 'one']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())

@@ -129,58 +129,58 @@ test('modifiers#splice', t => {
   const months = ['Jan', 'March', 'April', 'June']
   const list = getBox(months)
   list.splice(1, 0, 'Feb')
-  t.same(list, ['Jan', 'Feb', 'March', 'April', 'June'])
+  t.same(list, ['Jan', 'Feb', 'March', 'April', 'June'], ':::1')
   list.splice(3, 1, 'uno', 'dos')
-  t.same(list, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June'])
+  t.same(list, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June'], ':::1')
 
   // Remove 0 (zero) elements from index 2, and insert 'drum'
   const myFish = ['angel', 'clown', 'mandarin', 'sturgeon']
   const box = getBox(myFish)
   const removed = box.splice(2, 0, 'drum')
-  t.same(box, ['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
-  t.notOk(removed.length)
+  t.same(box, ['angel', 'clown', 'drum', 'mandarin', 'sturgeon'], ':::2')
+  t.notOk(removed.length, ':::2')
 
   // Remove 0 (zero) elements from index 2, and insert 'drum' and 'guitar'
   const box2 = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const removed2 = box2.splice(2, 0, 'drum', 'guitar')
-  t.same(box2, ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon'])
-  t.notOk(removed2.length)
+  t.same(box2, ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon'], ':::3')
+  t.notOk(removed2.length, ':::3')
 
   // Remove 1 element from index 3
   const box3 = getBox(['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
   const removed3 = box3.splice(3, 1)
-  t.same(removed3, ['mandarin'])
-  t.same(box3, ['angel', 'clown', 'drum', 'sturgeon'])
+  t.same(removed3, ['mandarin'], ':::4')
+  t.same(box3, ['angel', 'clown', 'drum', 'sturgeon'], ':::4')
 
   // Remove 1 element from index 2, and insert 'trumpet'
   const box4 = ['angel', 'clown', 'drum', 'sturgeon']
   const removed4 = box4.splice(2, 1, 'trumpet')
-  t.same(box4, ['angel', 'clown', 'trumpet', 'sturgeon'])
-  t.is(removed4.length, 1)
+  t.same(box4, ['angel', 'clown', 'trumpet', 'sturgeon'], ':::5')
+  t.is(removed4.length, 1, ':::5')
 
   // Remove 2 elements from index 0, and insert 'parrot', 'anemone' and 'blue'
   const box5 = ['angel', 'clown', 'trumpet', 'sturgeon']
   const removed5 = box5.splice(0, 2, 'parrot', 'anemone', 'blue')
-  t.same(box5, ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon'])
-  t.same(removed5, ['angel', 'clown'])
+  t.same(box5, ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon'], ':::6')
+  t.same(removed5, ['angel', 'clown'], ':::6')
 
   // Remove 2 elements from index 2
   const box6 = ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']
   const removed6 = box6.splice(2, 2)
-  t.same(box6, ['parrot', 'anemone', 'sturgeon'])
-  t.same(removed6, ['blue', 'trumpet'])
+  t.same(box6, ['parrot', 'anemone', 'sturgeon'], ':::6')
+  t.same(removed6, ['blue', 'trumpet'], ':::6')
 
   // Remove 1 element from index -2
   const box7 = ['angel', 'clown', 'mandarin', 'sturgeon']
   const removed7 = box7.splice(-2, 1)
-  t.same(box7, ['angel', 'clown', 'sturgeon'])
-  t.same(removed7, ['mandarin'])
+  t.same(box7, ['angel', 'clown', 'sturgeon'], ':::7')
+  t.same(removed7, ['mandarin'], ':::7')
 
   // Remove all elements after index 2 (incl.)
   const box8 = ['angel', 'clown', 'mandarin', 'sturgeon']
   const removed8 = box8.splice(2)
-  t.same(box8, ['angel', 'clown'])
-  t.same(removed8, ['mandarin', 'sturgeon'])
+  t.same(box8, ['angel', 'clown'], ':::8')
+  t.same(removed8, ['mandarin', 'sturgeon'], ':::8')
 
   t.end()
 })
@@ -192,10 +192,10 @@ test('Modifiers#splice add boxes', t => {
   const dos = { a: 2 }
   const list = getBox(months)
   list.splice(1, 0, feb)
-  t.ok(list[1].__isBox)
+  t.ok(list[1].__isBox, ':::1')
   list.splice(3, 1, uno, dos)
-  t.ok(list[3].__isBox)
-  t.ok(list[4].__isBox)
+  t.ok(list[3].__isBox, ':::2')
+  t.ok(list[4].__isBox, ':::3')
   t.end()
 })
 
@@ -203,8 +203,8 @@ test('modifiers#unshift', t => {
   const arr = [1, 2, 3]
   const list = getBox(arr)
   const result = list.unshift(4, 5)
-  t.is(result, 5)
-  t.same(list, [4, 5, 1, 2, 3])
+  t.is(result, 5, ':::1')
+  t.same(list, [4, 5, 1, 2, 3], ':::2')
   t.end()
 })
 

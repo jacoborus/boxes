@@ -78,20 +78,18 @@ const modifiers: Modifiers = {
     const len = target.length
     target.reverse()
     const half = Math.floor(len / 2)
-    const changes = []
     let count = 0
     const dist = len - 1
     while (count < half) {
-      const oldValue = target[dist - count]
+      const distCount = dist - count
+      const oldValue = target[distCount]
       const newValue = target[count]
-      changes.push(['' + count, oldValue, newValue])
-      changes.push(['' + (dist - count), newValue, oldValue])
+      const countStr = count.toString()
+      const distCountStr = distCount.toString()
+      ee.emit(proxy, countStr, 'swap', countStr, oldValue, newValue, proxy)
+      ee.emit(proxy, distCountStr, 'swap', distCountStr, newValue, oldValue, proxy)
       ++count
     }
-    changes.forEach(change => {
-      const [pos, oldVal, newVal] = change
-      ee.emit(proxy, pos as string, 'swap', pos, oldVal, newVal, proxy)
-    })
     return proxy
   },
 

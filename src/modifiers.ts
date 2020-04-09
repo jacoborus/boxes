@@ -20,7 +20,7 @@ const modifiers: Modifiers = {
       }
       target.copyWithin(targ, start, end)
       changes.forEach(([pos, oldVal]) => {
-        const posStr = pos.toString()
+        const posStr = '' + pos
         ee.emit(proxy, posStr, 'set', posStr, oldVal, target[pos], proxy)
       })
       return proxy
@@ -39,7 +39,7 @@ const modifiers: Modifiers = {
       while (start < end) {
         const oldValue = target[start]
         target[start] = value
-        const startStr = start.toString()
+        const startStr = '' + start
         if (oldValue !== value) changes.push([startStr, oldValue, value])
         ++start
       }
@@ -53,7 +53,7 @@ const modifiers: Modifiers = {
   pop: (target: any[], proxy: []) => () => {
     const result = target.pop()
     const len = target.length
-    const lenStr = len.toString()
+    const lenStr = '' + len
     ee.emit(proxy, lenStr, 'remove', lenStr, result, undefined, proxy)
     ee.emit(proxy, 'length', 'length', undefined, len + 1, len, proxy)
     return result
@@ -81,8 +81,8 @@ const modifiers: Modifiers = {
       const distCount = dist - count
       const oldValue = target[distCount]
       const newValue = target[count]
-      const countStr = count.toString()
-      const distCountStr = distCount.toString()
+      const countStr = '' + count
+      const distCountStr = '' + distCount
       ee.emit(proxy, countStr, 'swap', countStr, oldValue, newValue, proxy)
       ee.emit(proxy, distCountStr, 'swap', distCountStr, newValue, oldValue, proxy)
       ++count
@@ -135,7 +135,7 @@ const modifiers: Modifiers = {
       const max = Math.max(resultLen, itemsLen, dCount)
       let count = 0
       while (count < max) {
-        const pos = (start + count).toString()
+        const pos = '' + (start + count)
         const oldValue = result[count]
         const newValue = items[count]
         const kind = resultLen > count && itemsLen > count
@@ -147,7 +147,7 @@ const modifiers: Modifiers = {
         ++count
       }
       if (itemsLen !== resultLen) {
-        const pos = nopos ? undefined : (start + itemsLen).toString()
+        const pos = nopos ? undefined : '' + (start + itemsLen)
         ee.emit(proxy, 'length', 'length', pos, initLen, target.length, proxy)
       }
       return result

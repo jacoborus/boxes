@@ -301,11 +301,11 @@ test('emitter#sort', t => {
 test('emitter#splice', t => {
   const list = getBox(['Jan', 'March', 'April', 'June'])
   const results = [
-    ['insert', undefined, 'Feb', ['Jan', 'Feb', 'March', 'April', 'June']],
-    [5, 2, undefined, ['Jan', 'Feb', 'March', 'April', 'June']],
-    ['set', 'April', 'uno', ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']],
-    ['insert', undefined, 'dos', ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']],
-    [6, 5, undefined, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']]
+    ['insert', '1', undefined, 'Feb', ['Jan', 'Feb', 'March', 'April', 'June']],
+    ['length', '2', 4, 5, ['Jan', 'Feb', 'March', 'April', 'June']],
+    ['set', '3', 'April', 'uno', ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']],
+    ['insert', '4', undefined, 'dos', ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']],
+    ['length', '5', 5, 6, ['Jan', 'Feb', 'March', 'uno', 'dos', 'June']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -322,8 +322,8 @@ test('emitter#splice1', t => {
   // Remove 0 (zero) elements from index 2, and insert 'drum'
   const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['insert', undefined, 'drum', ['angel', 'clown', 'drum', 'mandarin', 'sturgeon']],
-    [5, 3, undefined, ['angel', 'clown', 'drum', 'mandarin', 'sturgeon']]
+    ['insert', '2', undefined, 'drum', ['angel', 'clown', 'drum', 'mandarin', 'sturgeon']],
+    ['length', '3', 4, 5, ['angel', 'clown', 'drum', 'mandarin', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -338,9 +338,9 @@ test('emitter#splice2', t => {
   // Remove 0 (zero) elements from index 2, and insert 'drum' and 'guitar'
   const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['insert', undefined, 'drum', ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']],
-    ['insert', undefined, 'guitar', ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']],
-    [6, 3, undefined, ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']]
+    ['insert', '2', undefined, 'drum', ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']],
+    ['insert', '3', undefined, 'guitar', ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']],
+    ['length', '4', 4, 6, ['angel', 'clown', 'drum', 'guitar', 'mandarin', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -356,8 +356,8 @@ test('emitter#splice3', t => {
   // Remove 1 element from index 3
   const box = getBox(['angel', 'clown', 'drum', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 'mandarin', undefined, ['angel', 'clown', 'drum', 'sturgeon']],
-    [4, 3, undefined, ['angel', 'clown', 'drum', 'sturgeon']]
+    ['remove', '3', 'mandarin', undefined, ['angel', 'clown', 'drum', 'sturgeon']],
+    ['length', '3', 5, 4, ['angel', 'clown', 'drum', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -372,7 +372,7 @@ test('emitter#splice4', t => {
   // Remove 1 element from index 2, and insert 'trumpet'
   const box = getBox(['angel', 'clown', 'drum', 'sturgeon'])
   const results = [
-    ['set', 'drum', 'trumpet', ['angel', 'clown', 'trumpet', 'sturgeon']]
+    ['set', '2', 'drum', 'trumpet', ['angel', 'clown', 'trumpet', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -387,10 +387,10 @@ test('emitter#splice5', t => {
   // Remove 2 elements from index 0, and insert 'parrot', 'anemone' and 'blue'
   const box = getBox(['angel', 'clown', 'trumpet', 'sturgeon'])
   const results = [
-    ['set', 'angel', 'parrot', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
-    ['set', 'clown', 'anemone', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
-    ['insert', undefined, 'blue', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
-    [5, 3, undefined, ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']]
+    ['set', '0', 'angel', 'parrot', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
+    ['set', '1', 'clown', 'anemone', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
+    ['insert', '2', undefined, 'blue', ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']],
+    ['length', '3', 4, 5, ['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -407,9 +407,9 @@ test('emitter#splice6', t => {
   // Remove 2 elements from index 2
   const box = getBox(['parrot', 'anemone', 'blue', 'trumpet', 'sturgeon'])
   const results = [
-    ['remove', 'blue', undefined, ['parrot', 'anemone', 'sturgeon']],
-    ['remove', 'trumpet', undefined, ['parrot', 'anemone', 'sturgeon']],
-    [3, 2, undefined, ['parrot', 'anemone', 'sturgeon']]
+    ['remove', '2', 'blue', undefined, ['parrot', 'anemone', 'sturgeon']],
+    ['remove', '3', 'trumpet', undefined, ['parrot', 'anemone', 'sturgeon']],
+    ['length', '2', 5, 3, ['parrot', 'anemone', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -425,8 +425,8 @@ test('emitter#splice7', t => {
   // Remove 1 element from index -2
   const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 'mandarin', undefined, ['angel', 'clown', 'sturgeon']],
-    [3, 2, undefined, ['angel', 'clown', 'sturgeon']]
+    ['remove', '2', 'mandarin', undefined, ['angel', 'clown', 'sturgeon']],
+    ['length', '2', 4, 3, ['angel', 'clown', 'sturgeon']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -441,9 +441,9 @@ test('emitter#splice8', t => {
   // Remove all elements after index 2 (incl.)
   const box = getBox(['angel', 'clown', 'mandarin', 'sturgeon'])
   const results = [
-    ['remove', 'mandarin', undefined, ['angel', 'clown']],
-    ['remove', 'sturgeon', undefined, ['angel', 'clown']],
-    [2, 2, undefined, ['angel', 'clown']]
+    ['remove', '2', 'mandarin', undefined, ['angel', 'clown']],
+    ['remove', '3', 'sturgeon', undefined, ['angel', 'clown']],
+    ['length', undefined, 4, 2, ['angel', 'clown']]
   ]
   t.plan(results.length)
   const handler = (...change: []) => t.same(change, results.shift())
@@ -461,9 +461,9 @@ test('emitter#unshift', t => {
   // TODO: this is difficult to track
   // TODO: firstIndexChanged should start from 1 or add arguments in order
   const results = [
-    ['insert', undefined, 5, [5, 1, 2, 3]],
-    ['insert', undefined, 4, [4, 5, 1, 2, 3]],
-    [5, 2, [4, 5, 1, 2, 3]]
+    ['insert', '0', undefined, 5, [5, 1, 2, 3]],
+    ['insert', '0', undefined, 4, [4, 5, 1, 2, 3]],
+    ['length', '2', 3, 5, [4, 5, 1, 2, 3]]
   ]
   t.plan(results.length)
   on(list, '0', (...change: []) => t.same(change, results.shift()))

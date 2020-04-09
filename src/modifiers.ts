@@ -115,81 +115,68 @@ const modifiers: Modifiers = {
     }
   },
 
-  splice: (target: any[], proxy: [], Box: any) => {
+  splice: (target: any[], proxy: [], getBox: any) => {
     return function (start: number, deleteCount?: number, ...entries: []) {
-      const len = target.length
-      const items = entries
-        ? entries.map(Box)
-        : []
-      start = start > len
-        ? len
+      const initLen = target.length
+      if (!('1' in arguments)) {
+        let s = start
+        const result = getBox(target.splice(start))
+        while (s < initLen) {
+          const str = s.toString()
+          ee.emit(proxy, str, 'remove', str, result[s - start], target[s], proxy)
+          s++
+        }
+        ee.emit(proxy, 'length', 'length', undefined, initLen, target.length, proxy)
+        return result
+      }
+      const items = getBox(entries || [])
+      start = start > initLen
+        ? initLen
         : start > -1
           ? start
-          : len > -start
-            ? len + start
+          : initLen > -start
+            ? initLen + start
             : 0
+      const dCount = (deleteCount as number + start > initLen)
+        ? initLen - start
+        : deleteCount as number
 
-      const diff = len - start
-      deleteCount = '1' in arguments && deleteCount as number < diff
-        ? deleteCount as number
-        : diff
-
-      const iLen = items.length
-      const changes = []
-      const min = Math.min(deleteCount, iLen)
-
+      if (dCount + start > initLen) deleteCount = initLen - start
+      const result = getBox(target.splice(start, dCount, ...items) || [])
+      const resultLen = result.length
+      const itemsLen = items.length
+      const max = Math.max(resultLen, itemsLen, dCount)
       let count = 0
-      while (count < min) {
-        const index = start + count
-        const oldValue = target[index]
+      while (count < max) {
+        const pos = (start + count).toString()
+        const oldValue = result[count]
         const newValue = items[count]
-        if (oldValue !== newValue) {
-          changes.push(['' + index, 'set', oldValue, newValue])
-        }
-        count++
+        const kind = resultLen > count && itemsLen > count
+          ? 'set'
+          : itemsLen > count
+            ? 'insert'
+            : 'remove'
+        ee.emit(proxy, pos, kind, pos, oldValue, newValue, proxy)
+        ++count
       }
-
-      let indexChanged = false
-      let firstIndexChanged
-      if (deleteCount < iLen) {
-        firstIndexChanged = start + count + 1
-        indexChanged = true
-        while (count < iLen) {
-          const index = start + count
-          changes.push(['' + index, 'insert', undefined, items[count]])
-          count++
-        }
-      } else if (deleteCount > iLen) {
-        firstIndexChanged = start + count
-        indexChanged = true
-        while (count < deleteCount) {
-          const index = start + count
-          changes.push(['' + index, 'remove', target[index]])
-          count++
-        }
+      if (itemsLen !== resultLen) {
+        const pos = start + itemsLen
+        ee.emit(proxy, 'length', 'length', pos.toString(), initLen, target.length, proxy)
       }
-
-      if (indexChanged) {
-        changes.push(['length', target.length + iLen - deleteCount, firstIndexChanged])
-      }
-      const removed = target.splice(start, deleteCount as number, ...items)
-      changes.forEach(change => {
-        const [pos, kind, oldVal, newVal] = change
-        ee.emit(proxy, pos, kind, oldVal, newVal, proxy)
-      })
-      return removed
+      return result
     }
   },
 
-  unshift: (target: any[], proxy: any[], Box: any) => function () {
+  unshift: (target: any[], proxy: any[], getBox: any) => function () {
     const firstIndexChanged = arguments.length
     let i = firstIndexChanged
     while (i--) {
-      const value = Box(arguments[i])
+      const value = getBox(arguments[i])
       target.unshift(value)
-      ee.emit(proxy, '0', 'insert', undefined, value, proxy)
+      ee.emit(proxy, '0', 'insert', '0', undefined, value, proxy)
     }
-    ee.emit(proxy, 'length', target.length, firstIndexChanged, proxy)
+    const len = target.length
+    ee.emit(proxy, 'length', 'length', '' + firstIndexChanged, len - firstIndexChanged, len, proxy)
     return target.length
   }
 }

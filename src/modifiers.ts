@@ -118,17 +118,6 @@ const modifiers: Modifiers = {
   splice: (target: any[], proxy: [], getBox: any) => {
     return function (start: number, deleteCount?: number, ...entries: []) {
       const initLen = target.length
-      if (!('1' in arguments)) {
-        let s = start
-        const result = getBox(target.splice(start))
-        while (s < initLen) {
-          const str = s.toString()
-          ee.emit(proxy, str, 'remove', str, result[s - start], target[s], proxy)
-          s++
-        }
-        ee.emit(proxy, 'length', 'length', undefined, initLen, target.length, proxy)
-        return result
-      }
       const items = getBox(entries || [])
       start = start > initLen
         ? initLen
@@ -137,7 +126,8 @@ const modifiers: Modifiers = {
           : initLen > -start
             ? initLen + start
             : 0
-      const dCount = (deleteCount as number + start > initLen)
+      const nopos = !('1' in arguments) || deleteCount as number + start > initLen
+      const dCount = nopos
         ? initLen - start
         : deleteCount as number
 
@@ -160,8 +150,8 @@ const modifiers: Modifiers = {
         ++count
       }
       if (itemsLen !== resultLen) {
-        const pos = start + itemsLen
-        ee.emit(proxy, 'length', 'length', pos.toString(), initLen, target.length, proxy)
+        const pos = nopos ? undefined : (start + itemsLen).toString()
+        ee.emit(proxy, 'length', 'length', pos, initLen, target.length, proxy)
       }
       return result
     }

@@ -5,4 +5,6 @@ test/dist
 .tern-port
 dist
 .cache
+package-lock.json
+yarn.lock
 lib

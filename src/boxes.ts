@@ -56,7 +56,6 @@ export function getBox (origin: any): Box {
   return proxy as Box
 }
 
-// TODO: fix this slow mess
 export function on (box: Box, prop: string, handler: EventHandler): BoxController {
   if (!prop.includes('.')) {
     const { off, emit } = ee.on(box, prop, handler)

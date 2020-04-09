@@ -31,23 +31,20 @@ const modifiers: Modifiers = {
     return function (value: any, start = 0, end = target.length) {
       value = getBox(value)
       const len = target.length
-      start = start < 0 ? len + start : start
-      end = end < 0
-        ? len + end
-        : end > target.length
-          ? target.length
-          : end
-      if (end <= start) return
+      if (start < 0) start += len
+      if (end < 0) end += len
+      else if (end > len) end = len
+      if (end <= start) return proxy
       const changes = []
       while (start < end) {
         const oldValue = target[start]
         target[start] = value
-        if (oldValue !== value) changes.push([proxy, start + '', 'set', oldValue, value])
+        const startStr = start.toString()
+        if (oldValue !== value) changes.push([startStr, oldValue, value])
         ++start
       }
-      changes.forEach(change => {
-        const [, pos, , oldValue, newVal] = change
-        ee.emit(proxy, pos, 'set', pos, oldValue, newVal, proxy)
+      changes.forEach(([startStr, oldValue, value]) => {
+        ee.emit(proxy, startStr, 'set', startStr, oldValue, value, proxy)
       })
       return proxy
     }

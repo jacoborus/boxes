@@ -458,8 +458,6 @@ test('emitter#splice8', t => {
 test('emitter#unshift', t => {
   const arr = [1, 2, 3]
   const list = getBox(arr)
-  // TODO: this is difficult to track
-  // TODO: firstIndexChanged should start from 1 or add arguments in order
   const results = [
     ['insert', '0', undefined, 5, [5, 1, 2, 3]],
     ['insert', '0', undefined, 4, [4, 5, 1, 2, 3]],

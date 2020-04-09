@@ -13,15 +13,15 @@ const modifiers: Modifiers = {
       const total = end - start
       const changes = []
       let count = 0
-      while (count < total && targ + count < len) {
+      while (count < total) {
         const pos = targ + count
-        changes.push(['' + pos, 'set', target[pos], target[start + count]])
+        changes.push([pos, target[pos]])
         count++
       }
       target.copyWithin(targ, start, end)
-      changes.forEach(change => {
-        const [pos, kind, oldVal, newVal] = change
-        ee.emit(proxy, pos, kind, pos, oldVal, newVal, proxy)
+      changes.forEach(([pos, oldVal]) => {
+        const posStr = pos.toString()
+        ee.emit(proxy, posStr, 'set', posStr, oldVal, target[pos], proxy)
       })
       return proxy
     }

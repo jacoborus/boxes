@@ -21,7 +21,7 @@ const modifiers: Modifiers = {
       target.copyWithin(targ, start, end)
       changes.forEach(([pos, oldVal]) => {
         const posStr = '' + pos
-        ee.emit(proxy, posStr, 'set', posStr, oldVal, target[pos], proxy)
+        ee.emit(proxy, posStr, proxy, posStr, 'set', oldVal, target[pos])
       })
       return proxy
     }
@@ -44,7 +44,7 @@ const modifiers: Modifiers = {
         ++start
       }
       changes.forEach(([startStr, oldValue, value]) => {
-        ee.emit(proxy, startStr, 'set', startStr, oldValue, value, proxy)
+        ee.emit(proxy, startStr, proxy, startStr, 'set', oldValue, value)
       })
       return proxy
     }
@@ -54,8 +54,8 @@ const modifiers: Modifiers = {
     const result = target.pop()
     const len = target.length
     const lenStr = '' + len
-    ee.emit(proxy, lenStr, 'remove', lenStr, result, undefined, proxy)
-    ee.emit(proxy, 'length', 'length', undefined, len + 1, len, proxy)
+    ee.emit(proxy, lenStr, proxy, lenStr, 'remove', result, undefined)
+    ee.emit(proxy, 'length', proxy, undefined, 'length', len + 1, len)
     return result
   },
 
@@ -64,10 +64,11 @@ const modifiers: Modifiers = {
       const len = target.length
       const newValue = getBox(value)
       target[len] = newValue
-      ee.emit(proxy, '' + len, 'insert', '' + len, undefined, newValue, proxy)
+      const lenStr = '' + len
+      ee.emit(proxy, lenStr, proxy, lenStr, 'insert', undefined, newValue)
     })
     const len = target.length
-    ee.emit(proxy, 'length', 'length', undefined, len - args.length, len, proxy)
+    ee.emit(proxy, 'length', proxy, undefined, 'length', len - args.length, len)
     return target.length
   },
 
@@ -83,8 +84,8 @@ const modifiers: Modifiers = {
       const newValue = target[count]
       const countStr = '' + count
       const distCountStr = '' + distCount
-      ee.emit(proxy, countStr, 'swap', countStr, oldValue, newValue, proxy)
-      ee.emit(proxy, distCountStr, 'swap', distCountStr, newValue, oldValue, proxy)
+      ee.emit(proxy, countStr, proxy, countStr, 'swap', oldValue, newValue)
+      ee.emit(proxy, distCountStr, proxy, distCountStr, 'swap', newValue, oldValue)
       ++count
     }
     return proxy
@@ -92,9 +93,9 @@ const modifiers: Modifiers = {
 
   shift: (target: [], proxy: []) => () => {
     const shifted = target.shift()
-    ee.emit(proxy, '0', 'remove', '0', shifted, undefined, proxy)
+    ee.emit(proxy, '0', proxy, '0', 'remove', shifted, undefined)
     const len = target.length
-    ee.emit(proxy, 'length', 'length', '0', len + 1, len, proxy)
+    ee.emit(proxy, 'length', proxy, '0', 'length', len + 1, len)
     return shifted
   },
 
@@ -105,7 +106,8 @@ const modifiers: Modifiers = {
       target.forEach((item, i) => {
         const oldValue = copy[i]
         if (item !== oldValue) {
-          ee.emit(proxy, '' + i, 'swap', '' + i, oldValue, item, proxy)
+          const istr = '' + i
+          ee.emit(proxy, istr, proxy, istr, 'swap', oldValue, item)
         }
       })
       return proxy
@@ -143,12 +145,12 @@ const modifiers: Modifiers = {
           : itemsLen > count
             ? 'insert'
             : 'remove'
-        ee.emit(proxy, pos, kind, pos, oldValue, newValue, proxy)
+        ee.emit(proxy, pos, proxy, pos, kind, oldValue, newValue)
         ++count
       }
       if (itemsLen !== resultLen) {
         const pos = nopos ? undefined : '' + (start + itemsLen)
-        ee.emit(proxy, 'length', 'length', pos, initLen, target.length, proxy)
+        ee.emit(proxy, 'length', proxy, pos, 'length', initLen, target.length)
       }
       return result
     }
@@ -160,10 +162,10 @@ const modifiers: Modifiers = {
     while (i--) {
       const value = getBox(arguments[i])
       target.unshift(value)
-      ee.emit(proxy, '0', 'insert', '0', undefined, value, proxy)
+      ee.emit(proxy, '0', proxy, '0', 'insert', undefined, value)
     }
     const len = target.length
-    ee.emit(proxy, 'length', 'length', '' + firstIndexChanged, len - firstIndexChanged, len, proxy)
+    ee.emit(proxy, 'length', proxy, '' + firstIndexChanged, 'length', len - firstIndexChanged, len)
     return target.length
   }
 }

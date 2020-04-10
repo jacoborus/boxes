@@ -18,7 +18,7 @@ box === origin // false
 
 on(box, 'a', (...change) => console.log(change))
 box.a = 'hello'
-// logs: ['set', 'a', 1, 'hello', { a: 'hello' }]
+// logs: [{ a: 'hello' }, 'a', 'set', 1, 'hello']
 ```
 
 ## API
@@ -37,7 +37,7 @@ const handler = (...change) => console.log(change)
 boxes.on(box, 'a', handler)
 
 box.a = 'hello'
-// logs: ['set', 'a', 1, 'hello', { a: 'hello' }]
+// logs: [{ a: 'hello' }, 'a', 'set', 1, 'hello']
 ```
 
 It also works with dot notation:
@@ -51,7 +51,7 @@ box.o.a = 'hello'
 ['set', 'a', 1, 'hello', { a: 'hello' }]
 
 box.o = { a: 'bye' }
-// logs: ['set', 'a', 'hello', 'bye', { a: 'bye' }]
+// logs: [{ a: 'bye' }, 'a', 'set', 'hello', 'bye']
 ```
 
 ### off(box, prop, handler)
@@ -69,36 +69,36 @@ Boxes will emit the changes made in the observed objects.
 
 ### Change signatures:
 
-Generic: `[changeType, property, oldValue, newValue, box]`
+Generic signature: `[box, property, changeType, oldValue, newValue]`
 
 Object:
 
 - set:
-  - signature: `['set', property, oldValue, newValue, box]`
+  - signature: `[box, property, 'set', oldValue, newValue]`
   - on: literal assignation, Object.assign, ...
 - delete:
-  - signature: `['delete', property, oldValue, undefined, box]`
+  - signature: `[box, property, 'delete', oldValue, undefined]`
   - on: delete operator
 
 Array:
 
 - set:
-  - signature: `['set', property, oldValue, newValue, box]`
+  - signature: `[box, property, 'set', oldValue, newValue]`
   - on: copyWithin, fill, splice and literal assignation
 - delete:
-  - signature: `['delete', property, oldValue, undefined, box]`
+  - signature: `[box, property, 'delete', oldValue, undefined]`
   - on: delete operator
 - insert:
-  - signature: `['insert', property, undefined, newValue, box]`
+  - signature: `[box, property, 'insert', undefined, newValue]`
   - on: push, splice, unshift
 - remove:
-  - signature: `['remove', property, oldValue, undefined, box]`
+  - signature: `[box, property, 'remove', oldValue, undefined]`
   - on: pop, shift, splice
 - swap:
-  - signature: `['swap', property, oldValue, newValue, box]`
-  - on: reverse (working), sort (WIP, using 'set' ATM)
+  - signature: `[box, property, 'swap', oldValue, newValue]`
+  - on: reverse , sort
 - length:
-  - signature: `[length, firstIndexChanged || undefined, oldLength, newLength,  box]`
+  - signature: `[box, firstIndexChanged || undefined, 'length',  oldLength, newLength]`
   - on: pop, push, shift, splice, unshift
   - `firstIndexChanged` will be passed only on shift, splice and unshift
     because on pop and push no index will change

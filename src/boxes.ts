@@ -18,7 +18,7 @@ function setHandler (target: Box, prop: string, value: any, proxy: Box) {
   const link = links.get(target)
   const newValue = getBox(value)
   link[prop] = newValue
-  ee.emit(proxy, prop, 'set', prop, oldValue, newValue, proxy)
+  ee.emit(proxy, prop, proxy, prop, 'set', oldValue, newValue)
   return true
 }
 
@@ -48,7 +48,7 @@ export function getBox (origin: any): Box {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
-      ee.emit(proxy, prop, 'delete', prop, oldValue, undefined, proxy)
+      ee.emit(proxy, prop, proxy, prop, 'delete', oldValue, undefined)
       return true
     }
   })
@@ -80,7 +80,7 @@ export function on (box: Box, prop: string, handler: EventHandler): BoxControlle
     const localProp = props[len]
     const localScope = scopes[len]
     const n = len + 1
-    const eventController = ee.on(localScope, localProp, (_, __, oldValue, newValue) => {
+    const eventController = ee.on(localScope, localProp, (_, __, ___, oldValue, newValue) => {
       const nextController = controllers[n]
       const currentProp = props[n]
       const nextScope = typeof newValue === 'object' ? newValue : {}
@@ -89,7 +89,7 @@ export function on (box: Box, prop: string, handler: EventHandler): BoxControlle
       const prevValue = prevScope[currentProp]
       nextController.transfer(nextScope)
       nextValue !== prevValue &&
-        nextController.emit('set', prevValue, nextValue, nextScope)
+        nextController.emit(nextScope, currentProp, 'set', prevValue, nextValue)
     })
     controllers.unshift(eventController)
   }

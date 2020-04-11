@@ -101,7 +101,7 @@ const modifiers: Modifiers = {
 
   sort (target: [], proxy: []) {
     return function (fn: (a: any, b: any) => number) {
-      const copy = [...target]
+      const copy = target.slice()
       target.sort(fn)
       target.forEach((item, i) => {
         const oldValue = copy[i]

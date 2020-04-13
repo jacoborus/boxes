@@ -18,7 +18,9 @@ function setHandler (target: Box, prop: string, value: any, proxy: Box) {
   const link = links.get(target)
   const newValue = getBox(value)
   link[prop] = newValue
-  ee.emit(proxy, prop, proxy, prop, 'set', oldValue, newValue)
+  if (target.__isWatched) {
+    ee.emit(proxy, prop, proxy, prop, 'set', oldValue, newValue)
+  }
   return true
 }
 
@@ -35,6 +37,7 @@ export function getBox (origin: any): Box {
   }
   const isArray = Array.isArray(origin)
   const target = isArray ? [] : {}
+  setHiddenKey(target, '__isWatched', false)
   setHiddenKey(target, '__isBox', true)
   Object.keys(origin).forEach(key => {
     target[key] = getBox(origin[key])
@@ -48,7 +51,9 @@ export function getBox (origin: any): Box {
       if (!(prop in target)) return true
       const oldValue = target[prop]
       delete target[prop]
-      ee.emit(proxy, prop, proxy, prop, 'delete', oldValue, undefined)
+      if (target.__isWatched) {
+        ee.emit(proxy, prop, proxy, prop, 'delete', oldValue, undefined)
+      }
       return true
     }
   })
@@ -87,6 +92,7 @@ export function on (box: Box, prop: string, handler: EventHandler): BoxControlle
       const prevScope = oldValue && typeof oldValue === 'object' ? oldValue : {}
       const nextValue = nextScope[currentProp]
       const prevValue = prevScope[currentProp]
+      nextScope.__isWatched = true
       nextController.transfer(nextScope)
       nextValue !== prevValue &&
         nextController.emit(nextScope, currentProp, 'set', prevValue, nextValue)

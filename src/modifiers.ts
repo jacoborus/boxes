@@ -1,10 +1,15 @@
 import ee from './ee'
+import { ArrayBox } from './tools'
 
 type Modifiers = { [index: string]: any }
 
 const modifiers: Modifiers = {
-  copyWithin (target: [], proxy: []) {
+  copyWithin (target: ArrayBox, proxy: ArrayBox) {
     return function (targ: number, start = 0, end: number = target.length) {
+      if (!target.__isWatched) {
+        target.copyWithin(targ, start, end)
+        return proxy
+      }
       const len = target.length
       if (targ < 0) targ = len + targ
       if (targ >= len) return
@@ -27,8 +32,13 @@ const modifiers: Modifiers = {
     }
   },
 
-  fill (target: any[], proxy: any[], getBox: any) {
+  fill (target: ArrayBox, proxy: ArrayBox, getBox: any) {
     return function (value: any, start = 0, end = target.length) {
+      if (!target.__isWatched) {
+        const fill = getBox(value)
+        target.fill(fill, start, end)
+        return proxy
+      }
       value = getBox(value)
       const len = target.length
       if (start < 0) start += len
@@ -50,7 +60,8 @@ const modifiers: Modifiers = {
     }
   },
 
-  pop: (target: any[], proxy: []) => () => {
+  pop: (target: ArrayBox, proxy: ArrayBox) => () => {
+    if (!target.__isWatched) return target.pop()
     const result = target.pop()
     const len = target.length
     const lenStr = '' + len
@@ -59,7 +70,12 @@ const modifiers: Modifiers = {
     return result
   },
 
-  push: (target: any[], proxy: any[], getBox: any) => function (...args: []) {
+  push: (target: ArrayBox, proxy: ArrayBox, getBox: any) => function (...args: []) {
+    if (!target.__isWatched) {
+      const items = args.map(val => getBox(val))
+      target.push(...items)
+      return target.length
+    }
     args.forEach((value: any) => {
       const len = target.length
       const newValue = getBox(value)
@@ -72,7 +88,11 @@ const modifiers: Modifiers = {
     return target.length
   },
 
-  reverse: (target: [], proxy: []) => () => {
+  reverse: (target: ArrayBox, proxy: ArrayBox) => () => {
+    if (!target.__isWatched) {
+      target.reverse()
+      return proxy
+    }
     const len = target.length
     target.reverse()
     const half = Math.floor(len / 2)
@@ -91,7 +111,8 @@ const modifiers: Modifiers = {
     return proxy
   },
 
-  shift: (target: [], proxy: []) => () => {
+  shift: (target: ArrayBox, proxy: ArrayBox) => () => {
+    if (!target.__isWatched) return target.shift()
     const shifted = target.shift()
     ee.emit(proxy, '0', proxy, '0', 'remove', shifted, undefined)
     const len = target.length
@@ -99,8 +120,12 @@ const modifiers: Modifiers = {
     return shifted
   },
 
-  sort (target: [], proxy: []) {
+  sort (target: ArrayBox, proxy: ArrayBox) {
     return function (fn: (a: any, b: any) => number) {
+      if (!target.__isWatched) {
+        target.sort(fn)
+        return proxy
+      }
       const copy = target.slice()
       target.sort(fn)
       target.forEach((item, i) => {
@@ -114,8 +139,15 @@ const modifiers: Modifiers = {
     }
   },
 
-  splice: (target: any[], proxy: [], getBox: any) => {
+  splice: (target: ArrayBox, proxy: ArrayBox, getBox: any) => {
     return function (start: number, deleteCount?: number, ...entries: []) {
+      if (!target.__isWatched) {
+        const items = entries ? getBox(entries) : []
+        if (!('0' in arguments)) return []
+        return '1' in arguments
+          ? target.splice(start, deleteCount as number, ...items)
+          : target.splice(start)
+      }
       const initLen = target.length
       const items = getBox(entries || [])
       start = start > initLen
@@ -156,7 +188,12 @@ const modifiers: Modifiers = {
     }
   },
 
-  unshift: (target: any[], proxy: any[], getBox: any) => function () {
+  unshift: (target: ArrayBox, proxy: ArrayBox, getBox: any) => function (...args: []) {
+    if (!target.__isWatched) {
+      const items = getBox(args || [])
+      target.unshift(...items)
+      return target.length
+    }
     const firstIndexChanged = arguments.length
     let i = firstIndexChanged
     while (i--) {

@@ -97,9 +97,8 @@ const modifiers: Modifiers = {
     target.reverse()
     const half = Math.floor(len / 2)
     let count = 0
-    const dist = len - 1
     while (count < half) {
-      const distCount = dist - count
+      const distCount = len - count - 1
       const oldValue = target[distCount]
       const newValue = target[count]
       const countStr = '' + count

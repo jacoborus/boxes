@@ -189,7 +189,7 @@ const modifiers: Modifiers = {
 
   unshift: (target: ArrayBox, proxy: ArrayBox, getBox: any) => function (...args: []) {
     if (!target.__isWatched) {
-      const items = getBox(args || [])
+      const items = getBox(args)
       target.unshift(...items)
       return target.length
     }

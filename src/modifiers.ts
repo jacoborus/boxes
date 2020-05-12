@@ -188,15 +188,12 @@ const modifiers: Modifiers = {
   },
 
   unshift: (target: ArrayBox, proxy: ArrayBox, getBox: any) => function (...args: []) {
-    if (!target.__isWatched) {
-      const items = getBox(args)
-      target.unshift(...items)
-      return target.length
-    }
+    const items = getBox(args)
+    if (!target.__isWatched) return target.unshift(...items)
     const firstIndexChanged = arguments.length
     let i = firstIndexChanged
     while (i--) {
-      const value = getBox(arguments[i])
+      const value = items[i]
       target.unshift(value)
       ee.emit(proxy, '0', proxy, '0', 'insert', undefined, value)
     }

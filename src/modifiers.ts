@@ -34,12 +34,11 @@ const modifiers: Modifiers = {
 
   fill (target: ArrayBox, proxy: ArrayBox, getBox: any) {
     return function (value: any, start = 0, end = target.length) {
+      value = getBox(value)
       if (!target.__isWatched) {
-        const fill = getBox(value)
-        target.fill(fill, start, end)
+        target.fill(value, start, end)
         return proxy
       }
-      value = getBox(value)
       const len = target.length
       if (start < 0) start += len
       if (end < 0) end += len

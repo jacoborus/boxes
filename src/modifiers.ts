@@ -4,33 +4,6 @@ import { ArrayBox } from './tools'
 type Modifiers = { [index: string]: any }
 
 const modifiers: Modifiers = {
-  fill (target: ArrayBox, proxy: ArrayBox, getBox: any) {
-    return function (value: any, start = 0, end = target.length) {
-      value = getBox(value)
-      if (!target.__isWatched) {
-        target.fill(value, start, end)
-        return proxy
-      }
-      const len = target.length
-      if (start < 0) start += len
-      if (end < 0) end += len
-      else if (end > len) end = len
-      if (end <= start) return proxy
-      const changes = []
-      while (start < end) {
-        const oldValue = target[start]
-        target[start] = value
-        const startStr = '' + start
-        if (oldValue !== value) changes.push([startStr, oldValue, value])
-        ++start
-      }
-      changes.forEach(([startStr, oldValue, value]) => {
-        ee.emit(proxy, startStr, proxy, startStr, 'set', oldValue, value)
-      })
-      return proxy
-    }
-  },
-
   pop: (target: ArrayBox, proxy: ArrayBox) => () => {
     if (!target.__isWatched) return target.pop()
     const result = target.pop()

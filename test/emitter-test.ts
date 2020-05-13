@@ -116,8 +116,8 @@ test('emitter#copyWithin', t => {
   list3.copyWithin(0, 3, 4)
 
   const results4 = [
-    [list4, '3', 'set', 4, 3],
-    [list4, '4', 'set', 5, 4]
+    [list4, '4', 'set', 5, 4],
+    [list4, '3', 'set', 4, 3]
   ]
   const handler4 = (...change: []) => t.same(change, results4.shift(), '::4')
   on(list4, '3', handler4)

@@ -4,34 +4,6 @@ import { ArrayBox } from './tools'
 type Modifiers = { [index: string]: any }
 
 const modifiers: Modifiers = {
-  copyWithin (target: ArrayBox, proxy: ArrayBox) {
-    return function (targ: number, start = 0, end: number = target.length) {
-      if (!target.__isWatched) {
-        target.copyWithin(targ, start, end)
-        return proxy
-      }
-      const len = target.length
-      if (targ < 0) targ = len + targ
-      if (targ >= len) return
-      if (start < 0) start = len + start
-      if (end < 0) end = len + end
-      const total = end - start
-      const changes = []
-      let count = 0
-      while (count < total) {
-        const pos = targ + count
-        changes.push([pos, target[pos]])
-        count++
-      }
-      target.copyWithin(targ, start, end)
-      changes.forEach(([pos, oldVal]) => {
-        const posStr = '' + pos
-        ee.emit(proxy, posStr, proxy, posStr, 'set', oldVal, target[pos])
-      })
-      return proxy
-    }
-  },
-
   fill (target: ArrayBox, proxy: ArrayBox, getBox: any) {
     return function (value: any, start = 0, end = target.length) {
       value = getBox(value)

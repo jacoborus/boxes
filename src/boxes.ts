@@ -6,32 +6,37 @@ type Basic = Record<string, unknown>;
 type ProxyMap = Map<Basic, Set<Handler<Basic>>>;
 type Handler<T> = (target: T) => void;
 
-const origins = new Map();
-const proxies = new Map();
+const origins = new WeakMap<Immutable<Basic>, Basic>();
+const proxies = new WeakMap<Basic, Immutable<Basic>>();
 const handlers = new WeakMap<Basic, Set<Handler<Basic>>>() as ProxyMap;
 
 const watchers = new Set<Set<Basic>>();
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object";
+}
 export function getBox<T>(origin: T | Immutable<T>): Immutable<T> {
-  if (proxies.has(origin)) return proxies.get(origin);
-  if (origins.has(origin)) return origin;
+  if (proxies.has(origin as Basic)) {
+    return proxies.get(origin as Basic) as Immutable<T>;
+  }
+  if (origins.has(origin as Immutable<Basic>)) return origin as Immutable<T>;
   const proxy = new Proxy(origin as Record<string, unknown>, {
     get: (o, prop) => {
       if (watchers.size) {
         watchers.forEach((arr) => arr.add(proxy));
       }
       const value = (o as T)[prop as keyof typeof origin];
-      if (typeof value !== "object") return value;
-      if (proxies.has(value)) {
-        return proxies.get(value);
+      if (!isRecord(value)) return value;
+      if (proxies.has(value as Basic)) {
+        return proxies.get(value as Basic);
       }
       return getBox<typeof value>(value);
     },
     set: () => false,
     deleteProperty: () => false,
   });
-  proxies.set(origin, proxy);
-  origins.set(proxy, origin);
+  proxies.set(origin as Basic, proxy as Immutable<Basic>);
+  origins.set(proxy as Immutable<Basic>, origin as Basic);
   handlers.set(proxy, new Set<Handler<Basic>>());
   return proxy as Immutable<T>;
 }
@@ -48,10 +53,10 @@ export function assign<T extends Basic>(proxy: T, obj: Partial<T>) {
     Object.assign(proxy, obj);
     return;
   }
-  const realTarget = origins.get(proxy);
+  const realTarget = origins.get(proxy as Immutable<Basic>) as Basic;
   for (const i in obj) {
     const value = obj[i];
-    if (typeof value === "object") {
+    if (isRecord(value)) {
       realTarget[i] = getBox(value);
     } else {
       realTarget[i] = value;

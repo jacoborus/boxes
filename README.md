@@ -3,8 +3,6 @@ Boxes
 
 (Work in progress)
 
-Reactive state containers focused on DOM performance
-
 ```js
 import { getBox, on } from 'Boxes'
 

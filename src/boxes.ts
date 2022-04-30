@@ -1,111 +1,89 @@
-import arrayMethods from './methods'
-import ee from './ee'
-import { WeakEventController } from 'weak-emitter'
-import modifiers from './modifiers'
-import { isObject, isBox, setHiddenKey, Box } from './tools'
-const links = new Map()
+type Immutable<T> = {
+  readonly [K in keyof T]: Immutable<T[K]>;
+};
 
-type EventHandler = (...args: any[]) => void
+type Basic = Record<string, unknown>;
+type ProxyMap = Map<Basic, Set<Handler<Basic>>>;
+type Handler<T> = (target: T) => void;
 
-export interface BoxController {
-  emit: EventHandler
-  off: () => void
-}
+const origins = new Map();
+const proxies = new Map();
+const handlers = new WeakMap<Basic, Set<Handler<Basic>>>() as ProxyMap;
 
-function setHandler (target: Box, prop: string, value: any, proxy: Box) {
-  const oldValue = target[prop]
-  if (oldValue === value) return true
-  const link = links.get(target)
-  const newValue = getBox(value)
-  link[prop] = newValue
-  if (target.__isWatched) {
-    ee.emit(proxy, prop, proxy, prop, 'set', oldValue, newValue)
-  }
-  return true
-}
+const watchers = new Set<Set<Basic>>();
 
-function arrGetHandler (target: Box, prop: string, proxy: Box) {
-  const method = arrayMethods[prop] || modifiers[prop]
-  return method
-    ? method(target, proxy, getBox)
-    : target[prop]
-}
-
-export function getBox (origin: any): Box {
-  if (!origin || !isObject(origin) || isBox(origin)) {
-    return origin
-  }
-  const isArray = Array.isArray(origin)
-  const target = isArray ? [] : {}
-  setHiddenKey(target, '__isWatched', false)
-  setHiddenKey(target, '__isBox', true)
-  Object.keys(origin).forEach(key => {
-    target[key] = getBox(origin[key])
-  })
-  const proxy = new Proxy(target, {
-    get: isArray
-      ? arrGetHandler
-      : (...args) => Reflect.get(...args),
-    set: setHandler,
-    deleteProperty (target: Box, prop: string): any {
-      if (!(prop in target)) return true
-      const oldValue = target[prop]
-      delete target[prop]
-      if (target.__isWatched) {
-        ee.emit(proxy, prop, proxy, prop, 'delete', oldValue, undefined)
+export function getBox<T>(origin: T | Immutable<T>): Immutable<T> {
+  if (proxies.has(origin)) return proxies.get(origin);
+  if (origins.has(origin)) return origin;
+  const proxy = new Proxy(origin as Record<string, unknown>, {
+    get: (o, prop) => {
+      if (watchers.size) {
+        watchers.forEach((arr) => arr.add(proxy));
       }
-      return true
-    }
-  })
-  links.set(target, target)
-  return proxy as Box
+      const value = (o as T)[prop as keyof typeof origin];
+      if (typeof value !== "object") return value;
+      if (proxies.has(value)) {
+        return proxies.get(value);
+      }
+      return getBox<typeof value>(value);
+    },
+    set: () => false,
+    deleteProperty: () => false,
+  });
+  proxies.set(origin, proxy);
+  origins.set(proxy, origin);
+  handlers.set(proxy, new Set<Handler<Basic>>());
+  return proxy as Immutable<T>;
 }
 
-export function on (box: Box, prop: string, handler: EventHandler): BoxController {
-  if (!prop.includes('.')) {
-    const { off, emit } = ee.on(box, prop, handler)
-    return { off, emit }
-  }
-
-  const props = prop.split('.')
-  let len = props.length - 1
-  const propName = props[len]
-
-  const scopes = [box]
-  props.forEach(propName => {
-    const localBox = scopes[scopes.length - 1][propName] || {}
-    scopes.push(localBox)
-  })
-
-  const controllers: WeakEventController[] = []
-  const finalEventController = ee.on(scopes[len], propName, handler)
-  controllers.unshift(finalEventController)
-
-  while (--len >= 0) {
-    const localProp = props[len]
-    const localScope = scopes[len]
-    const n = len + 1
-    const eventController = ee.on(localScope, localProp, (_, __, ___, oldValue, newValue) => {
-      const nextController = controllers[n]
-      const currentProp = props[n]
-      const nextScope = typeof newValue === 'object' ? newValue : {}
-      const prevScope = oldValue && typeof oldValue === 'object' ? oldValue : {}
-      const nextValue = nextScope[currentProp]
-      const prevValue = prevScope[currentProp]
-      nextScope.__isWatched = true
-      nextController.transfer(nextScope)
-      nextValue !== prevValue &&
-        nextController.emit(nextScope, currentProp, 'set', prevValue, nextValue)
-    })
-    controllers.unshift(eventController)
-  }
-  return {
-    emit: handler,
-    off () {
-      controllers.forEach(controller => controller.off())
-    }
-  }
+export function on<O extends Basic>(proxy: O, handler: Handler<O>) {
+  if (!handlers.has(proxy)) return;
+  // if (!origins.has(proxy)) throw new Error("wrong target");
+  const handlersSet = handlers.get(proxy as Basic) as Set<Handler<Basic>>;
+  handlersSet.add(handler as Handler<Basic>);
 }
 
-export const off = ee.off
-export { Box } from './tools'
+export function assign<T extends Basic>(proxy: T, obj: Partial<T>) {
+  if (!handlers.has(proxy)) {
+    Object.assign(proxy, obj);
+    return;
+  }
+  const realTarget = origins.get(proxy);
+  for (const i in obj) {
+    const value = obj[i];
+    if (typeof value === "object") {
+      realTarget[i] = getBox(value);
+    } else {
+      realTarget[i] = value;
+    }
+  }
+  const currentHandlers = handlers.get(proxy);
+  currentHandlers?.forEach((handler) => {
+    handler(proxy);
+  });
+}
+
+export function computed<C>(fn: () => C): {
+  value: C;
+  on: (fn: Handler<C>) => void;
+} {
+  const targets = new Set<Basic>();
+  watchers.add(targets);
+  const externalWatchers = new Set<Handler<C>>();
+  const value = {
+    value: fn(),
+    on: (fn: Handler<C>) => {
+      externalWatchers.add(fn);
+    },
+  };
+  watchers.delete(targets);
+  targets.forEach((target) => {
+    on(target, () => {
+      value.value = fn();
+      externalWatchers.forEach((handler) => {
+        handler(value.value);
+      });
+    });
+  });
+  return value;
+}

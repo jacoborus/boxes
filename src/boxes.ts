@@ -106,7 +106,7 @@ export function computed<C>(fn: () => C): Immutable<{
       const handlerSet = handlers.get(proxy);
       if (!handlerSet) return;
       handlerSet.forEach((handler) => {
-        handler(compu, "value");
+        handler(compu);
       });
     });
   });

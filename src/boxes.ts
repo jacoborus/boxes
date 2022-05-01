@@ -41,7 +41,7 @@ export function getBox<T>(origin: T): T {
       } else {
         (origin as typeof receiver)[prop as keyof typeof origin] = value;
       }
-      currentHandlers?.forEach((handler) => {
+      currentHandlers.forEach((handler) => {
         handler(box);
       });
       return true;
@@ -106,7 +106,7 @@ export function computed<C>(fn: () => C): Immutable<{
       const handlerSet = handlers.get(proxy);
       if (!handlerSet) return;
       handlerSet.forEach((handler) => {
-        handler(compu);
+        handler(compu, "value");
       });
     });
   });

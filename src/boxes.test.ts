@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.136.0/testing/asserts.ts";
-import { computed, getBox, off, on, watchEffect } from "./boxes.ts";
+import { computed, getBox, unwatch, watch, watchEffect } from "./boxes.ts";
 
 Deno.test("basic proxy", () => {
   const obj = { a: 1, b: { c: 99 } };
@@ -33,7 +33,7 @@ Deno.test("Reactiveness", () => {
   const obj = { a: 99 };
   const box = getBox(obj);
   let control = 0;
-  on(box, () => {
+  watch(box, () => {
     control = 1;
   });
   box.a = 66;
@@ -45,7 +45,7 @@ Deno.test("Reactiveness recursive", () => {
   const obj = getBox({ a: 99 });
   const box = getBox(obj);
   let control = 0;
-  on(box, () => {
+  watch(box, () => {
     control = 1;
   });
   box.a = 66;
@@ -61,7 +61,7 @@ Deno.test("Pass target type to handler of computed", () => {
   const obj = { a: 99 } as Obj;
   const box = getBox(obj);
   let control = "";
-  on(box, (value) => {
+  watch(box, (value) => {
     if (value.b) {
       control = value.b;
     }
@@ -75,7 +75,7 @@ Deno.test("Reactiveness deep", () => {
   const obj = { a: 99, b: { c: 1 } };
   const box = getBox(obj);
   let control = 0;
-  on(box, () => {
+  watch(box, () => {
     control = 1;
   });
   box.a = 66;
@@ -84,30 +84,30 @@ Deno.test("Reactiveness deep", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("Off Reactive", () => {
+Deno.test("unwatch Reactive", () => {
   const obj = { a: 99, b: { c: 1 } };
   const box = getBox(obj);
   let control = 0;
   const handler = () => {
     control = 1;
   };
-  on(box, handler);
+  watch(box, handler);
   box.a = 66;
   box.b.c = 4;
   assertEquals(box.b.c, 4);
   assertEquals(control, 1);
-  off(box, handler);
+  unwatch(box, handler);
   box.b.c = 5;
   assertEquals(box.b.c, 5);
   assertEquals(control, 1);
 });
 
-Deno.test("computed.on", () => {
+Deno.test("computed.watch", () => {
   const obj = { b: 55 };
   const box = getBox(obj);
   let control = 0;
   const myComputed = computed(() => box.b);
-  on(myComputed, (compu: { value: number }) => {
+  watch(myComputed, (compu: { value: number }) => {
     control = compu.value;
   });
   box.b = 1;
@@ -115,7 +115,7 @@ Deno.test("computed.on", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("computed.off", () => {
+Deno.test("computed.unwatch", () => {
   const obj = { b: 55 };
   const box = getBox(obj);
   let control = 0;
@@ -123,11 +123,11 @@ Deno.test("computed.off", () => {
   const handler = (compu: { value: number }) => {
     control = compu.value;
   };
-  on(myComputed, handler);
+  watch(myComputed, handler);
   box.b = 1;
   assertEquals(myComputed.value, 1);
   assertEquals(control, 1);
-  off(myComputed, handler);
+  unwatch(myComputed, handler);
   box.b = 4;
   assertEquals(myComputed.value, 4);
   assertEquals(control, 1);
@@ -153,7 +153,7 @@ Deno.test({
     const list = [1, 2, 3, 4, 5];
     const box = getBox(list);
     let control = 0;
-    on(box, () => {
+    watch(box, () => {
       control = control + 1;
     });
     box.forEach((n, i, arr) => {

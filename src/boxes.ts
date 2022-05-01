@@ -54,13 +54,13 @@ export function getBox<T>(origin: T): T {
   return box as T;
 }
 
-export function on<O>(proxy: O, handler: Handler<O>) {
+export function watch<O>(proxy: O, handler: Handler<O>) {
   if (!handlers.has(proxy as Basic)) return;
   const handlersSet = handlers.get(proxy as Basic) as Set<Handler<Basic>>;
   handlersSet.add(handler as Handler<Basic>);
 }
 
-export function off<O extends Basic>(proxy: O, handler: Handler<O>) {
+export function unwatch<O extends Basic>(proxy: O, handler: Handler<O>) {
   if (!handlers.has(proxy)) return;
   const handlersSet = handlers.get(proxy as Basic) as Set<Handler<Basic>>;
   handlersSet.delete(handler as Handler<Basic>);
@@ -75,11 +75,11 @@ export function watchEffect(fn: () => void): () => void {
     fn();
   };
   targets.forEach((target) => {
-    on(target, reFn);
+    watch(target, reFn);
   });
   return () => {
     targets.forEach((target) => {
-      off(target, reFn);
+      unwatch(target, reFn);
     });
   };
 }
@@ -101,7 +101,7 @@ export function computed<C>(fn: () => C): Immutable<{
   const currentHandlers = new Set<Handler<Basic>>();
   handlers.set(proxy, currentHandlers);
   targets.forEach((target) => {
-    on(target, () => {
+    watch(target, () => {
       compu.value = fn();
       const handlerSet = handlers.get(proxy);
       if (!handlerSet) return;

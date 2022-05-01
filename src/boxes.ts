@@ -9,7 +9,6 @@ type Handler<T> = (target: T) => void;
 const origins = new WeakMap<Immutable<Basic>, Basic>();
 const proxies = new WeakMap<Basic, Immutable<Basic>>();
 const handlers = new WeakMap<Basic, Set<Handler<Basic>>>() as ProxyMap;
-
 const watchers = new Set<Set<Basic>>();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -78,6 +77,7 @@ export function assign<T extends Basic>(proxy: T, obj: Partial<T>) {
 export function computed<C>(fn: () => C): {
   value: C;
   on: (fn: Handler<C>) => void;
+  off: (fn: Handler<C>) => void;
 } {
   const targets = new Set<Basic>();
   watchers.add(targets);
@@ -86,6 +86,9 @@ export function computed<C>(fn: () => C): {
     value: fn(),
     on: (fn: Handler<C>) => {
       externalWatchers.add(fn);
+    },
+    off: (fn: Handler<C>) => {
+      externalWatchers.delete(fn);
     },
   };
   watchers.delete(targets);

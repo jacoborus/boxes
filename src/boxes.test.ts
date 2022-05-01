@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.136.0/testing/asserts.ts";
 
-import { assign, computed, getBox, on } from "./boxes.ts";
+import { assign, computed, getBox, off, on } from "./boxes.ts";
 
 Deno.test("basic proxy", () => {
   const obj = { a: 1, b: { c: 99 } };
@@ -64,7 +64,6 @@ Deno.test("Pass target type to handler of computed", () => {
   let control = 0;
   on(box, (value) => {
     control = value.a;
-    console.log(value.b);
   });
   assign(box, { a: 66, b: "string" });
   assertEquals(box.a, 66);
@@ -110,5 +109,23 @@ Deno.test("computed.on", () => {
   });
   assign(box, { b: 1 });
   assertEquals(myComputed.value, 1);
+  assertEquals(control, 1);
+});
+
+Deno.test("computed.off", () => {
+  const obj = { b: 55 };
+  const box = getBox(obj);
+  let control = 0;
+  const myComputed = computed(() => box.b);
+  const handler = (value: number) => {
+    control = value;
+  };
+  myComputed.on(handler);
+  assign(box, { b: 1 });
+  assertEquals(myComputed.value, 1);
+  assertEquals(control, 1);
+  myComputed.off(handler);
+  assign(box, { b: 4 });
+  assertEquals(myComputed.value, 4);
   assertEquals(control, 1);
 });

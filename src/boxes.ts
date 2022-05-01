@@ -50,16 +50,14 @@ export function getBox<T>(origin: T): T {
   return box as T;
 }
 
-export function on<O extends Basic>(proxy: O, handler: Handler<O>) {
-  if (!handlers.has(proxy)) return;
-  // if (!origins.has(proxy)) throw new Error("wrong target");
+export function on<O>(proxy: O, handler: Handler<O>) {
+  if (!handlers.has(proxy as Basic)) return;
   const handlersSet = handlers.get(proxy as Basic) as Set<Handler<Basic>>;
   handlersSet.add(handler as Handler<Basic>);
 }
 
 export function off<O extends Basic>(proxy: O, handler: Handler<O>) {
   if (!handlers.has(proxy)) return;
-  // if (!origins.has(proxy)) throw new Error("wrong target");
   const handlersSet = handlers.get(proxy as Basic) as Set<Handler<Basic>>;
   handlersSet.delete(handler as Handler<Basic>);
 }

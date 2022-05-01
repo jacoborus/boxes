@@ -53,21 +53,23 @@ Deno.test("Reactiveness recursive", () => {
   assertEquals(control, 1);
 });
 
-// Deno.test("Pass target type to handler of computed", () => {
-//   interface Obj {
-//     a: number;
-//     b?: string;
-//   }
-//   const obj = { a: 99 } as Obj;
-//   const box = getBox(obj);
-//   let control = 0;
-//   on(box, (value) => {
-//     control = value.a;
-//   });
-//   assign(box, { a: 66, b: "string" });
-//   assertEquals(box.a, 66);
-//   assertEquals(control, 66);
-// });
+Deno.test("Pass target type to handler of computed", () => {
+  interface Obj {
+    a: number;
+    b?: string;
+  }
+  const obj = { a: 99 } as Obj;
+  const box = getBox(obj);
+  let control = "";
+  on(box, (value) => {
+    if (value.b) {
+      control = value.b;
+    }
+  });
+  box.b = "str";
+  assertEquals(box.a, 99);
+  assertEquals(control, "str");
+});
 
 Deno.test("Reactiveness deep", () => {
   const obj = { a: 99, b: { c: 1 } };

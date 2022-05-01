@@ -66,16 +66,22 @@ export function off<O extends Basic>(proxy: O, handler: Handler<O>) {
   handlersSet.delete(handler as Handler<Basic>);
 }
 
-export function watchEffect(fn: () => void) {
+export function watchEffect(fn: () => void): () => void {
   const targets = new Set<Basic>();
   watchers.add(targets);
   fn();
   watchers.delete(targets);
+  const reFn = () => {
+    fn();
+  };
   targets.forEach((target) => {
-    on(target, () => {
-      fn();
-    });
+    on(target, reFn);
   });
+  return () => {
+    targets.forEach((target) => {
+      off(target, reFn);
+    });
+  };
 }
 
 export function computed<C>(fn: () => C): Immutable<{

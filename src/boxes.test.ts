@@ -137,9 +137,12 @@ Deno.test("watchEffect", () => {
   const obj = { b: 55 };
   const box = getBox(obj);
   let control = 0;
-  watchEffect(() => control = box.b);
+  const stop = watchEffect(() => control = box.b);
   box.b = 1;
   assertEquals(control, 1);
   box.b = 3;
+  assertEquals(control, 3);
+  stop();
+  box.b = 4;
   assertEquals(control, 3);
 });

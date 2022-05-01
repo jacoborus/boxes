@@ -107,8 +107,8 @@ Deno.test("computed.on", () => {
   const box = getBox(obj);
   let control = 0;
   const myComputed = computed(() => box.b);
-  myComputed.on((value: number) => {
-    control = value;
+  on(myComputed, (compu: { value: number }) => {
+    control = compu.value;
   });
   box.b = 1;
   assertEquals(myComputed.value, 1);
@@ -120,14 +120,14 @@ Deno.test("computed.off", () => {
   const box = getBox(obj);
   let control = 0;
   const myComputed = computed(() => box.b);
-  const handler = (value: number) => {
-    control = value;
+  const handler = (compu: { value: number }) => {
+    control = compu.value;
   };
-  myComputed.on(handler);
+  on(myComputed, handler);
   box.b = 1;
   assertEquals(myComputed.value, 1);
   assertEquals(control, 1);
-  myComputed.off(handler);
+  off(myComputed, handler);
   box.b = 4;
   assertEquals(myComputed.value, 4);
   assertEquals(control, 1);

@@ -1,3 +1,7 @@
+type Immutable<T> = {
+  readonly [K in keyof T]: Immutable<T[K]>;
+};
+
 type Basic = Record<string, unknown>;
 type ProxyMap = Map<Basic, Set<Handler<Basic>>>;
 type Handler<T> = (target: T) => void;
@@ -62,31 +66,29 @@ export function off<O extends Basic>(proxy: O, handler: Handler<O>) {
   handlersSet.delete(handler as Handler<Basic>);
 }
 
-export function computed<C>(fn: () => C): {
+export function computed<C>(fn: () => C): Immutable<{
   value: C;
-  on: (fn: Handler<C>) => void;
-  off: (fn: Handler<C>) => void;
-} {
+}> {
   const targets = new Set<Basic>();
   watchers.add(targets);
-  const externalWatchers = new Set<Handler<C>>();
-  const value = {
+  const compu = {
     value: fn(),
-    on: (fn: Handler<C>) => {
-      externalWatchers.add(fn);
-    },
-    off: (fn: Handler<C>) => {
-      externalWatchers.delete(fn);
-    },
   };
+  const proxy = new Proxy(compu, {
+    get: () => compu.value,
+  });
   watchers.delete(targets);
+  const currentHandlers = new Set<Handler<Basic>>();
+  handlers.set(proxy, currentHandlers);
   targets.forEach((target) => {
     on(target, () => {
-      value.value = fn();
-      externalWatchers.forEach((handler) => {
-        handler(value.value);
+      compu.value = fn();
+      const handlerSet = handlers.get(proxy);
+      if (!handlerSet) return;
+      handlerSet.forEach((handler) => {
+        handler(compu);
       });
     });
   });
-  return value;
+  return proxy;
 }

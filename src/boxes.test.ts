@@ -71,7 +71,36 @@ Deno.test("Pass target type to handler of computed", () => {
   assertEquals(control, 66);
 });
 
-Deno.test("computed", () => {
+Deno.test("Reactiveness deep", () => {
+  const obj = { a: 99, b: { c: 1 } };
+  const box = getBox(obj);
+  let control = 0;
+  on(box, () => {
+    control = 1;
+  });
+  assign(box, { a: 66, b: { c: 4 } });
+  assertEquals(box.b.c, 4);
+  assertEquals(control, 1);
+});
+
+Deno.test("Off Reactive", () => {
+  const obj = { a: 99, b: { c: 1 } };
+  const box = getBox(obj);
+  let control = 0;
+  const handler = () => {
+    control = 1;
+  };
+  on(box, handler);
+  assign(box, { a: 66, b: { c: 4 } });
+  assertEquals(box.b.c, 4);
+  assertEquals(control, 1);
+  off(box, handler);
+  assign(box, { a: 11, b: { c: 5 } });
+  assertEquals(box.b.c, 5);
+  assertEquals(control, 1);
+});
+
+Deno.test("computed.on", () => {
   const obj = { b: 55 };
   const box = getBox(obj);
   let control = 0;

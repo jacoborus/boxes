@@ -48,6 +48,13 @@ export function on<O extends Basic>(proxy: O, handler: Handler<O>) {
   handlersSet.add(handler as Handler<Basic>);
 }
 
+export function off<O extends Basic>(proxy: O, handler: Handler<O>) {
+  if (!handlers.has(proxy)) return;
+  // if (!origins.has(proxy)) throw new Error("wrong target");
+  const handlersSet = handlers.get(proxy as Basic) as Set<Handler<Basic>>;
+  handlersSet.delete(handler as Handler<Basic>);
+}
+
 export function assign<T extends Basic>(proxy: T, obj: Partial<T>) {
   if (!handlers.has(proxy)) {
     Object.assign(proxy, obj);

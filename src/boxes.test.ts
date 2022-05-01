@@ -146,3 +146,19 @@ Deno.test("watchEffect", () => {
   box.b = 4;
   assertEquals(control, 3);
 });
+
+Deno.test({
+  name: "array methods",
+  fn: () => {
+    const list = [1, 2, 3, 4, 5];
+    const box = getBox(list);
+    let control = 0;
+    on(box, () => {
+      control = control + 1;
+    });
+    box.forEach((n, i, arr) => {
+      arr[i] = n + 1;
+    });
+    assertEquals(control, 5);
+  },
+});

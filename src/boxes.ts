@@ -88,6 +88,8 @@ export function computed<C>(fn: () => C): Immutable<{
   };
   const proxy = new Proxy(compu, {
     get: () => compu.value,
+    set: () => false,
+    deleteProperty: () => false,
   });
   watchers.delete(targets);
   const currentHandlers = new Set<Handler<Basic>>();

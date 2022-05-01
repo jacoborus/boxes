@@ -66,6 +66,18 @@ export function off<O extends Basic>(proxy: O, handler: Handler<O>) {
   handlersSet.delete(handler as Handler<Basic>);
 }
 
+export function watchEffect(fn: () => void) {
+  const targets = new Set<Basic>();
+  watchers.add(targets);
+  fn();
+  watchers.delete(targets);
+  targets.forEach((target) => {
+    on(target, () => {
+      fn();
+    });
+  });
+}
+
 export function computed<C>(fn: () => C): Immutable<{
   value: C;
 }> {

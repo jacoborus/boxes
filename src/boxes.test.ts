@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.136.0/testing/asserts.ts";
-import { computed, getBox, off, on } from "./boxes.ts";
+import { computed, getBox, off, on, watchEffect } from "./boxes.ts";
 
 Deno.test("basic proxy", () => {
   const obj = { a: 1, b: { c: 99 } };
@@ -131,4 +131,15 @@ Deno.test("computed.off", () => {
   box.b = 4;
   assertEquals(myComputed.value, 4);
   assertEquals(control, 1);
+});
+
+Deno.test("watchEffect", () => {
+  const obj = { b: 55 };
+  const box = getBox(obj);
+  let control = 0;
+  watchEffect(() => control = box.b);
+  box.b = 1;
+  assertEquals(control, 1);
+  box.b = 3;
+  assertEquals(control, 3);
 });

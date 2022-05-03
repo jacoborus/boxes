@@ -1,5 +1,12 @@
 import { assertEquals } from "https://deno.land/std@0.136.0/testing/asserts.ts";
-import { computed, getBox, unwatch, watch, watchEffect } from "./boxes.ts";
+import {
+  computed,
+  getBox,
+  unwatch,
+  watch,
+  watchEffect,
+  watchFn,
+} from "./boxes.ts";
 
 Deno.test("basic proxy", () => {
   const obj = { a: 1, b: { c: 99 } };
@@ -160,5 +167,25 @@ Deno.test({
       arr[i] = n + 1;
     });
     assertEquals(control, 5);
+  },
+});
+
+Deno.test({
+  name: "watch function",
+  fn: () => {
+    const obj = { b: 55 };
+    const box = getBox(obj);
+    let control = 0;
+    const stop = watchFn(() => box.b + 1, (value: number) => {
+      control = value;
+    });
+    assertEquals(control, 0);
+    box.b = 1;
+    assertEquals(control, 2);
+    box.b = 22;
+    assertEquals(control, 23);
+    stop();
+    box.b = 99;
+    assertEquals(control, 23);
   },
 });

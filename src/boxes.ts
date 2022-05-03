@@ -84,6 +84,22 @@ export function watchEffect(fn: () => void): () => void {
   };
 }
 
+export function watchFn<T>(fn: () => T, handler: (value: T) => unknown) {
+  const targets = new Set<Basic>();
+  watchers.add(targets);
+  const reFn = () => handler(fn());
+  fn();
+  watchers.delete(targets);
+  targets.forEach((target) => {
+    watch(target, reFn);
+  });
+  return () => {
+    targets.forEach((target) => {
+      unwatch(target, reFn);
+    });
+  };
+}
+
 export function computed<C>(fn: () => C): Immutable<{
   value: C;
 }> {

@@ -1,14 +1,20 @@
 type Immutable<T> = {
   readonly [K in keyof T]: Immutable<T[K]>;
 };
-
 type Basic = Record<string, unknown>;
-type ProxyMap = Map<Basic, Set<Handler<Basic>>>;
+
+const KEY = Symbol();
 type Handler<T> = (target: T) => void;
+type HandlerSet<T> = Set<Handler<T>>;
+type HandlerMap<T> = Map<string | typeof KEY, HandlerSet<T>>;
 
 const origins = new WeakMap<Basic, Basic>();
 const proxies = new WeakMap<Basic, Basic>();
-const handlers = new WeakMap<Basic, Set<Handler<Basic>>>() as ProxyMap;
+// const handlers = new WeakMap<Basic, Set<Handler<Basic>>>() as ProxyMap;
+const handlers = new WeakMap<
+  Basic,
+  Map<string | typeof KEY, Set<Handler<Basic>>>
+>();
 const watchers = new Set<Set<Basic>>();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -20,7 +26,7 @@ export function getBox<T>(origin: T): T {
     return proxies.get(origin as Basic) as T;
   }
   if (origins.has(origin as Basic)) return origin as T;
-  const currentHandlers = new Set<Handler<Basic>>();
+  const currentHandlerMap = new Map() as HandlerMap<T>;
   const box = new Proxy(origin as Record<string, unknown>, {
     get: (o, prop) => {
       if (watchers.size) {
@@ -41,29 +47,39 @@ export function getBox<T>(origin: T): T {
       } else {
         (origin as typeof receiver)[prop as keyof typeof origin] = value;
       }
-      currentHandlers.forEach((handler) => {
-        handler(box);
-      });
+      const handlerSet = currentHandlerMap.get(KEY);
+      if (handlerSet) {
+        handlerSet.forEach((handler) => {
+          handler(box as T);
+        });
+      }
       return true;
     },
     deleteProperty: () => false,
   });
   proxies.set(origin as Basic, box as Basic);
   origins.set(box as Basic, origin as Basic);
-  handlers.set(box, currentHandlers);
+  handlers.set(box, currentHandlerMap as HandlerMap<Basic>);
   return box as T;
 }
 
 export function watch<O>(proxy: O, handler: Handler<O>) {
   if (!handlers.has(proxy as Basic)) return;
-  const handlersSet = handlers.get(proxy as Basic) as Set<Handler<Basic>>;
-  handlersSet.add(handler as Handler<Basic>);
+  const handlerMap = handlers.get(proxy as Basic) as HandlerMap<O>;
+  let theSet = handlerMap.get(KEY); // || handlersSet.set("", new Set());
+  if (!theSet) {
+    const newSet = new Set<Handler<O>>();
+    handlerMap.set(KEY, newSet);
+    theSet = newSet;
+  }
+  theSet.add(handler);
 }
 
 export function unwatch<O extends Basic>(proxy: O, handler: Handler<O>) {
   if (!handlers.has(proxy)) return;
-  const handlersSet = handlers.get(proxy as Basic) as Set<Handler<Basic>>;
-  handlersSet.delete(handler as Handler<Basic>);
+  const handlerMap = handlers.get(proxy) as HandlerMap<O>;
+  const theSet = handlerMap.get(KEY);
+  if (theSet) theSet.delete(handler);
 }
 
 export function watchEffect(fn: () => void): () => void {
@@ -84,7 +100,10 @@ export function watchEffect(fn: () => void): () => void {
   };
 }
 
-export function watchFn<T>(fn: () => T, handler: (value: T) => unknown) {
+export function watchFn<T>(
+  fn: () => T,
+  handler: (value: T) => unknown,
+): () => void {
   const targets = new Set<Basic>();
   watchers.add(targets);
   const reFn = () => handler(fn());
@@ -114,12 +133,15 @@ export function computed<C>(fn: () => C): Immutable<{
     deleteProperty: () => false,
   });
   watchers.delete(targets);
-  const currentHandlers = new Set<Handler<Basic>>();
+  // const currentHandlers = new Set<Handler<Basic>>();
+  const currentHandlers = new Map() as HandlerMap<Basic>;
   handlers.set(proxy, currentHandlers);
   targets.forEach((target) => {
     watch(target, () => {
       compu.value = fn();
-      const handlerSet = handlers.get(proxy);
+      const handlerMap = handlers.get(proxy);
+      if (!handlerMap) return;
+      const handlerSet = handlerMap.get(KEY);
       if (!handlerSet) return;
       handlerSet.forEach((handler) => {
         handler(compu);
@@ -128,3 +150,59 @@ export function computed<C>(fn: () => C): Immutable<{
   });
   return proxy;
 }
+
+// export function watchDot<T>(
+//   box: T,
+//   prop: string,
+//   handler: Handler<T>,
+// ): () => void {
+//   if (!prop.includes(".")) {
+//   }
+//   const props = prop.split(".");
+//   let len = props.length - 1;
+//   const propName = props[len];
+//   const scopes = [box];
+//   props.forEach((propName) => {
+//     const localBox = scopes[scopes.length - 1][propName] || {};
+//     scopes.push(localBox);
+//   });
+//   const controllers: WeakEventController[] = [];
+//   const finalEventController = ee.on(scopes[len], propName, handler);
+//   controllers.unshift(finalEventController);
+//   while (--len >= 0) {
+//     const localProp = props[len];
+//     const localScope = scopes[len];
+//     const n = len + 1;
+//     const eventController = ee.on(
+//       localScope,
+//       localProp,
+//       (_, __, ___, oldValue, newValue) => {
+//         const nextController = controllers[n];
+//         const currentProp = props[n];
+//         const nextScope = typeof newValue === "object" ? newValue : {};
+//         const prevScope = oldValue && typeof oldValue === "object"
+//           ? oldValue
+//           : {};
+//         const nextValue = nextScope[currentProp];
+//         const prevValue = prevScope[currentProp];
+//         nextScope.__isWatched = true;
+//         nextController.transfer(nextScope);
+//         nextValue !== prevValue &&
+//           nextController.emit(
+//             nextScope,
+//             currentProp,
+//             "set",
+//             prevValue,
+//             nextValue,
+//           );
+//       },
+//     );
+//     controllers.unshift(eventController);
+//   }
+//   return {
+//     emit: handler,
+//     off() {
+//       controllers.forEach((controller) => controller.off());
+//     },
+//   };
+// }

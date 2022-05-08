@@ -133,8 +133,12 @@ export function watchFn<T>(
   };
 }
 
-export function watchProp<O>(proxy: O, prop: keyof O, handler: Handler<O>) {
-  if (!handlers.has(proxy as Basic)) return;
+export function watchProp<O>(
+  proxy: O,
+  prop: keyof O,
+  handler: Handler<O>,
+): () => void {
+  if (!handlers.has(proxy as Basic)) throw new Error("wrong target to watch");
   const handlerMap = handlers.get(proxy as Basic) as HandlerMap<Basic>;
   let theSet = handlerMap.get(prop as string);
   if (!theSet) {
@@ -144,6 +148,9 @@ export function watchProp<O>(proxy: O, prop: keyof O, handler: Handler<O>) {
   }
   // TODO why uhnknown here?
   theSet.add(handler as unknown as Handler<Basic>);
+  return () => {
+    (theSet as HandlerSet<Basic>).delete(handler as unknown as Handler<Basic>);
+  };
 }
 
 export function computed<C>(fn: () => C): Immutable<{

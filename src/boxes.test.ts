@@ -206,8 +206,8 @@ Deno.test({
     assertEquals(control, 2);
     box.b = 22;
     assertEquals(control, 23);
-    // stop();
-    // box.b = 99;
-    // assertEquals(control, 23);
+    stop();
+    box.b = 99;
+    assertEquals(control, 23);
   },
 });

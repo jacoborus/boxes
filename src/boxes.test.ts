@@ -211,3 +211,24 @@ Deno.test({
     assertEquals(control, 23);
   },
 });
+
+Deno.test({
+  name: "watch prop array",
+  fn: () => {
+    const arr = [1, 10, 100];
+    const box = getBox(arr);
+    let control = 0;
+    const stop = watchProp(box, 1, (box, prop) => {
+      assertEquals(prop, "1");
+      control = box[1];
+    });
+    assertEquals(control, 0);
+    box[1] = 1;
+    assertEquals(control, 1);
+    box[1] = 22;
+    assertEquals(control, 22);
+    stop();
+    box[1] = 99;
+    assertEquals(control, 22);
+  },
+});

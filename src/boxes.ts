@@ -10,7 +10,6 @@ type HandlerMap<T> = Map<string | typeof KEY, HandlerSet<T>>;
 
 const origins = new WeakMap<Basic, Basic>();
 const proxies = new WeakMap<Basic, Basic>();
-// const handlers = new WeakMap<Basic, Set<Handler<Basic>>>() as ProxyMap;
 const handlers = new WeakMap<
   Basic,
   Map<string | typeof KEY, Set<Handler<Basic>>>
@@ -49,15 +48,17 @@ export function getBox<T>(origin: T): T {
       }
       // TODO: remove object bindings and just depend on the prop ones?
       // trigger object bindings
-      const handlerSet = currentHandlerMap.get(KEY);
-      if (handlerSet) {
+      if (currentHandlerMap.has(KEY)) {
+        const handlerSet = currentHandlerMap.get(KEY) as HandlerSet<Basic>;
         handlerSet.forEach((handler) => {
           handler(box, prop as string);
         });
       }
       // trigger prop bindings
-      const propHandlerSet = currentHandlerMap.get(prop as string);
-      if (propHandlerSet) {
+      if (currentHandlerMap.has(prop as string)) {
+        const propHandlerSet = currentHandlerMap.get(
+          prop as string,
+        ) as HandlerSet<Basic>;
         propHandlerSet.forEach((handler) => {
           handler(box, prop as string);
         });
@@ -140,10 +141,11 @@ export function watchProp<O>(
 ): () => void {
   if (!handlers.has(proxy as Basic)) throw new Error("wrong target to watch");
   const handlerMap = handlers.get(proxy as Basic) as HandlerMap<Basic>;
-  let theSet = handlerMap.get(prop as string);
+  const p = typeof prop === "string" ? prop : prop.toString();
+  let theSet = handlerMap.get(p);
   if (!theSet) {
     const newSet = new Set<Handler<Basic>>();
-    handlerMap.set(prop as string, newSet);
+    handlerMap.set(p, newSet);
     theSet = newSet;
   }
   // TODO why uhnknown here?
@@ -167,7 +169,6 @@ export function computed<C>(fn: () => C): Immutable<{
     deleteProperty: () => false,
   });
   watchers.delete(targets);
-  // const currentHandlers = new Set<Handler<Basic>>();
   const currentHandlers = new Map() as HandlerMap<Basic>;
   handlers.set(proxy, currentHandlers);
   targets.forEach((target) => {

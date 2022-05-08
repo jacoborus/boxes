@@ -6,6 +6,7 @@ import {
   watch,
   watchEffect,
   watchFn,
+  watchProp,
 } from "./boxes.ts";
 
 Deno.test("basic proxy", () => {
@@ -187,5 +188,26 @@ Deno.test({
     stop();
     box.b = 99;
     assertEquals(control, 23);
+  },
+});
+
+Deno.test({
+  name: "watch prop",
+  fn: () => {
+    const obj = { b: 55 };
+    const box = getBox(obj);
+    let control = 0;
+    const stop = watchProp(box, "b", (obj, prop) => {
+      assertEquals(prop, "b");
+      control = obj.b + 1;
+    });
+    assertEquals(control, 0);
+    box.b = 1;
+    assertEquals(control, 2);
+    box.b = 22;
+    assertEquals(control, 23);
+    // stop();
+    // box.b = 99;
+    // assertEquals(control, 23);
   },
 });

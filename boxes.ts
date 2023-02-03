@@ -37,6 +37,10 @@ function isBasicObject(value: unknown): value is BasicObject {
 interface Box<T extends Basic> {
   data: Immutable<T>;
   update: <T extends Basic>(oldProxy: Immutable<T>, payload: T) => void;
+  patch: <T extends BasicObject>(
+    oldProxy: Immutable<T>,
+    payload: Partial<T>
+  ) => void;
 }
 
 export function watch(target: Basic, listener: () => void): () => void {
@@ -56,23 +60,38 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   return {
     data: makeDeeplyImmutable(origin, proxyMap),
 
-    update(oldProxy, payload) {
-      const realTarget = proxyMap.get(oldProxy);
+    update(proxyTarget, payload) {
+      const realTarget = proxyMap.get(proxyTarget);
       if (!realTarget) throw new Error("Can't update non box");
       if (isBasicObject(realTarget)) {
-        if (Array.isArray(payload)) throw new Error("azsdfas");
+        if (Array.isArray(payload)) throw new Error("not gonna happen");
         Object.keys(payload).forEach((key) => {
           const value = payload[key];
           realTarget[key as keyof typeof realTarget] = value;
         });
       } else {
-        if (!Array.isArray(payload)) throw new Error("azsdfas");
+        if (!Array.isArray(payload)) throw new Error("not gonna happen");
         payload.forEach((value, i) => {
           realTarget[i] = value;
         });
         realTarget.length = payload.length;
       }
-      const listeners = targetMap.get(oldProxy);
+      const listeners = targetMap.get(proxyTarget);
+      listeners?.forEach((listener) => listener());
+    },
+
+    patch(proxyTarget, payload) {
+      const realTarget = proxyMap.get(proxyTarget);
+      if (!realTarget) throw new Error("Can't update non box");
+      if (Array.isArray(payload) || Array.isArray(realTarget)) {
+        throw new Error("Method not allowed on arrays");
+      }
+      Object.keys(payload).forEach((key) => {
+        const value = payload[key];
+        if (value === null) delete realTarget[key];
+        else realTarget[key] = value;
+      });
+      const listeners = targetMap.get(proxyTarget);
       listeners?.forEach((listener) => listener());
     },
   };
@@ -80,7 +99,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 
 function makeDeeplyImmutable<T extends Basic>(
   origin: T,
-  proxyMap: ProxyMap,
+  proxyMap: ProxyMap
 ): Immutable<T> {
   if (proxySet.has(origin)) return origin;
 

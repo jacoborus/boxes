@@ -1,30 +1,37 @@
-type Immutable<T> = {
-  readonly [K in keyof T]: Immutable<T[K]>;
-};
+type BasicValue = Date | boolean | number | BigInt | string | undefined;
 
-type BasicValue =
-  | BasicArray
-  | BasicObject
-  | Date
-  | boolean
-  | number
-  | BigInt
-  | string
-  | undefined;
 interface BasicObject {
-  [key: string]: BasicValue;
+  [key: string]: BasicValue | BasicObject | BasicArray;
 }
-type BasicArray = BasicValue[];
+type BasicArray = Array<BasicValue | BasicArray | BasicObject>;
 type Basic = BasicArray | BasicObject;
 
-type ProxySet = WeakSet<Basic>;
-type ProxyMap = WeakMap<Basic, Basic>;
+type ImmutableObject<T extends BasicObject> = {
+  readonly [k in keyof T]: T[k] extends BasicValue ? BasicValue
+    : T[k] extends BasicObject ? ImmutableObject<T[k]>
+    : ReadonlyArray<T[k]>;
+};
+
+type ImmutableArray<T extends BasicArray> = ReadonlyArray<
+  T[number] extends BasicValue ? BasicValue
+    : T[number] extends BasicObject ? ImmutableObject<T[number]>
+    : ReadonlyArray<T[number]>
+>;
+
+type Immutable<T extends BasicArray | BasicObject> = T extends BasicObject
+  ? ImmutableObject<T>
+  : T extends BasicArray ? ImmutableArray<T>
+  : never;
+
+type ProxySet = WeakSet<Immutable<Basic>>;
+type ProxyMap = WeakMap<Immutable<Basic>, Basic>;
+type OriginMap = WeakMap<Basic, Immutable<Basic>>;
 type Listener = () => void;
-type TargetMap = WeakMap<Basic, Set<Listener>>;
+type TargetMap = WeakMap<Immutable<Basic>, Set<Listener>>;
 
 const proxySet: ProxySet = new Set();
 const targetMap: TargetMap = new WeakMap();
-const originMap: ProxyMap = new WeakMap();
+const originMap: OriginMap = new WeakMap();
 
 function isObject(value: unknown): value is Basic {
   return typeof value === "object" && value !== null;
@@ -39,12 +46,12 @@ interface Box<T extends Basic> {
   update: <T extends Basic>(oldProxy: Immutable<T>, payload: T) => void;
   patch: <T extends BasicObject>(
     oldProxy: Immutable<T>,
-    payload: Partial<T>
+    payload: Partial<T>,
   ) => void;
 }
 
-export function watch(target: Basic, listener: () => void): () => void {
-  const listeners = targetMap.get(target);
+export function watch(target: unknown, listener: () => void): () => void {
+  const listeners = targetMap.get(target as Immutable<Basic>);
   if (!listeners) {
     throw new Error("Can't subscribe to non box");
   }
@@ -98,10 +105,10 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 }
 
 function makeDeeplyImmutable<T extends Basic>(
-  origin: T,
-  proxyMap: ProxyMap
+  origin: T | Immutable<T>,
+  proxyMap: ProxyMap,
 ): Immutable<T> {
-  if (proxySet.has(origin)) return origin;
+  if (proxySet.has(origin as Immutable<T>)) return origin as Immutable<T>;
 
   const proxy = new Proxy(origin, {
     set: () => {
@@ -116,10 +123,10 @@ function makeDeeplyImmutable<T extends Basic>(
       const box = makeDeeplyImmutable(value, proxyMap);
       return box;
     },
-  });
+  }) as Immutable<T>;
 
-  proxyMap.set(proxy, origin);
+  proxyMap.set(proxy, origin as Basic);
   targetMap.set(proxy, new Set());
-  originMap.set(origin, proxy);
+  originMap.set(origin as Basic, proxy);
   return proxy;
 }

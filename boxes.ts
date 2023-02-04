@@ -23,13 +23,11 @@ type Immutable<T extends BasicArray | BasicObject> = T extends BasicObject
   : T extends BasicArray ? ImmutableArray<T>
   : never;
 
-type ProxySet = WeakSet<Immutable<Basic>>;
 type ProxyMap = WeakMap<Immutable<Basic>, Basic>;
 type OriginMap = WeakMap<Basic, Immutable<Basic>>;
 type Listener = () => void;
 type TargetMap = WeakMap<Immutable<Basic>, Set<Listener>>;
 
-const proxySet: ProxySet = new Set();
 const targetMap: TargetMap = new WeakMap();
 const originMap: OriginMap = new WeakMap();
 
@@ -108,20 +106,20 @@ function makeDeeplyImmutable<T extends Basic>(
   origin: T | Immutable<T>,
   proxyMap: ProxyMap,
 ): Immutable<T> {
-  if (proxySet.has(origin as Immutable<T>)) return origin as Immutable<T>;
+  if (proxyMap.has(origin as Immutable<T>)) return origin as Immutable<T>;
 
   const proxy = new Proxy(origin, {
     set: () => {
       throw new Error("Cannot modify a deeply immutable object");
     },
 
-    get: (target, property) => {
-      const value = target[property as keyof typeof target];
+    get: (origin, property) => {
+      const value = origin[property as keyof typeof origin];
       if (!isObject(value)) return value;
       const oldProxy = originMap.get(value);
       if (oldProxy) return oldProxy;
-      const box = makeDeeplyImmutable(value, proxyMap);
-      return box;
+      const newProxy = makeDeeplyImmutable(value, proxyMap);
+      return newProxy;
     },
   }) as Immutable<T>;
 

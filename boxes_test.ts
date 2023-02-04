@@ -3,72 +3,68 @@ import { getBox, watch } from "./boxes.ts";
 
 Deno.test(function basicTest() {
   const obj = { a: 1 };
-  const box = getBox(obj);
-  const data = box.data;
+  const { box, update } = getBox(obj);
   let control = 0;
-  assertEquals(data.a, obj.a);
-  const off = watch(data, () => {
+  assertEquals(box.a, obj.a);
+  const off = watch(box, () => {
     ++control;
   });
-  box.update(data, { a: 4 });
+  update(box, { a: 4 });
   assertEquals(control, 1);
-  assertEquals(data.a, obj.a);
-  assertEquals(data.a, 4);
+  assertEquals(box.a, obj.a);
+  assertEquals(box.a, 4);
   off();
-  box.update(data, { a: 6 });
+  update(box, { a: 6 });
   assertEquals(control, 1);
 });
 
 Deno.test(function deepBinding() {
   const obj = { a: 1, o: { x: 1 } };
-  const box = getBox(obj);
-  const data = box.data;
-  assertEquals(data.o, obj.o);
+  const { box, update } = getBox(obj);
+  assertEquals(box.o, obj.o);
   let control = 0;
-  const off = watch(data.o, () => {
+  const off = watch(box.o, () => {
     ++control;
   });
-  box.update(data.o, { x: 42 });
+  update(box.o, { x: 42 });
   assertEquals(control, 1);
-  assertEquals(data.o.x, obj.o.x);
+  assertEquals(box.o.x, obj.o.x);
   off();
-  box.update(data, { a: 6, o: { x: 1 } });
+  update(box, { a: 6, o: { x: 1 } });
   assertEquals(control, 1);
 });
 
 Deno.test(function patchMethod() {
   const obj = { a: 1, b: "abc" };
-  const box = getBox(obj);
-  const data = box.data;
-  assertEquals(data.a, obj.a);
+  const { box, patch } = getBox(obj);
+  assertEquals(box.a, obj.a);
   let control = 0;
-  const off = watch(data, () => {
+  const off = watch(box, () => {
     ++control;
   });
-  box.patch(data, { a: 2 });
+  patch(box, { a: 2 });
   assertEquals(control, 1);
-  assertEquals(data.a, obj.a);
-  assertEquals(data.a, 2);
-  assertEquals(data.b, "abc");
+  assertEquals(box.a, obj.a);
+  assertEquals(box.a, 2);
+  assertEquals(box.b, "abc");
   off();
-  box.patch(data, { a: 6 });
+  patch(box, { a: 6 });
   assertEquals(control, 1);
 });
 
 Deno.test(function patchMethodDeep() {
   const obj = { o: { x: 1, y: 2 } };
-  const box = getBox(obj);
-  const data = box.data;
+  const { box, patch } = getBox(obj);
   let control = 0;
-  const off = watch(data.o, () => {
+  const off = watch(box.o, () => {
     ++control;
   });
-  box.patch(data.o, { x: 99 });
+  patch(box.o, { x: 99 });
   assertEquals(control, 1);
-  assertEquals(data.o, obj.o);
-  assertEquals(data.o.x, 99);
-  assertEquals(data.o.y, 2);
+  assertEquals(box.o, obj.o);
+  assertEquals(box.o.x, 99);
+  assertEquals(box.o.y, 2);
   off();
-  box.patch(data.o, { x: 6 });
+  patch(box.o, { x: 6 });
   assertEquals(control, 1);
 });

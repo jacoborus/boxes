@@ -41,8 +41,8 @@ function isBasicObject(value: unknown): value is BasicObject {
   return isObject(value) && !Array.isArray(value);
 }
 
-interface Box<T extends Basic> {
-  data: Immutable<T>;
+interface BoxContainer<T extends Basic> {
+  box: Immutable<T>;
   update: <T extends Basic>(oldProxy: Immutable<T>, payload: T) => void;
   patch: <T extends BasicObject>(
     oldProxy: Immutable<T>,
@@ -61,11 +61,11 @@ export function watch(target: unknown, listener: () => void): () => void {
   };
 }
 
-export function getBox<T extends Basic>(origin: T): Box<T> {
+export function getBox<T extends Basic>(origin: T): BoxContainer<T> {
   const proxyMap: ProxyMap = new WeakMap();
 
   return {
-    data: makeDeeplyImmutable(origin, proxyMap),
+    box: makeDeeplyImmutable(origin, proxyMap),
 
     update(proxyTarget, payload) {
       const realTarget = proxyMap.get(proxyTarget);

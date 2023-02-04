@@ -14,7 +14,7 @@ const { box, update, patch } = getBox({
 
 // box is  { a: "abc", o: { x: 1 } }
 
-// box is an immutable proxy of the origin
+// box is a deep immutable proxy of the origin
 box === origin; // false
 box.a === origin.a; // true
 box.o === origin.o; // false
@@ -92,7 +92,7 @@ function to destroy the listener
 ```js
 import { getBox, watch } from "boxes";
 const { box, patch } = getBox({ a: 1, o: { x: 1 } });
-const unwatch = watch(box.o, () => console.log(box));
+const unwatch = watch(box.o, () => console.log(box.o));
 patch(box.o, { x: 99 });
 // logs { x: 99 }
 unwatch();

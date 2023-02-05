@@ -1,4 +1,4 @@
-type BasicValue = Date | boolean | number | BigInt | string | undefined;
+type BasicValue = Date | boolean | number | bigint | string | undefined;
 
 interface BasicObject {
   [key: string]: BasicValue | BasicObject | BasicArray;
@@ -41,7 +41,7 @@ interface BoxMethods {
   push: <T extends BasicArray>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]
-  ) => void;
+  ) => number;
 }
 
 type Box<T extends Basic> = BoxFunction<T> & BoxMethods;
@@ -50,7 +50,8 @@ const targetMap: TargetMap = new WeakMap();
 const originMap: OriginMap = new WeakMap();
 
 function isObject(value: unknown): value is Basic {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null &&
+    Object.prototype.toString.call(value) !== "[object Date]";
 }
 
 function isBasicObject(value: unknown): value is BasicObject {
@@ -66,6 +67,25 @@ export function watch(target: unknown, listener: () => void): () => void {
   return function () {
     listeners.delete(listener);
   };
+}
+
+function callbackArray<
+  T extends BasicArray,
+  R,
+>(
+  proxyTarget: Immutable<T>,
+  callback: (target: T) => R,
+  proxyMap: ProxyMap,
+): R {
+  const realTarget = proxyMap.get(proxyTarget);
+  if (!realTarget) throw new Error("Can't update non box");
+  if (!Array.isArray(realTarget)) {
+    throw new Error("Method only allowed on arrays");
+  }
+  const result = callback(realTarget as T);
+  const listeners = targetMap.get(proxyTarget);
+  listeners?.forEach((listener) => listener());
+  return result;
 }
 
 export function getBox<T extends Basic>(origin: T): Box<T> {
@@ -113,18 +133,134 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     listeners?.forEach((listener) => listener());
   };
 
+  box.copyWithin = function <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    target: number,
+    start: number,
+    end?: number,
+  ) {
+    return callbackArray(
+      proxyTarget,
+      (realTarget) => realTarget.copyWithin(target, start, end),
+      proxyMap,
+    );
+  };
+
+  box.fill = function <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    value: T[number],
+    start?: number,
+    end?: number,
+  ) {
+    return callbackArray(
+      proxyTarget,
+      (realTarget) => realTarget.fill(value, start, end),
+      proxyMap,
+    );
+  };
+
+  box.pop = function <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+  ): Immutable<T>[number] {
+    return callbackArray(
+      proxyTarget,
+      (realTarget) => {
+        const result = proxyTarget[proxyTarget.length - 1];
+        realTarget.pop();
+        return result;
+      },
+      proxyMap,
+    );
+  };
+
   box.push = function <T extends BasicArray>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]
-  ) {
-    const realTarget = proxyMap.get(proxyTarget);
-    if (!realTarget) throw new Error("Can't update non box");
-    if (!Array.isArray(realTarget)) {
-      throw new Error("Method only allowed on arrays");
-    }
-    realTarget.push(...payload);
-    const listeners = targetMap.get(proxyTarget);
-    listeners?.forEach((listener) => listener());
+  ): number {
+    return callbackArray(
+      proxyTarget,
+      (realTarget) => realTarget.push(...payload),
+      proxyMap,
+    );
+  };
+
+  box.reverse = function <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+  ): Immutable<T> {
+    return callbackArray(
+      proxyTarget,
+      (realTarget) => {
+        realTarget.reverse();
+        return proxyTarget;
+      },
+      proxyMap,
+    );
+  };
+
+  box.shift = function <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+  ): Immutable<T>[number] {
+    return callbackArray(
+      proxyTarget,
+      (realTarget) => {
+        const result = proxyTarget[0];
+        realTarget.shift();
+        return result;
+      },
+      proxyMap,
+    );
+  };
+
+  box.sort = function <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => 0 | 1 | -1,
+  ): Immutable<T> {
+    return callbackArray(
+      proxyTarget,
+      (realTarget) => {
+        if (!sorter) return proxyTarget;
+        realTarget.sort((a, b) => {
+          const proxyA = typeof a === "object" ? originMap.get(a as Basic) : a;
+          const proxyB = typeof b === "object" ? originMap.get(a as Basic) : b;
+          return sorter(
+            proxyA as Immutable<T>[number],
+            proxyB as Immutable<T>[number],
+          );
+        });
+        return proxyTarget;
+      },
+      proxyMap,
+    );
+  };
+
+  // box.splice = function <T extends BasicArray>(
+  //   proxyTarget: Immutable<T>,
+  //   start: number,
+  //   deleteCount?: number,
+  //   ...items: Immutable<T>[number][] | T[number][]
+  // ) {
+  //   return callbackArray(
+  //     proxyTarget,
+  //     (realTarget) => {
+  //       const elements = realTarget.slice(start, deleteCount);
+  //       if (deleteCount) {
+  //         realTarget.splice(start, deleteCount, ...items);
+  //       } else realTarget.splice(start);
+  //       return elements;
+  //     },
+  //     proxyMap,
+  //   );
+  // };
+
+  box.unshift = function <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    ...payload: NonReadonly<T[number]>[]
+  ): number {
+    return callbackArray(
+      proxyTarget,
+      (realTarget) => realTarget.unshift(...payload),
+      proxyMap,
+    );
   };
 
   return box;
@@ -144,6 +280,7 @@ function makeDeeplyImmutable<T extends Basic>(
     get: (origin, property) => {
       const value = origin[property as keyof typeof origin];
       if (!isObject(value)) return value;
+      if (targetMap.has(value as Immutable<typeof value>)) return value;
       const oldProxy = originMap.get(value);
       if (oldProxy) return oldProxy;
       const newProxy = makeDeeplyImmutable(value, proxyMap);

@@ -112,8 +112,9 @@ Deno.test(function pushToBox() {
   const off = watch(data, () => {
     ++control;
   });
-  box.push(data, 4);
+  const len = box.push(data, 4);
   assertEquals(control, 1);
+  assertEquals(len, 4);
   assertEquals(data[3], 4);
   off();
   box.push(data, 6);

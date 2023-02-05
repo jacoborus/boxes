@@ -103,8 +103,10 @@ console.log(box());
 
 ## watch(target)
 
-Watches a box and executes a callback every time the box changes. Returns a
-function to destroy the listener
+Watches the box data and executes a callback every time it changes. It can oly
+watch objects and arrays.
+
+Returns a function to destroy the listener
 
 ```js
 import { getBox, watch } from "boxes";

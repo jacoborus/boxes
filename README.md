@@ -5,7 +5,7 @@
 ```ts
 import { getBox, watch } from "boxes";
 
-const { box, update, patch } = getBox({
+const [box, { update, patch }] = getBox({
   a: "abc",
   o: {
     x: 1,
@@ -41,25 +41,23 @@ update(box.o, { x: 2 });
 
 ## getBox(origin)
 
-Creates a BoxContainer for a origin object/array. This is a simple wrapper for
-the box, and its mutation methods.
+Creates a box and its mutations object for an origin
 
 The origin should be a tree of objects and/or arrays that only contains numbers,
 strings, Dates, booleans, BigInts or undefineds
 
 ```js
 import { getBox } from "boxes";
-const boxContainer = getBox({ a: 1 });
+const [box, mutations] = getBox({ a: 1 });
 ```
 
-### BoxContainer.box
+### box
 
-It's an immutable proxy of the origin. It can only be mutated with the mutation
-methods of the same container
+It's an immutable proxy of the origin.
 
 ```js
 import { getBox } from "boxes";
-const { box } = getBox({ a: 1 });
+const [box] = getBox({ a: 1 });
 ```
 
 ### BoxContainer.update(target, payload)
@@ -68,7 +66,7 @@ Updates the main box, or any box created inside it
 
 ```js
 import { getBox } from "boxes";
-const { box, update } = getBox({ a: 1, o: { x: 1 } });
+const [ box, {update} ] = getBox({ a: 1, o: { x: 1 } });
 update(box.o, { x: 3 });
 ```
 
@@ -78,7 +76,7 @@ Patches the main box, or any box created inside it
 
 ```js
 import { getBox } from "boxes";
-const { box, patch } = getBox({ a: 1, o: { x: 1 } });
+const [ box, {patch} ] = getBox({ a: 1, o: { x: 1 } });
 patch(box, { a: 3 });
 console.log(box);
 // { a: 3, o: { x: 1 } }
@@ -91,7 +89,7 @@ function to destroy the listener
 
 ```js
 import { getBox, watch } from "boxes";
-const { box, patch } = getBox({ a: 1, o: { x: 1 } });
+const [ box, {patch} ] = getBox({ a: 1, o: { x: 1 } });
 const unwatch = watch(box.o, () => console.log(box.o));
 patch(box.o, { x: 99 });
 // logs { x: 99 }

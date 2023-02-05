@@ -3,7 +3,7 @@ import { getBox, watch } from "./boxes.ts";
 
 Deno.test(function basicTest() {
   const obj = { a: 1 };
-  const { box, update } = getBox(obj);
+  const [box, { update }] = getBox(obj);
   let control = 0;
   assertEquals(box.a, obj.a);
   const off = watch(box, () => {
@@ -20,7 +20,7 @@ Deno.test(function basicTest() {
 
 Deno.test(function deepBinding() {
   const obj = { a: 1, o: { x: 1 } };
-  const { box, update } = getBox(obj);
+  const [box, { update }] = getBox(obj);
   assertEquals(box.o, obj.o);
   let control = 0;
   const off = watch(box.o, () => {
@@ -36,7 +36,7 @@ Deno.test(function deepBinding() {
 
 Deno.test(function patchMethod() {
   const obj = { a: 1, b: "abc" };
-  const { box, patch } = getBox(obj);
+  const [box, { patch }] = getBox(obj);
   assertEquals(box.a, obj.a);
   let control = 0;
   const off = watch(box, () => {
@@ -54,7 +54,7 @@ Deno.test(function patchMethod() {
 
 Deno.test(function patchMethodDeep() {
   const obj = { o: { x: 1, y: 2 } };
-  const { box, patch } = getBox(obj);
+  const [box, { patch }] = getBox(obj);
   let control = 0;
   const off = watch(box.o, () => {
     ++control;
@@ -66,5 +66,21 @@ Deno.test(function patchMethodDeep() {
   assertEquals(box.o.y, 2);
   off();
   patch(box.o, { x: 6 });
+  assertEquals(control, 1);
+});
+
+Deno.test(function deepPatch() {
+  const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
+  const [box, { update }] = getBox(arr);
+  let control = 0;
+  const off = watch(box[0], () => {
+    ++control;
+  });
+  // console.log(box[0] === arr[0]);
+  update(box[0], { a: 99 });
+  assertEquals(control, 1);
+  assertEquals(box[0].a, 99);
+  off();
+  update(box[0], { a: 22 });
   assertEquals(control, 1);
 });

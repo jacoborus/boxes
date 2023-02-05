@@ -39,8 +39,7 @@ function isBasicObject(value: unknown): value is BasicObject {
   return isObject(value) && !Array.isArray(value);
 }
 
-interface BoxContainer<T extends Basic> {
-  box: Immutable<T>;
+interface Mutations {
   update: <T extends Basic>(oldProxy: Immutable<T>, payload: T) => void;
   patch: <T extends BasicObject>(
     oldProxy: Immutable<T>,
@@ -59,47 +58,47 @@ export function watch(target: unknown, listener: () => void): () => void {
   };
 }
 
-export function getBox<T extends Basic>(origin: T): BoxContainer<T> {
+export function getBox<T extends Basic>(origin: T): [Immutable<T>, Mutations] {
   const proxyMap: ProxyMap = new WeakMap();
+  return [
+    makeDeeplyImmutable(origin, proxyMap),
+    {
+      update(proxyTarget, payload) {
+        const realTarget = proxyMap.get(proxyTarget);
+        if (!realTarget) throw new Error("Can't update non box");
+        if (isBasicObject(realTarget)) {
+          if (Array.isArray(payload)) throw new Error("not gonna happen");
+          Object.keys(payload).forEach((key) => {
+            const value = payload[key];
+            realTarget[key as keyof typeof realTarget] = value;
+          });
+        } else {
+          if (!Array.isArray(payload)) throw new Error("not gonna happen");
+          payload.forEach((value, i) => {
+            realTarget[i] = value;
+          });
+          realTarget.length = payload.length;
+        }
+        const listeners = targetMap.get(proxyTarget);
+        listeners?.forEach((listener) => listener());
+      },
 
-  return {
-    box: makeDeeplyImmutable(origin, proxyMap),
-
-    update(proxyTarget, payload) {
-      const realTarget = proxyMap.get(proxyTarget);
-      if (!realTarget) throw new Error("Can't update non box");
-      if (isBasicObject(realTarget)) {
-        if (Array.isArray(payload)) throw new Error("not gonna happen");
+      patch(proxyTarget, payload) {
+        const realTarget = proxyMap.get(proxyTarget);
+        if (!realTarget) throw new Error("Can't update non box");
+        if (Array.isArray(payload) || Array.isArray(realTarget)) {
+          throw new Error("Method not allowed on arrays");
+        }
         Object.keys(payload).forEach((key) => {
           const value = payload[key];
-          realTarget[key as keyof typeof realTarget] = value;
+          if (value === null) delete realTarget[key];
+          else realTarget[key] = value;
         });
-      } else {
-        if (!Array.isArray(payload)) throw new Error("not gonna happen");
-        payload.forEach((value, i) => {
-          realTarget[i] = value;
-        });
-        realTarget.length = payload.length;
-      }
-      const listeners = targetMap.get(proxyTarget);
-      listeners?.forEach((listener) => listener());
+        const listeners = targetMap.get(proxyTarget);
+        listeners?.forEach((listener) => listener());
+      },
     },
-
-    patch(proxyTarget, payload) {
-      const realTarget = proxyMap.get(proxyTarget);
-      if (!realTarget) throw new Error("Can't update non box");
-      if (Array.isArray(payload) || Array.isArray(realTarget)) {
-        throw new Error("Method not allowed on arrays");
-      }
-      Object.keys(payload).forEach((key) => {
-        const value = payload[key];
-        if (value === null) delete realTarget[key];
-        else realTarget[key] = value;
-      });
-      const listeners = targetMap.get(proxyTarget);
-      listeners?.forEach((listener) => listener());
-    },
-  };
+  ];
 }
 
 function makeDeeplyImmutable<T extends Basic>(

@@ -77,7 +77,6 @@ Deno.test(function deepPatch() {
   const off = watch(box()[0], () => {
     ++control;
   });
-  // console.log(box[0] === arr[0]);
   box.update(box()[0], { a: 99 });
   assertEquals(control, 1);
   assertEquals(box()[0].a, 99);
@@ -97,11 +96,26 @@ Deno.test(function foreachBox() {
     const same = item === box()[i];
     assertEquals(same, true);
   });
-  // console.log(box[0] === arr[0]);
   box.update(box()[0], { a: 99 });
   assertEquals(control, 1);
   assertEquals(box()[0].a, 99);
   off();
   box.update(box()[0], { a: 22 });
+  assertEquals(control, 1);
+});
+
+Deno.test(function pushToBox() {
+  const arr = [1, 2, 3];
+  const box = getBox(arr);
+  const data = box();
+  let control = 0;
+  const off = watch(data, () => {
+    ++control;
+  });
+  box.push(data, 4);
+  assertEquals(control, 1);
+  assertEquals(data[3], 4);
+  off();
+  box.push(data, 6);
   assertEquals(control, 1);
 });

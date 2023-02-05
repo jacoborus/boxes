@@ -101,6 +101,22 @@ console.log(box());
 // { o: { x: 1 } }
 ```
 
+### Box.push(target, ...items)
+
+Pushes to the box data. Only allowed for arrays
+
+```js
+import { getBox } from "boxes";
+
+const arr = [1, 2, 3];
+const box = getBox(arr);
+const data = box();
+box.push(data, 4);
+box.push(data, 5);
+console.log(data);
+// [1, 2, 3, 4, 5]
+```
+
 ## watch(target)
 
 Watches the box data and executes a callback every time it changes. It can oly

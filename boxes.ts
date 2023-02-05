@@ -7,26 +7,23 @@ type BasicArray = Array<BasicValue | BasicArray | BasicObject>;
 type Basic = BasicArray | BasicObject;
 
 type ImmutableObject<T extends BasicObject> = {
-  readonly [k in keyof T]: T[k] extends BasicValue
-    ? BasicValue
-    : T[k] extends BasicObject
-    ? ImmutableObject<T[k]>
+  readonly [k in keyof T]: T[k] extends BasicValue ? BasicValue
+    : T[k] extends BasicObject ? ImmutableObject<T[k]>
     : ReadonlyArray<T[k]>;
 };
 
 type ImmutableArray<T extends BasicArray> = ReadonlyArray<
-  T[number] extends BasicValue
-    ? BasicValue
-    : T[number] extends BasicObject
-    ? ImmutableObject<T[number]>
+  T[number] extends BasicValue ? BasicValue
+    : T[number] extends BasicObject ? ImmutableObject<T[number]>
     : ReadonlyArray<T[number]>
 >;
 
 type Immutable<T extends BasicArray | BasicObject> = T extends BasicObject
   ? ImmutableObject<T>
-  : T extends BasicArray
-  ? ImmutableArray<T>
+  : T extends BasicArray ? ImmutableArray<T>
   : never;
+
+type NonReadonly<T> = T extends readonly (infer U)[] ? NonReadonly<U>[] : T;
 
 type ProxyMap = WeakMap<Immutable<Basic>, Basic>;
 type OriginMap = WeakMap<Basic, Immutable<Basic>>;
@@ -39,7 +36,11 @@ interface BoxMethods {
   update: <T extends Basic>(proxyTarget: Immutable<Basic>, payload: T) => void;
   patch: <T extends Basic>(
     proxyTarget: Immutable<Basic>,
-    payload: Partial<T>
+    payload: Partial<T>,
+  ) => void;
+  push: <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    ...payload: NonReadonly<T[number]>[]
   ) => void;
 }
 
@@ -74,8 +75,6 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     return data;
   }
 
-  // TODO: try next line, will the TS compiler identify objects from this box?
-  // box.update = function (proxyTarget: keyof typeof proxyMap, payload: Basic) {
   box.update = function (proxyTarget: Immutable<Basic>, payload: Basic) {
     const realTarget = proxyMap.get(proxyTarget);
     if (!realTarget) throw new Error("Can't update non box");
@@ -98,7 +97,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 
   box.patch = function (
     proxyTarget: Immutable<Basic>,
-    payload: Partial<Basic>
+    payload: Partial<Basic>,
   ) {
     const realTarget = proxyMap.get(proxyTarget);
     if (!realTarget) throw new Error("Can't update non box");
@@ -114,12 +113,26 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     listeners?.forEach((listener) => listener());
   };
 
+  box.push = function <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    ...payload: NonReadonly<T[number]>[]
+  ) {
+    const realTarget = proxyMap.get(proxyTarget);
+    if (!realTarget) throw new Error("Can't update non box");
+    if (!Array.isArray(realTarget)) {
+      throw new Error("Method only allowed on arrays");
+    }
+    realTarget.push(...payload);
+    const listeners = targetMap.get(proxyTarget);
+    listeners?.forEach((listener) => listener());
+  };
+
   return box;
 }
 
 function makeDeeplyImmutable<T extends Basic>(
   origin: T | Immutable<T>,
-  proxyMap: ProxyMap
+  proxyMap: ProxyMap,
 ): Immutable<T> {
   if (proxyMap.has(origin as Immutable<T>)) return origin as Immutable<T>;
 

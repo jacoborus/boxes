@@ -5,14 +5,16 @@
 ```ts
 import { getBox, watch } from "boxes";
 
-const box = getBox({
+const origin = {
   a: "abc",
   o: {
     x: 1,
   },
-});
-const { update, patch } = box;
+};
 
+const box = getBox(origin);
+
+const { update, patch } = box;
 const data = box(); // { a: "abc", o: { x: 1 } }
 
 // data is a deep immutable proxy of the origin

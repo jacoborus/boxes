@@ -32,7 +32,7 @@ patch(data, { a: "123" });
 
 watch(data.o, () => console.log("==>", data.o));
 update(data.o, { x: 2 });
-// logs: { x: 2 }
+// logs: ==> { x: 2 }
 ```
 
 **API:**

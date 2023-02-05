@@ -5,32 +5,33 @@
 ```ts
 import { getBox, watch } from "boxes";
 
-const [box, { update, patch }] = getBox({
+const box = getBox({
   a: "abc",
   o: {
     x: 1,
   },
 });
+const { update, patch } = box;
 
-// box is  { a: "abc", o: { x: 1 } }
+const data = box(); // { a: "abc", o: { x: 1 } }
 
-// box is a deep immutable proxy of the origin
-box === origin; // false
-box.a === origin.a; // true
-box.o === origin.o; // false
-box.o.x === origin.o.x; // true
+// data is a deep immutable proxy of the origin
+data === origin; // false
+data.a === origin.a; // true
+data.o === origin.o; // false
+data.o.x === origin.o.x; // true
 
-const unwatch = watch(box, () => console.log(box));
+const unwatch = watch(data, () => console.log(data));
 
-patch(box, { a: "xyz" });
+patch(data, { a: "xyz" });
 // logs: { a: "xyz", o: { x: 1 } }
 
 unwatch();
-patch(box, { a: "123" });
-// logs nothing, box === { a: "123", o: { x: 1 } }
+patch(data, { a: "123" });
+// logs nothing, data === { a: "123", o: { x: 1 } }
 
-watch(box.o, () => console.log("==>", box.o));
-update(box.o, { x: 2 });
+watch(data.o, () => console.log("==>", data.o));
+update(data.o, { x: 2 });
 // logs: { x: 2 }
 ```
 
@@ -41,45 +42,61 @@ update(box.o, { x: 2 });
 
 ## getBox(origin)
 
-Creates a box and its mutations object for an origin
+Creates a box.
 
 The origin should be a tree of objects and/or arrays that only contains numbers,
 strings, Dates, booleans, BigInts or undefineds
 
 ```js
 import { getBox } from "boxes";
-const [box, mutations] = getBox({ a: 1 });
+const box = getBox({ a: 1 });
 ```
 
-### box
+### Box
 
-It's an immutable proxy of the origin.
+It's a function that returns a deep immutable proxy of the origin
 
 ```js
 import { getBox } from "boxes";
-const [box] = getBox({ a: 1 });
+const box = getBox({ a: 1 });
+
+console.log(box());
+// { a:1 }
 ```
 
-### BoxContainer.update(target, payload)
+### Box.update(target, payload)
 
-Updates the main box, or any box created inside it
+Updates the box data
 
 ```js
 import { getBox } from "boxes";
-const [ box, {update} ] = getBox({ a: 1, o: { x: 1 } });
-update(box.o, { x: 3 });
+const box = getBox({ a: 1, o: { x: 1 } });
+const data = box();
+box.update(data.o, { x: 3 });
+console.log(box());
+// { a: 1, o: { x: 3 } }
 ```
 
-### BoxContainer.patch(target, payload)
+### Box.patch(target, payload)
 
-Patches the main box, or any box created inside it
+Patches the box data. To delete a property, pass its value as null
 
 ```js
 import { getBox } from "boxes";
-const [ box, {patch} ] = getBox({ a: 1, o: { x: 1 } });
-patch(box, { a: 3 });
-console.log(box);
+
+const box = getBox({
+  a: 1,
+  o: {
+    x: 1,
+  },
+});
+box.patch(box(), { a: 3 });
+console.log(box());
 // { a: 3, o: { x: 1 } }
+
+box.patch(box(), { a: null });
+console.log(box());
+// { o: { x: 1 } }
 ```
 
 ## watch(target)
@@ -89,11 +106,11 @@ function to destroy the listener
 
 ```js
 import { getBox, watch } from "boxes";
-const [ box, {patch} ] = getBox({ a: 1, o: { x: 1 } });
-const unwatch = watch(box.o, () => console.log(box.o));
-patch(box.o, { x: 99 });
+const box = getBox({ a: 1, o: { x: 1 } });
+const unwatch = watch(box().o, () => console.log(box().o));
+box.patch(box().o, { x: 99 });
 // logs { x: 99 }
 unwatch();
-patch(box.o, { x: 6 });
+box.patch(box().o, { x: 6 });
 // does not log anything
 ```

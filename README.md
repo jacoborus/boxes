@@ -1,104 +1,136 @@
-Boxes
-=====
+# Boxes
 
 (Work in progress)
 
-Reactive state containers focused on DOM performance
-
-```js
-import { getBox, on } from 'Boxes'
+```ts
+import { getBox, watch } from "boxes";
 
 const origin = {
-  a: 1
-}
+  a: "abc",
+  o: {
+    x: 1,
+  },
+};
 
-const box = getBox(origin)
-box // { a: 1 }
-box === origin // false
+const box = getBox(origin);
 
-on(box, 'a', (...change) => console.log(change))
-box.a = 'hello'
-// logs: [{ a: 'hello' }, 'a', 'set', 1, 'hello']
+const { update, patch } = box;
+const data = box(); // { a: "abc", o: { x: 1 } }
+
+// data is a deep immutable proxy of the origin
+data === origin; // false
+data.a === origin.a; // true
+data.o === origin.o; // false
+data.o.x === origin.o.x; // true
+
+const unwatch = watch(data, () => console.log(data));
+
+patch(data, { a: "xyz" });
+// logs: { a: "xyz", o: { x: 1 } }
+
+unwatch();
+patch(data, { a: "123" });
+// logs nothing, data === { a: "123", o: { x: 1 } }
+
+watch(data.o, () => console.log("==>", data.o));
+update(data.o, { x: 2 });
+// logs: ==> { x: 2 }
 ```
 
-## API
+**API:**
 
 - getBox
-- on
-- off
+- watch
 
-### on(box, prop, handler)
+## getBox(origin)
 
-Adds `handler` to box
+Creates a box.
 
-```js
-const box = getBox({ a: 1 })
-const handler = (...change) => console.log(change)
-boxes.on(box, 'a', handler)
-
-box.a = 'hello'
-// logs: [{ a: 'hello' }, 'a', 'set', 1, 'hello']
-```
-
-It also works with dot notation:
+The origin should be a tree of objects and/or arrays that only contains numbers,
+strings, Dates, booleans, BigInts or undefineds
 
 ```js
-const box = getBox({ o: { a: 1  } })
-const handler = (...change) => console.log(change)
-boxes.on(box, 'o.a', handler)
-
-box.o.a = 'hello'
-['set', 'a', 1, 'hello', { a: 'hello' }]
-
-box.o = { a: 'bye' }
-// logs: [{ a: 'bye' }, 'a', 'set', 'hello', 'bye']
+import { getBox } from "boxes";
+const box = getBox({ a: 1 });
 ```
 
-### off(box, prop, handler)
+### Box
 
-Removes `handler` from the box
+It's a function that returns a deep immutable proxy of the origin
 
 ```js
-boxes.off(box, 'propName', action)
+import { getBox } from "boxes";
+const box = getBox({ a: 1 });
+
+console.log(box());
+// { a:1 }
 ```
 
+### Box.update(target, payload)
 
-## Emitter
+Updates the box data
 
-Boxes will emit the changes made in the observed objects.
+```js
+import { getBox } from "boxes";
+const box = getBox({ a: 1, o: { x: 1 } });
+const data = box();
+box.update(data.o, { x: 3 });
+console.log(box());
+// { a: 1, o: { x: 3 } }
+```
 
-### Change signatures:
+### Box.patch(target, payload)
 
-Generic signature: `[box, property, changeType, oldValue, newValue]`
+Patches the box data. To delete a property, pass its value as null
 
-Object:
+```js
+import { getBox } from "boxes";
 
-- set:
-  - signature: `[box, property, 'set', oldValue, newValue]`
-  - on: literal assignation, Object.assign, ...
-- delete:
-  - signature: `[box, property, 'delete', oldValue, undefined]`
-  - on: delete operator
+const box = getBox({
+  a: 1,
+  o: {
+    x: 1,
+  },
+});
+box.patch(box(), { a: 3 });
+console.log(box());
+// { a: 3, o: { x: 1 } }
 
-Array:
+box.patch(box(), { a: null });
+console.log(box());
+// { o: { x: 1 } }
+```
 
-- set:
-  - signature: `[box, property, 'set', oldValue, newValue]`
-  - on: copyWithin, fill, splice and literal assignation
-- delete:
-  - signature: `[box, property, 'delete', oldValue, undefined]`
-  - on: delete operator
-- insert:
-  - signature: `[box, property, 'insert', undefined, newValue]`
-  - on: push, splice, unshift
-- remove:
-  - signature: `[box, property, 'remove', oldValue, undefined]`
-  - on: pop, shift, splice
-- swap:
-  - signature: `[box, property, 'swap', oldValue, newValue]`
-  - on: reverse , sort
-- length:
-  - signature: `[box, firstIndexChanged || undefined, 'length',  oldLength, newLength]`
-  - on: pop, push, shift, splice, unshift
-  - `firstIndexChanged` will be passed only on shift, splice and unshift
-    because on pop and push no index will change
+### Box.push(target, ...items)
+
+Pushes to the box data. Only allowed for arrays
+
+```js
+import { getBox } from "boxes";
+
+const arr = [1, 2, 3];
+const box = getBox(arr);
+const data = box();
+box.push(data, 4);
+box.push(data, 5);
+console.log(data);
+// [1, 2, 3, 4, 5]
+```
+
+## watch(target)
+
+Watches the box data and executes a callback every time it changes. It can oly
+watch objects and arrays.
+
+Returns a function to destroy the listener
+
+```js
+import { getBox, watch } from "boxes";
+const box = getBox({ a: 1, o: { x: 1 } });
+const unwatch = watch(box().o, () => console.log(box().o));
+box.patch(box().o, { x: 99 });
+// logs { x: 99 }
+unwatch();
+box.patch(box().o, { x: 6 });
+// does not log anything
+```

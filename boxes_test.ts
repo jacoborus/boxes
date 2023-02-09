@@ -118,6 +118,20 @@ Deno.test("fill box array", () => {
   assertEquals(true, result === data);
 });
 
+Deno.test("pop box array", () => {
+  const arr = [{ x: 1 }, { x: 2 }, { x: 3 }];
+  const box = getBox(arr);
+  const data = box();
+  let control = 0;
+  watch(data, () => {
+    ++control;
+  });
+  const result = box.pop(data);
+  assertEquals(control, 1);
+  assertEquals(result.x, 3);
+  assertEquals(data, [{ x: 1 }, { x: 2 }]);
+});
+
 Deno.test("pushToBox", () => {
   const arr = [1, 2, 3];
   const box = getBox(arr);

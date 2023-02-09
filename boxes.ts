@@ -44,6 +44,9 @@ interface BoxMethods {
     start?: number,
     end?: number,
   ) => Immutable<T>;
+  pop: <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+  ) => Immutable<T>[number];
   push: <T extends BasicArray>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]

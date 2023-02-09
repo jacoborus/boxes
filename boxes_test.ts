@@ -53,7 +53,7 @@ Deno.test("patchMethod", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("patchMethodDeep", () => {
+Deno.test("patch deep", () => {
   const obj = { o: { x: 1, y: 2 } };
   const box = getBox(obj);
   let control = 0;
@@ -70,7 +70,7 @@ Deno.test("patchMethodDeep", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("deepPatch", () => {
+Deno.test("update", () => {
   const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
   const box = getBox(arr);
   let control = 0;
@@ -85,7 +85,7 @@ Deno.test("deepPatch", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("foreachBox", () => {
+Deno.test("foreach", () => {
   const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
   const box = getBox(arr);
   let control = 0;
@@ -104,7 +104,7 @@ Deno.test("foreachBox", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("fill box array", () => {
+Deno.test("fill", () => {
   const arr = [1, 2, 3];
   const box = getBox(arr);
   const data = box();
@@ -118,7 +118,7 @@ Deno.test("fill box array", () => {
   assertEquals(true, result === data);
 });
 
-Deno.test("pop box array", () => {
+Deno.test("pop", () => {
   const arr = [{ x: 1 }, { x: 2 }, { x: 3 }];
   const box = getBox(arr);
   const data = box();
@@ -132,7 +132,7 @@ Deno.test("pop box array", () => {
   assertEquals(data, [{ x: 1 }, { x: 2 }]);
 });
 
-Deno.test("pushToBox", () => {
+Deno.test("push", () => {
   const arr = [1, 2, 3];
   const box = getBox(arr);
   const data = box();
@@ -149,7 +149,7 @@ Deno.test("pushToBox", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("shift box array", () => {
+Deno.test("shift", () => {
   const arr = [{ x: 1 }, { x: 2 }, { x: 3 }];
   const box = getBox(arr);
   const data = box();
@@ -161,4 +161,18 @@ Deno.test("shift box array", () => {
   assertEquals(control, 1);
   assertEquals(result.x, 1);
   assertEquals(data, [{ x: 2 }, { x: 3 }]);
+});
+
+Deno.test("sort simple", () => {
+  const arr = [4, 3, 1, 2];
+  const box = getBox(arr);
+  const data = box();
+  let control = 0;
+  watch(data, () => {
+    ++control;
+  });
+  const result = box.sort(data);
+  assertEquals(control, 1);
+  assertEquals(data, result);
+  assertEquals(data, [1, 2, 3, 4]);
 });

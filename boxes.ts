@@ -59,6 +59,10 @@ interface BoxMethods {
   shift: <T extends BasicArray>(
     proxyTarget: Immutable<T>
   ) => Immutable<T>[number];
+  sort: <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number
+  ) => Immutable<T>;
 }
 
 type Box<T extends Basic> = BoxFunction<T> & BoxMethods;
@@ -233,15 +237,24 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 
   box.sort = function <T extends BasicArray>(
     proxyTarget: Immutable<T>,
-    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => 0 | 1 | -1
+    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number
   ): Immutable<T> {
     return callbackArray(
       proxyTarget,
       (realTarget) => {
-        if (!sorter) return proxyTarget;
+        if (!sorter) {
+          realTarget.sort();
+          return proxyTarget;
+        }
         realTarget.sort((a, b) => {
-          const proxyA = typeof a === "object" ? originMap.get(a as Basic) : a;
-          const proxyB = typeof b === "object" ? originMap.get(a as Basic) : b;
+          const proxyA =
+            typeof a === "object" && !(a instanceof Date)
+              ? originMap.get(a as Basic)
+              : a;
+          const proxyB =
+            typeof b === "object" && !(b instanceof Date)
+              ? originMap.get(b as Basic)
+              : b;
           return sorter(
             proxyA as Immutable<T>[number],
             proxyB as Immutable<T>[number]

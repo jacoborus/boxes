@@ -38,6 +38,12 @@ interface BoxMethods {
     proxyTarget: Immutable<Basic>,
     payload: Partial<T>,
   ) => void;
+  fill: <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    val: T[number],
+    start?: number,
+    end?: number,
+  ) => Immutable<T>;
   push: <T extends BasicArray>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]
@@ -50,8 +56,11 @@ const targetMap: TargetMap = new WeakMap();
 const originMap: OriginMap = new WeakMap();
 
 function isObject(value: unknown): value is Basic {
-  return typeof value === "object" && value !== null &&
-    Object.prototype.toString.call(value) !== "[object Date]";
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.prototype.toString.call(value) !== "[object Date]"
+  );
 }
 
 function isBasicObject(value: unknown): value is BasicObject {
@@ -69,10 +78,7 @@ export function watch(target: unknown, listener: () => void): () => void {
   };
 }
 
-function callbackArray<
-  T extends BasicArray,
-  R,
->(
+function callbackArray<T extends BasicArray, R>(
   proxyTarget: Immutable<T>,
   callback: (target: T) => R,
   proxyMap: ProxyMap,
@@ -154,7 +160,10 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   ) {
     return callbackArray(
       proxyTarget,
-      (realTarget) => realTarget.fill(value, start, end),
+      (realTarget) => {
+        realTarget.fill(value, start, end);
+        return proxyTarget;
+      },
       proxyMap,
     );
   };

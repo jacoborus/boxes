@@ -1,7 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.174.0/testing/asserts.ts";
 import { getBox, watch } from "./boxes.ts";
 
-Deno.test(function basicTest() {
+Deno.test("basic test", () => {
   const obj = { a: 1 };
   const box = getBox(obj);
   let control = 0;
@@ -18,7 +18,7 @@ Deno.test(function basicTest() {
   assertEquals(control, 1);
 });
 
-Deno.test(function deepBinding() {
+Deno.test("deep binding", () => {
   const obj = { a: 1, o: { x: 1 } };
   const box = getBox(obj);
   const data = box();
@@ -35,7 +35,7 @@ Deno.test(function deepBinding() {
   assertEquals(control, 1);
 });
 
-Deno.test(function patchMethod() {
+Deno.test("patchMethod", () => {
   const obj = { a: 1, b: "abc" };
   const box = getBox(obj);
   assertEquals(box().a, obj.a);
@@ -53,7 +53,7 @@ Deno.test(function patchMethod() {
   assertEquals(control, 1);
 });
 
-Deno.test(function patchMethodDeep() {
+Deno.test("patchMethodDeep", () => {
   const obj = { o: { x: 1, y: 2 } };
   const box = getBox(obj);
   let control = 0;
@@ -70,7 +70,7 @@ Deno.test(function patchMethodDeep() {
   assertEquals(control, 1);
 });
 
-Deno.test(function deepPatch() {
+Deno.test("deepPatch", () => {
   const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
   const box = getBox(arr);
   let control = 0;
@@ -85,7 +85,7 @@ Deno.test(function deepPatch() {
   assertEquals(control, 1);
 });
 
-Deno.test(function foreachBox() {
+Deno.test("foreachBox", () => {
   const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
   const box = getBox(arr);
   let control = 0;
@@ -104,7 +104,21 @@ Deno.test(function foreachBox() {
   assertEquals(control, 1);
 });
 
-Deno.test(function pushToBox() {
+Deno.test("fill box array", () => {
+  const arr = [1, 2, 3];
+  const box = getBox(arr);
+  const data = box();
+  let control = 0;
+  watch(data, () => {
+    ++control;
+  });
+  const result = box.fill(data, 4);
+  assertEquals(control, 1);
+  assertEquals(result, [4, 4, 4]);
+  assertEquals(true, result === data);
+});
+
+Deno.test("pushToBox", () => {
   const arr = [1, 2, 3];
   const box = getBox(arr);
   const data = box();

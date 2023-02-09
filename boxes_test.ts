@@ -148,3 +148,17 @@ Deno.test("pushToBox", () => {
   box.push(data, 6);
   assertEquals(control, 1);
 });
+
+Deno.test("shift box array", () => {
+  const arr = [{ x: 1 }, { x: 2 }, { x: 3 }];
+  const box = getBox(arr);
+  const data = box();
+  let control = 0;
+  watch(data, () => {
+    ++control;
+  });
+  const result = box.shift(data);
+  assertEquals(control, 1);
+  assertEquals(result.x, 1);
+  assertEquals(data, [{ x: 2 }, { x: 3 }]);
+});

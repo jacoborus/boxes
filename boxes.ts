@@ -7,20 +7,25 @@ type BasicArray = Array<BasicValue | BasicArray | BasicObject>;
 type Basic = BasicArray | BasicObject;
 
 type ImmutableObject<T extends BasicObject> = {
-  readonly [k in keyof T]: T[k] extends BasicValue ? BasicValue
-    : T[k] extends BasicObject ? ImmutableObject<T[k]>
+  readonly [k in keyof T]: T[k] extends BasicValue
+    ? BasicValue
+    : T[k] extends BasicObject
+    ? ImmutableObject<T[k]>
     : ReadonlyArray<T[k]>;
 };
 
 type ImmutableArray<T extends BasicArray> = ReadonlyArray<
-  T[number] extends BasicValue ? BasicValue
-    : T[number] extends BasicObject ? ImmutableObject<T[number]>
+  T[number] extends BasicValue
+    ? BasicValue
+    : T[number] extends BasicObject
+    ? ImmutableObject<T[number]>
     : ReadonlyArray<T[number]>
 >;
 
 type Immutable<T extends BasicArray | BasicObject> = T extends BasicObject
   ? ImmutableObject<T>
-  : T extends BasicArray ? ImmutableArray<T>
+  : T extends BasicArray
+  ? ImmutableArray<T>
   : never;
 
 type NonReadonly<T> = T extends readonly (infer U)[] ? NonReadonly<U>[] : T;
@@ -36,21 +41,24 @@ interface BoxMethods {
   update: <T extends Basic>(proxyTarget: Immutable<Basic>, payload: T) => void;
   patch: <T extends Basic>(
     proxyTarget: Immutable<Basic>,
-    payload: Partial<T>,
+    payload: Partial<T>
   ) => void;
   fill: <T extends BasicArray>(
     proxyTarget: Immutable<T>,
     val: T[number],
     start?: number,
-    end?: number,
+    end?: number
   ) => Immutable<T>;
   pop: <T extends BasicArray>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: Immutable<T>
   ) => Immutable<T>[number];
   push: <T extends BasicArray>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]
   ) => number;
+  shift: <T extends BasicArray>(
+    proxyTarget: Immutable<T>
+  ) => Immutable<T>[number];
 }
 
 type Box<T extends Basic> = BoxFunction<T> & BoxMethods;
@@ -84,7 +92,7 @@ export function watch(target: unknown, listener: () => void): () => void {
 function callbackArray<T extends BasicArray, R>(
   proxyTarget: Immutable<T>,
   callback: (target: T) => R,
-  proxyMap: ProxyMap,
+  proxyMap: ProxyMap
 ): R {
   const realTarget = proxyMap.get(proxyTarget);
   if (!realTarget) throw new Error("Can't update non box");
@@ -126,7 +134,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 
   box.patch = function (
     proxyTarget: Immutable<Basic>,
-    payload: Partial<Basic>,
+    payload: Partial<Basic>
   ) {
     const realTarget = proxyMap.get(proxyTarget);
     if (!realTarget) throw new Error("Can't update non box");
@@ -146,12 +154,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     proxyTarget: Immutable<T>,
     target: number,
     start: number,
-    end?: number,
+    end?: number
   ) {
     return callbackArray(
       proxyTarget,
       (realTarget) => realTarget.copyWithin(target, start, end),
-      proxyMap,
+      proxyMap
     );
   };
 
@@ -159,7 +167,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     proxyTarget: Immutable<T>,
     value: T[number],
     start?: number,
-    end?: number,
+    end?: number
   ) {
     return callbackArray(
       proxyTarget,
@@ -167,12 +175,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
         realTarget.fill(value, start, end);
         return proxyTarget;
       },
-      proxyMap,
+      proxyMap
     );
   };
 
   box.pop = function <T extends BasicArray>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: Immutable<T>
   ): Immutable<T>[number] {
     return callbackArray(
       proxyTarget,
@@ -181,7 +189,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
         realTarget.pop();
         return result;
       },
-      proxyMap,
+      proxyMap
     );
   };
 
@@ -192,12 +200,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     return callbackArray(
       proxyTarget,
       (realTarget) => realTarget.push(...payload),
-      proxyMap,
+      proxyMap
     );
   };
 
   box.reverse = function <T extends BasicArray>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: Immutable<T>
   ): Immutable<T> {
     return callbackArray(
       proxyTarget,
@@ -205,12 +213,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
         realTarget.reverse();
         return proxyTarget;
       },
-      proxyMap,
+      proxyMap
     );
   };
 
   box.shift = function <T extends BasicArray>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: Immutable<T>
   ): Immutable<T>[number] {
     return callbackArray(
       proxyTarget,
@@ -219,13 +227,13 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
         realTarget.shift();
         return result;
       },
-      proxyMap,
+      proxyMap
     );
   };
 
   box.sort = function <T extends BasicArray>(
     proxyTarget: Immutable<T>,
-    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => 0 | 1 | -1,
+    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => 0 | 1 | -1
   ): Immutable<T> {
     return callbackArray(
       proxyTarget,
@@ -236,12 +244,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
           const proxyB = typeof b === "object" ? originMap.get(a as Basic) : b;
           return sorter(
             proxyA as Immutable<T>[number],
-            proxyB as Immutable<T>[number],
+            proxyB as Immutable<T>[number]
           );
         });
         return proxyTarget;
       },
-      proxyMap,
+      proxyMap
     );
   };
 
@@ -271,7 +279,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     return callbackArray(
       proxyTarget,
       (realTarget) => realTarget.unshift(...payload),
-      proxyMap,
+      proxyMap
     );
   };
 
@@ -280,7 +288,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 
 function makeDeeplyImmutable<T extends Basic>(
   origin: T | Immutable<T>,
-  proxyMap: ProxyMap,
+  proxyMap: ProxyMap
 ): Immutable<T> {
   if (proxyMap.has(origin as Immutable<T>)) return origin as Immutable<T>;
 

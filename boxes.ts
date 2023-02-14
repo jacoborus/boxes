@@ -1,4 +1,4 @@
-type BasicValue = Date | boolean | number | bigint | string | undefined;
+type BasicValue = boolean | number | bigint | string | undefined;
 
 interface BasicObject {
   [key: string]: BasicValue | BasicObject | BasicArray;
@@ -36,12 +36,15 @@ type Listener = () => void;
 type TargetMap = WeakMap<Immutable<Basic>, Set<Listener>>;
 
 type BoxFunction<T extends Basic> = () => Immutable<T>;
+type Nullable<T extends Basic> = {
+  [K in keyof T]: T[K] | undefined | null;
+};
 
 interface BoxMethods {
   update: <T extends Basic>(proxyTarget: Immutable<Basic>, payload: T) => void;
   patch: <T extends Basic>(
     proxyTarget: Immutable<Basic>,
-    payload: Partial<T>
+    payload: Nullable<T>
   ) => void;
   fill: <T extends BasicArray>(
     proxyTarget: Immutable<T>,
@@ -71,11 +74,7 @@ const targetMap: TargetMap = new WeakMap();
 const originMap: OriginMap = new WeakMap();
 
 function isObject(value: unknown): value is Basic {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Object.prototype.toString.call(value) !== "[object Date]"
-  );
+  return typeof value === "object" && value !== null;
 }
 
 function isBasicObject(value: unknown): value is BasicObject {
@@ -138,7 +137,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 
   box.patch = function (
     proxyTarget: Immutable<Basic>,
-    payload: Partial<Basic>
+    payload: Nullable<Basic>
   ) {
     const realTarget = proxyMap.get(proxyTarget);
     if (!realTarget) throw new Error("Can't update non box");
@@ -247,14 +246,8 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
           return proxyTarget;
         }
         realTarget.sort((a, b) => {
-          const proxyA =
-            typeof a === "object" && !(a instanceof Date)
-              ? originMap.get(a as Basic)
-              : a;
-          const proxyB =
-            typeof b === "object" && !(b instanceof Date)
-              ? originMap.get(b as Basic)
-              : b;
+          const proxyA = typeof a === "object" ? originMap.get(a as Basic) : a;
+          const proxyB = typeof b === "object" ? originMap.get(b as Basic) : b;
           return sorter(
             proxyA as Immutable<T>[number],
             proxyB as Immutable<T>[number]

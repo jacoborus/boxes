@@ -53,6 +53,20 @@ Deno.test("patchMethod", () => {
   assertEquals(control, 1);
 });
 
+Deno.test("patch with null", () => {
+  type Target = {
+    a: number;
+    b?: string;
+  };
+  const obj = { a: 1, b: "abc" } as Target;
+  const box = getBox(obj);
+  assertEquals(box().a, obj.a);
+  assertEquals(box().b, obj.b);
+  box.patch(box(), { a: 2, b: null });
+  assertEquals(box().a, obj.a);
+  assertEquals(box().b, undefined);
+});
+
 Deno.test("patch deep", () => {
   const obj = { o: { x: 1, y: 2 } };
   const box = getBox(obj);

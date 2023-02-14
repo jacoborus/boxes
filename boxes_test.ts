@@ -190,3 +190,21 @@ Deno.test("sort simple", () => {
   assertEquals(data, result);
   assertEquals(data, [1, 2, 3, 4]);
 });
+
+Deno.test("unshift", () => {
+  const arr = [1, 2, 3];
+  const box = getBox(arr);
+  const data = box();
+  let control = 0;
+  const off = watch(data, () => {
+    ++control;
+  });
+  const len = box.unshift(data, 4);
+  assertEquals(control, 1);
+  assertEquals(len, 4);
+  assertEquals(data[0], 4);
+  off();
+  box.unshift(data, 6);
+  assertEquals(control, 1);
+  assertEquals(data[0], 6);
+});

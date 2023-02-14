@@ -66,6 +66,10 @@ interface BoxMethods {
     proxyTarget: Immutable<T>,
     sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number
   ) => Immutable<T>;
+  unshift: <T extends BasicArray>(
+    proxyTarget: Immutable<T>,
+    ...payload: NonReadonly<T[number]>[]
+  ) => number;
 }
 
 type Box<T extends Basic> = BoxFunction<T> & BoxMethods;

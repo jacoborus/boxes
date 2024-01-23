@@ -127,6 +127,7 @@ Deno.test("fill", () => {
     ++control;
   });
   const result = box.fill(data, 4);
+  result.toReversed;
   assertEquals(control, 1);
   assertEquals(result, [4, 4, 4]);
   assertEquals(true, result === data);

@@ -1,41 +1,31 @@
-type BasicValue = boolean | number | bigint | string | undefined;
+type Primitive = boolean | number | string | undefined;
 
-interface BasicObject {
-  [key: string]: BasicValue | BasicObject | BasicArray;
+interface Dict {
+  [key: string]: Primitive | Dict | List;
 }
-type BasicArray = Array<BasicValue | BasicArray | BasicObject>;
-type Basic = BasicArray | BasicObject;
+type List = Array<Primitive | List | Dict>;
+type Basic = List | Dict;
 
-type ImmutableObject<T extends BasicObject> = {
-  readonly [k in keyof T]: T[k] extends BasicValue
-    ? BasicValue
-    : T[k] extends BasicObject
-    ? ImmutableObject<T[k]>
-    : ReadonlyArray<T[k]>;
+type ImmutableDict<T extends Dict> = {
+  readonly [k in keyof T]: T[k] extends Primitive ? Primitive
+    : T[k] extends Dict ? ImmutableDict<T[k]>
+    : T[k] extends List ? ImmutableList<T[k]>
+    : never;
 };
 
-type ImmutableArray<T extends BasicArray> = ReadonlyArray<
-  T[number] extends BasicValue
-    ? BasicValue
-    : T[number] extends BasicObject
-    ? ImmutableObject<T[number]>
-    : ReadonlyArray<T[number]>
+type ImmutableList<T extends List> = ReadonlyArray<
+  T[number] extends Primitive ? Primitive
+    : T[number] extends Dict ? ImmutableDict<T[number]>
+    : T[number] extends List ? ImmutableList<T[number]>
+    : never
 >;
 
-type Immutable<T extends BasicArray | BasicObject> = T extends BasicObject
-  ? ImmutableObject<T>
-  : T extends BasicArray
-  ? ImmutableArray<T>
+type Immutable<T extends List | Dict> = T extends Dict ? ImmutableDict<T>
+  : T extends List ? ImmutableList<T>
   : never;
 
 type NonReadonly<T> = T extends readonly (infer U)[] ? NonReadonly<U>[] : T;
 
-type ProxyMap = WeakMap<Immutable<Basic>, Basic>;
-type OriginMap = WeakMap<Basic, Immutable<Basic>>;
-type Listener = () => void;
-type TargetMap = WeakMap<Immutable<Basic>, Set<Listener>>;
-
-type BoxFunction<T extends Basic> = () => Immutable<T>;
 type Nullable<T extends Basic> = {
   [K in keyof T]: T[K] | undefined | null;
 };
@@ -44,44 +34,40 @@ interface BoxMethods {
   update: <T extends Basic>(proxyTarget: Immutable<Basic>, payload: T) => void;
   patch: <T extends Basic>(
     proxyTarget: Immutable<Basic>,
-    payload: Nullable<T>
+    payload: Nullable<T>,
   ) => void;
-  fill: <T extends BasicArray>(
+  fill: <T extends List>(
     proxyTarget: Immutable<T>,
     val: T[number],
     start?: number,
-    end?: number
+    end?: number,
   ) => Immutable<T>;
-  pop: <T extends BasicArray>(
-    proxyTarget: Immutable<T>
-  ) => Immutable<T>[number];
-  push: <T extends BasicArray>(
+  pop: <T extends List>(proxyTarget: Immutable<T>) => Immutable<T>[number];
+  push: <T extends List>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]
   ) => number;
-  shift: <T extends BasicArray>(
-    proxyTarget: Immutable<T>
-  ) => Immutable<T>[number];
-  sort: <T extends BasicArray>(
+  shift: <T extends List>(proxyTarget: Immutable<T>) => Immutable<T>[number];
+  sort: <T extends List>(
     proxyTarget: Immutable<T>,
-    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number
+    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number,
   ) => Immutable<T>;
-  unshift: <T extends BasicArray>(
+  unshift: <T extends List>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]
   ) => number;
 }
 
-type Box<T extends Basic> = BoxFunction<T> & BoxMethods;
+type Box<T extends Basic> = BoxMethods & (() => Immutable<T>);
 
-const targetMap: TargetMap = new WeakMap();
-const originMap: OriginMap = new WeakMap();
+const targetMap: WeakMap<Immutable<Basic>, Set<() => void>> = new WeakMap();
+const originMap: WeakMap<Basic, Immutable<Basic>> = new WeakMap();
 
 function isObject(value: unknown): value is Basic {
   return typeof value === "object" && value !== null;
 }
 
-function isBasicObject(value: unknown): value is BasicObject {
+function isBasicObject(value: unknown): value is Dict {
   return isObject(value) && !Array.isArray(value);
 }
 
@@ -96,10 +82,27 @@ export function watch(target: unknown, listener: () => void): () => void {
   };
 }
 
-function callbackArray<T extends BasicArray, R>(
+class ProxyMap extends WeakMap<Immutable<Basic>, Basic> {
+  callback<T extends List, R>(
+    proxyTarget: Immutable<T>,
+    callback: (target: T) => R,
+  ) {
+    const realTarget = this.get(proxyTarget as unknown as Immutable<Basic>);
+    if (!realTarget) throw new Error("Can't update non box");
+    if (!Array.isArray(realTarget)) {
+      throw new Error("Method only allowed on arrays");
+    }
+    const result = callback(realTarget as unknown as T);
+    const listeners = targetMap.get(proxyTarget);
+    listeners?.forEach((listener) => listener());
+    return result;
+  }
+}
+
+function callbackArray<T extends List, R>(
   proxyTarget: Immutable<T>,
   callback: (target: T) => R,
-  proxyMap: ProxyMap
+  proxyMap: ProxyMap,
 ): R {
   const realTarget = proxyMap.get(proxyTarget);
   if (!realTarget) throw new Error("Can't update non box");
@@ -113,8 +116,9 @@ function callbackArray<T extends BasicArray, R>(
 }
 
 export function getBox<T extends Basic>(origin: T): Box<T> {
-  const proxyMap: ProxyMap = new WeakMap();
+  const proxyMap: ProxyMap = new ProxyMap();
   const data = makeDeeplyImmutable(origin, proxyMap);
+
   function box() {
     return data;
   }
@@ -141,7 +145,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 
   box.patch = function (
     proxyTarget: Immutable<Basic>,
-    payload: Nullable<Basic>
+    payload: Nullable<Basic>,
   ) {
     const realTarget = proxyMap.get(proxyTarget);
     if (!realTarget) throw new Error("Can't update non box");
@@ -157,37 +161,33 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     listeners?.forEach((listener) => listener());
   };
 
-  box.copyWithin = function <T extends BasicArray>(
+  box.copyWithin = function <T extends List>(
     proxyTarget: Immutable<T>,
     target: number,
     start: number,
-    end?: number
+    end?: number,
   ) {
     return callbackArray(
       proxyTarget,
       (realTarget) => realTarget.copyWithin(target, start, end),
-      proxyMap
+      proxyMap,
     );
   };
 
-  box.fill = function <T extends BasicArray>(
+  box.fill = function <T extends List>(
     proxyTarget: Immutable<T>,
     value: T[number],
     start?: number,
-    end?: number
+    end?: number,
   ) {
-    return callbackArray(
-      proxyTarget,
-      (realTarget) => {
-        realTarget.fill(value, start, end);
-        return proxyTarget;
-      },
-      proxyMap
-    );
+    return proxyMap.callback(proxyTarget, <T extends List>(realTarget: T) => {
+      realTarget.fill(value, start, end);
+      return proxyTarget;
+    });
   };
 
-  box.pop = function <T extends BasicArray>(
-    proxyTarget: Immutable<T>
+  box.pop = function <T extends List>(
+    proxyTarget: Immutable<T>,
   ): Immutable<T>[number] {
     return callbackArray(
       proxyTarget,
@@ -196,23 +196,23 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
         realTarget.pop();
         return result;
       },
-      proxyMap
+      proxyMap,
     );
   };
 
-  box.push = function <T extends BasicArray>(
+  box.push = function <T extends List>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]
   ): number {
     return callbackArray(
       proxyTarget,
       (realTarget) => realTarget.push(...payload),
-      proxyMap
+      proxyMap,
     );
   };
 
-  box.reverse = function <T extends BasicArray>(
-    proxyTarget: Immutable<T>
+  box.reverse = function <T extends List>(
+    proxyTarget: Immutable<T>,
   ): Immutable<T> {
     return callbackArray(
       proxyTarget,
@@ -220,12 +220,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
         realTarget.reverse();
         return proxyTarget;
       },
-      proxyMap
+      proxyMap,
     );
   };
 
-  box.shift = function <T extends BasicArray>(
-    proxyTarget: Immutable<T>
+  box.shift = function <T extends List>(
+    proxyTarget: Immutable<T>,
   ): Immutable<T>[number] {
     return callbackArray(
       proxyTarget,
@@ -234,13 +234,13 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
         realTarget.shift();
         return result;
       },
-      proxyMap
+      proxyMap,
     );
   };
 
-  box.sort = function <T extends BasicArray>(
+  box.sort = function <T extends List>(
     proxyTarget: Immutable<T>,
-    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number
+    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number,
   ): Immutable<T> {
     return callbackArray(
       proxyTarget,
@@ -254,12 +254,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
           const proxyB = typeof b === "object" ? originMap.get(b as Basic) : b;
           return sorter(
             proxyA as Immutable<T>[number],
-            proxyB as Immutable<T>[number]
+            proxyB as Immutable<T>[number],
           );
         });
         return proxyTarget;
       },
-      proxyMap
+      proxyMap,
     );
   };
 
@@ -282,14 +282,14 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   //   );
   // };
 
-  box.unshift = function <T extends BasicArray>(
+  box.unshift = function <T extends List>(
     proxyTarget: Immutable<T>,
     ...payload: NonReadonly<T[number]>[]
   ): number {
     return callbackArray(
       proxyTarget,
       (realTarget) => realTarget.unshift(...payload),
-      proxyMap
+      proxyMap,
     );
   };
 
@@ -298,7 +298,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 
 function makeDeeplyImmutable<T extends Basic>(
   origin: T | Immutable<T>,
-  proxyMap: ProxyMap
+  proxyMap: ProxyMap,
 ): Immutable<T> {
   if (proxyMap.has(origin as Immutable<T>)) return origin as Immutable<T>;
 
@@ -313,8 +313,7 @@ function makeDeeplyImmutable<T extends Basic>(
       if (targetMap.has(value as Immutable<typeof value>)) return value;
       const oldProxy = originMap.get(value);
       if (oldProxy) return oldProxy;
-      const newProxy = makeDeeplyImmutable(value, proxyMap);
-      return newProxy;
+      return makeDeeplyImmutable(value, proxyMap);
     },
   }) as Immutable<T>;
 

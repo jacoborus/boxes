@@ -6,22 +6,22 @@ interface Dict {
 type List = Array<Primitive | List | Dict>;
 type Basic = List | Dict;
 
-type ImmutableDict<T extends Dict> = {
+type ReadonlyDict<T extends Dict> = {
   readonly [k in keyof T]: T[k] extends Primitive ? Primitive
-    : T[k] extends Dict ? ImmutableDict<T[k]>
-    : T[k] extends List ? ImmutableList<T[k]>
+    : T[k] extends Dict ? ReadonlyDict<T[k]>
+    : T[k] extends List ? ReadonlyList<T[k]>
     : never;
 };
 
-type ImmutableList<T extends List> = ReadonlyArray<
+type ReadonlyList<T extends List> = ReadonlyArray<
   T[number] extends Primitive ? Primitive
-    : T[number] extends Dict ? ImmutableDict<T[number]>
-    : T[number] extends List ? ImmutableList<T[number]>
+    : T[number] extends Dict ? ReadonlyDict<T[number]>
+    : T[number] extends List ? ReadonlyList<T[number]>
     : never
 >;
 
-type Immutable<T extends List | Dict> = T extends Dict ? ImmutableDict<T>
-  : T extends List ? ImmutableList<T>
+type ReadonlyBasic<T extends List | Dict> = T extends Dict ? ReadonlyDict<T>
+  : T extends List ? ReadonlyList<T>
   : never;
 
 type NonReadonly<T> = T extends readonly (infer U)[] ? NonReadonly<U>[] : T;
@@ -31,37 +31,48 @@ type Nullable<T extends Basic> = {
 };
 
 interface BoxMethods {
-  update: <T extends Basic>(proxyTarget: Immutable<Basic>, payload: T) => void;
+  update: <T extends Basic>(
+    proxyTarget: ReadonlyBasic<Basic>,
+    payload: T,
+  ) => void;
   patch: <T extends Basic>(
-    proxyTarget: Immutable<Basic>,
+    proxyTarget: ReadonlyBasic<Basic>,
     payload: Nullable<T>,
   ) => void;
   fill: <T extends List>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: ReadonlyBasic<T>,
     val: T[number],
     start?: number,
     end?: number,
-  ) => Immutable<T>;
-  pop: <T extends List>(proxyTarget: Immutable<T>) => Immutable<T>[number];
+  ) => ReadonlyBasic<T>;
+  pop: <T extends List>(
+    proxyTarget: ReadonlyBasic<T>,
+  ) => ReadonlyBasic<T>[number];
   push: <T extends List>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: ReadonlyBasic<T>,
     ...payload: NonReadonly<T[number]>[]
   ) => number;
-  shift: <T extends List>(proxyTarget: Immutable<T>) => Immutable<T>[number];
+  shift: <T extends List>(
+    proxyTarget: ReadonlyBasic<T>,
+  ) => ReadonlyBasic<T>[number];
   sort: <T extends List>(
-    proxyTarget: Immutable<T>,
-    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number,
-  ) => Immutable<T>;
+    proxyTarget: ReadonlyBasic<T>,
+    sorter?: (
+      a: ReadonlyBasic<T>[number],
+      b: ReadonlyBasic<T>[number],
+    ) => number,
+  ) => ReadonlyBasic<T>;
   unshift: <T extends List>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: ReadonlyBasic<T>,
     ...payload: NonReadonly<T[number]>[]
   ) => number;
 }
 
-type Box<T extends Basic> = BoxMethods & (() => Immutable<T>);
+type Box<T extends Basic> = BoxMethods & (() => ReadonlyBasic<T>);
 
-const targetMap: WeakMap<Immutable<Basic>, Set<() => void>> = new WeakMap();
-const originMap: WeakMap<Basic, Immutable<Basic>> = new WeakMap();
+const listenersMap: WeakMap<ReadonlyBasic<Basic>, Set<() => void>> =
+  new WeakMap();
+const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
 
 function isObject(value: unknown): value is Basic {
   return typeof value === "object" && value !== null;
@@ -72,7 +83,7 @@ function isDict(value: unknown): value is Dict {
 }
 
 export function watch(target: unknown, listener: () => void): () => void {
-  const listeners = targetMap.get(target as Immutable<Basic>);
+  const listeners = listenersMap.get(target as ReadonlyBasic<Basic>);
   if (!listeners) {
     throw new Error("Can't subscribe to non box");
   }
@@ -80,20 +91,19 @@ export function watch(target: unknown, listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-type ProxyMap = WeakMap<Immutable<Basic>, Basic>;
+type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
 
 function callbackArray<T extends List, R>(
-  proxyTarget: Immutable<T>,
+  proxyTarget: ReadonlyBasic<T>,
   callback: (target: T) => R,
   proxyMap: ProxyMap,
 ): R {
   const realTarget = proxyMap.get(proxyTarget);
-  if (!realTarget) throw new Error("Can't update non box");
-  if (!Array.isArray(realTarget)) {
-    throw new Error("Method only allowed on arrays");
+  if (!realTarget || !Array.isArray(realTarget)) {
+    throw new Error("Method only allowed on lists");
   }
   const result = callback(realTarget as T);
-  const listeners = targetMap.get(proxyTarget);
+  const listeners = listenersMap.get(proxyTarget);
   listeners?.forEach((listener) => listener());
   return result;
 }
@@ -106,7 +116,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
     return data;
   }
 
-  box.update = function (proxyTarget: Immutable<Basic>, payload: Basic) {
+  box.update = function (proxyTarget: ReadonlyBasic<Basic>, payload: Basic) {
     const realTarget = proxyMap.get(proxyTarget);
     if (!realTarget) throw new Error("Can't update non box");
     if (isDict(realTarget)) {
@@ -122,12 +132,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
       });
       realTarget.length = payload.length;
     }
-    const listeners = targetMap.get(proxyTarget);
+    const listeners = listenersMap.get(proxyTarget);
     listeners?.forEach((listener) => listener());
   };
 
   box.patch = function (
-    proxyTarget: Immutable<Basic>,
+    proxyTarget: ReadonlyBasic<Basic>,
     payload: Nullable<Basic>,
   ) {
     const realTarget = proxyMap.get(proxyTarget);
@@ -140,12 +150,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
       if (value === null) delete realTarget[key];
       else realTarget[key] = value;
     });
-    const listeners = targetMap.get(proxyTarget);
+    const listeners = listenersMap.get(proxyTarget);
     listeners?.forEach((listener) => listener());
   };
 
   box.copyWithin = function <T extends List>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: ReadonlyBasic<T>,
     target: number,
     start: number,
     end?: number,
@@ -158,7 +168,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   };
 
   box.fill = function <T extends List>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: ReadonlyBasic<T>,
     value: T[number],
     start?: number,
     end?: number,
@@ -174,8 +184,8 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   };
 
   box.pop = function <T extends List>(
-    proxyTarget: Immutable<T>,
-  ): Immutable<T>[number] {
+    proxyTarget: ReadonlyBasic<T>,
+  ): ReadonlyBasic<T>[number] {
     return callbackArray(
       proxyTarget,
       (realTarget) => {
@@ -188,7 +198,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   };
 
   box.push = function <T extends List>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: ReadonlyBasic<T>,
     ...payload: NonReadonly<T[number]>[]
   ): number {
     return callbackArray(
@@ -199,8 +209,8 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   };
 
   box.reverse = function <T extends List>(
-    proxyTarget: Immutable<T>,
-  ): Immutable<T> {
+    proxyTarget: ReadonlyBasic<T>,
+  ): ReadonlyBasic<T> {
     return callbackArray(
       proxyTarget,
       (realTarget) => {
@@ -212,8 +222,8 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   };
 
   box.shift = function <T extends List>(
-    proxyTarget: Immutable<T>,
-  ): Immutable<T>[number] {
+    proxyTarget: ReadonlyBasic<T>,
+  ): ReadonlyBasic<T>[number] {
     return callbackArray(
       proxyTarget,
       (realTarget) => {
@@ -226,9 +236,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   };
 
   box.sort = function <T extends List>(
-    proxyTarget: Immutable<T>,
-    sorter?: (a: Immutable<T>[number], b: Immutable<T>[number]) => number,
-  ): Immutable<T> {
+    proxyTarget: ReadonlyBasic<T>,
+    sorter?: (
+      a: ReadonlyBasic<T>[number],
+      b: ReadonlyBasic<T>[number],
+    ) => number,
+  ): ReadonlyBasic<T> {
     return callbackArray(
       proxyTarget,
       (realTarget) => {
@@ -240,8 +253,8 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
           const proxyA = typeof a === "object" ? originMap.get(a as Basic) : a;
           const proxyB = typeof b === "object" ? originMap.get(b as Basic) : b;
           return sorter(
-            proxyA as Immutable<T>[number],
-            proxyB as Immutable<T>[number],
+            proxyA as ReadonlyBasic<T>[number],
+            proxyB as ReadonlyBasic<T>[number],
           );
         });
         return proxyTarget;
@@ -251,7 +264,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   };
 
   box.unshift = function <T extends List>(
-    proxyTarget: Immutable<T>,
+    proxyTarget: ReadonlyBasic<T>,
     ...payload: NonReadonly<T[number]>[]
   ): number {
     return callbackArray(
@@ -265,10 +278,12 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
 }
 
 function makeDeeplyImmutable<T extends Basic>(
-  origin: T | Immutable<T>,
+  origin: T | ReadonlyBasic<T>,
   proxyMap: ProxyMap,
-): Immutable<T> {
-  if (proxyMap.has(origin as Immutable<T>)) return origin as Immutable<T>;
+): ReadonlyBasic<T> {
+  if (proxyMap.has(origin as ReadonlyBasic<T>)) {
+    return origin as ReadonlyBasic<T>;
+  }
 
   const proxy = new Proxy(origin, {
     set: () => {
@@ -278,15 +293,13 @@ function makeDeeplyImmutable<T extends Basic>(
     get: (origin, property) => {
       const value = origin[property as keyof typeof origin];
       if (!isObject(value)) return value;
-      if (targetMap.has(value as Immutable<typeof value>)) return value;
-      const oldProxy = originMap.get(value);
-      if (oldProxy) return oldProxy;
-      return makeDeeplyImmutable(value, proxyMap);
+      if (listenersMap.has(value as ReadonlyBasic<typeof value>)) return value;
+      return originMap.get(value) || makeDeeplyImmutable(value, proxyMap);
     },
-  }) as Immutable<T>;
+  }) as ReadonlyBasic<T>;
 
   proxyMap.set(proxy, origin as Basic);
-  targetMap.set(proxy, new Set());
+  listenersMap.set(proxy, new Set());
   originMap.set(origin as Basic, proxy);
   return proxy;
 }

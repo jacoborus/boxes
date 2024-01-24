@@ -110,7 +110,7 @@ function callbackArray<T extends List, R>(
 
 export function getBox<T extends Basic>(origin: T): Box<T> {
   const proxyMap: ProxyMap = new WeakMap();
-  const data = makeDeeplyImmutable(origin, proxyMap);
+  const data = makeReadonly(origin, proxyMap);
 
   function box() {
     return data;
@@ -277,7 +277,7 @@ export function getBox<T extends Basic>(origin: T): Box<T> {
   return box;
 }
 
-function makeDeeplyImmutable<T extends Basic>(
+function makeReadonly<T extends Basic>(
   origin: T | ReadonlyBasic<T>,
   proxyMap: ProxyMap,
 ): ReadonlyBasic<T> {
@@ -294,7 +294,7 @@ function makeDeeplyImmutable<T extends Basic>(
       const value = origin[property as keyof typeof origin];
       if (!isObject(value)) return value;
       if (listenersMap.has(value as ReadonlyBasic<typeof value>)) return value;
-      return originMap.get(value) || makeDeeplyImmutable(value, proxyMap);
+      return originMap.get(value) || makeReadonly(value, proxyMap);
     },
   }) as ReadonlyBasic<T>;
 

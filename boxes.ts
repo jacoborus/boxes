@@ -7,14 +7,14 @@ type List = Array<Primitive | List | Dict>;
 type Basic = List | Dict;
 
 type ReadonlyDict<T extends Dict> = {
-  readonly [k in keyof T]: T[k] extends Primitive ? Primitive
+  readonly [k in keyof T]: T[k] extends Primitive ? T[k]
     : T[k] extends Dict ? ReadonlyDict<T[k]>
     : T[k] extends List ? ReadonlyList<T[k]>
     : never;
 };
 
 type ReadonlyList<T extends List> = ReadonlyArray<
-  T[number] extends Primitive ? Primitive
+  T[number] extends Primitive ? T[number]
     : T[number] extends Dict ? ReadonlyDict<T[number]>
     : T[number] extends List ? ReadonlyList<T[number]>
     : never
@@ -91,7 +91,7 @@ export function watch(target: unknown, listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-class ProxyMap extends WeakMap<ReadonlyBasic<Basic>, Basic> {
+export class ProxyMap extends WeakMap<ReadonlyBasic<Basic>, Basic> {
   alter<T extends List, R>(
     proxyTarget: ReadonlyBasic<T>,
     change: (target: T) => R,
@@ -107,7 +107,7 @@ class ProxyMap extends WeakMap<ReadonlyBasic<Basic>, Basic> {
   }
 }
 
-export function getBox<T extends Basic>(origin: T): Box<T> {
+export function createBox<T extends Basic>(origin: T): Box<T> {
   const proxyMap: ProxyMap = new ProxyMap();
   const data = makeReadonly(origin, proxyMap);
 

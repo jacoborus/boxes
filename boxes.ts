@@ -30,46 +30,6 @@ type Nullable<T extends Basic> = {
   [K in keyof T]: T[K] | undefined | null;
 };
 
-interface BoxMethods {
-  update: <T extends Basic>(
-    proxyTarget: ReadonlyBasic<Basic>,
-    payload: T,
-  ) => void;
-  patch: <T extends Basic>(
-    proxyTarget: ReadonlyBasic<Basic>,
-    payload: Nullable<T>,
-  ) => void;
-  fill: <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-    val: T[number],
-    start?: number,
-    end?: number,
-  ) => ReadonlyBasic<T>;
-  pop: <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-  ) => ReadonlyBasic<T>[number];
-  push: <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-    ...payload: NonReadonly<T[number]>[]
-  ) => number;
-  shift: <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-  ) => ReadonlyBasic<T>[number];
-  sort: <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-    sorter?: (
-      a: ReadonlyBasic<T>[number],
-      b: ReadonlyBasic<T>[number],
-    ) => number,
-  ) => ReadonlyBasic<T>;
-  unshift: <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-    ...payload: NonReadonly<T[number]>[]
-  ) => number;
-}
-
-type Box<T extends Basic> = BoxMethods & (() => ReadonlyBasic<T>);
-
 const listenersMap: WeakMap<ReadonlyBasic<Basic>, Set<() => void>> =
   new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
@@ -91,12 +51,21 @@ export function watch(target: unknown, listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-export class ProxyMap extends WeakMap<ReadonlyBasic<Basic>, Basic> {
-  alter<T extends List, R>(
+export function createBox<T extends Basic>(origin: T) {
+  const proxyMap: WeakMap<ReadonlyBasic<Basic>, Basic> = new WeakMap();
+  const data = makeReadonly(origin, proxyMap);
+
+  function box() {
+    return data;
+  }
+
+  function alter<T extends List, R>(
     proxyTarget: ReadonlyBasic<T>,
     change: (target: T) => R,
   ) {
-    const realTarget = this.get(proxyTarget as unknown as ReadonlyBasic<Basic>);
+    const realTarget = proxyMap.get(
+      proxyTarget as unknown as ReadonlyBasic<Basic>,
+    );
     if (!realTarget || !Array.isArray(realTarget)) {
       throw new Error("Method only allowed on lists");
     }
@@ -104,15 +73,6 @@ export class ProxyMap extends WeakMap<ReadonlyBasic<Basic>, Basic> {
     const listeners = listenersMap.get(proxyTarget);
     listeners?.forEach((listener) => listener());
     return result;
-  }
-}
-
-export function createBox<T extends Basic>(origin: T): Box<T> {
-  const proxyMap: ProxyMap = new ProxyMap();
-  const data = makeReadonly(origin, proxyMap);
-
-  function box() {
-    return data;
   }
 
   box.update = function (proxyTarget: ReadonlyBasic<Basic>, payload: Basic) {
@@ -159,7 +119,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
     start: number,
     end?: number,
   ) {
-    return proxyMap.alter(
+    return alter(
       proxyTarget,
       (realTarget) => realTarget.copyWithin(target, start, end),
     );
@@ -171,7 +131,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
     start?: number,
     end?: number,
   ) {
-    return proxyMap.alter(proxyTarget, (realTarget: T) => {
+    return alter(proxyTarget, (realTarget: T) => {
       realTarget.fill(value, start, end);
       return proxyTarget;
     });
@@ -180,7 +140,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
   box.pop = function <T extends List>(
     proxyTarget: ReadonlyBasic<T>,
   ): ReadonlyBasic<T>[number] {
-    return proxyMap.alter(
+    return alter(
       proxyTarget,
       (realTarget) => {
         const result = proxyTarget[proxyTarget.length - 1];
@@ -194,7 +154,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
     proxyTarget: ReadonlyBasic<T>,
     ...payload: NonReadonly<T[number]>[]
   ): number {
-    return proxyMap.alter(
+    return alter(
       proxyTarget,
       (realTarget) => realTarget.push(...payload),
     );
@@ -203,7 +163,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
   box.reverse = function <T extends List>(
     proxyTarget: ReadonlyBasic<T>,
   ): ReadonlyBasic<T> {
-    return proxyMap.alter(proxyTarget, (realTarget: T) => {
+    return alter(proxyTarget, (realTarget: T) => {
       realTarget.reverse();
       return proxyTarget;
     });
@@ -212,7 +172,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
   box.shift = function <T extends List>(
     proxyTarget: ReadonlyBasic<T>,
   ): ReadonlyBasic<T>[number] {
-    return proxyMap.alter(proxyTarget, (realTarget) => {
+    return alter(proxyTarget, (realTarget) => {
       const result = proxyTarget[0];
       realTarget.shift();
       return result;
@@ -226,7 +186,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
       b: ReadonlyBasic<T>[number],
     ) => number,
   ): ReadonlyBasic<T> {
-    return proxyMap.alter(proxyTarget, (realTarget: T) => {
+    return alter(proxyTarget, (realTarget: T) => {
       if (!sorter) {
         realTarget.sort();
         return proxyTarget;
@@ -247,7 +207,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
     proxyTarget: ReadonlyBasic<T>,
     ...payload: NonReadonly<T[number]>[]
   ): number {
-    return proxyMap.alter(
+    return alter(
       proxyTarget,
       (realTarget: T) => realTarget.unshift(...payload),
     );
@@ -258,7 +218,7 @@ export function createBox<T extends Basic>(origin: T): Box<T> {
 
 function makeReadonly<T extends Basic>(
   origin: T | ReadonlyBasic<T>,
-  proxyMap: ProxyMap,
+  proxyMap: WeakMap<ReadonlyBasic<Basic>, Basic>,
 ): ReadonlyBasic<T> {
   if (proxyMap.has(origin as ReadonlyBasic<T>)) {
     return origin as ReadonlyBasic<T>;
@@ -266,7 +226,7 @@ function makeReadonly<T extends Basic>(
 
   const proxy = new Proxy(origin, {
     set: () => {
-      throw new Error("Cannot modify a deeply immutable object");
+      throw new Error("Cannot modify a readonly object");
     },
 
     get: (origin, property) => {

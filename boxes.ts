@@ -60,126 +60,125 @@ export function createBox<T extends Basic>(origin: T) {
   }
 
   function alter<T extends List, R>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
     change: (target: T) => R,
   ) {
-    const realTarget = proxyMap.get(
-      proxyTarget as unknown as ReadonlyBasic<Basic>,
+    const target = proxyMap.get(
+      proxy as unknown as ReadonlyBasic<Basic>,
     );
-    if (!realTarget || !Array.isArray(realTarget)) {
+    if (!target || !Array.isArray(target)) {
       throw new Error("Method only allowed on lists");
     }
-    const result = change(realTarget as T);
-    const listeners = listenersMap.get(proxyTarget);
+    const result = change(target as T);
+    const listeners = listenersMap.get(proxy);
     listeners?.forEach((listener) => listener());
     return result;
   }
 
-  box.update = function (proxyTarget: ReadonlyBasic<Basic>, payload: Basic) {
-    const realTarget = proxyMap.get(proxyTarget);
-    if (!realTarget) throw new Error("Can't update non box");
-    if (isDict(realTarget)) {
+  box.update = function (proxy: ReadonlyBasic<Basic>, payload: Basic) {
+    const target = proxyMap.get(proxy);
+    if (!target) throw new Error("Can't update non box");
+    if (isDict(target)) {
       if (Array.isArray(payload)) throw new Error("not gonna happen");
       for (const key in payload) {
-        const value = payload[key];
-        realTarget[key as keyof typeof realTarget] = value;
+        target[key as keyof typeof target] = payload[key];
       }
     } else {
       if (!Array.isArray(payload)) throw new Error("not gonna happen");
       payload.forEach((value, i) => {
-        realTarget[i] = value;
+        target[i] = value;
       });
-      realTarget.length = payload.length;
+      target.length = payload.length;
     }
-    const listeners = listenersMap.get(proxyTarget);
+    const listeners = listenersMap.get(proxy);
     listeners?.forEach((listener) => listener());
   };
 
   box.patch = function (
-    proxyTarget: ReadonlyBasic<Basic>,
+    proxy: ReadonlyBasic<Basic>,
     payload: Nullable<Basic>,
   ) {
-    const realTarget = proxyMap.get(proxyTarget);
-    if (!realTarget) throw new Error("Can't update non box");
-    if (Array.isArray(payload) || Array.isArray(realTarget)) {
+    const target = proxyMap.get(proxy);
+    if (!target) throw new Error("Can't update non box");
+    if (Array.isArray(payload) || Array.isArray(target)) {
       throw new Error("Method not allowed on arrays");
     }
     for (const key in payload) {
       const value = payload[key];
-      if (value === null) delete realTarget[key];
-      else realTarget[key] = value;
+      if (value === null) delete target[key];
+      else target[key] = value;
     }
-    const listeners = listenersMap.get(proxyTarget);
+    const listeners = listenersMap.get(proxy);
     listeners?.forEach((listener) => listener());
   };
 
   // JS methods
   box.push = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
     ...payload: NonReadonly<T[number]>[]
   ): number {
     return alter(
-      proxyTarget,
-      (realTarget) => realTarget.push(...payload),
+      proxy,
+      (target) => target.push(...payload),
     );
   };
 
   box.pop = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
   ): ReadonlyBasic<T>[number] {
     return alter(
-      proxyTarget,
-      (realTarget) => {
-        const result = proxyTarget[proxyTarget.length - 1];
-        realTarget.pop();
+      proxy,
+      (target) => {
+        const result = proxy[proxy.length - 1];
+        target.pop();
         return result;
       },
     );
   };
 
   box.shift = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
   ): ReadonlyBasic<T>[number] {
-    return alter(proxyTarget, (realTarget) => {
-      const result = proxyTarget[0];
-      realTarget.shift();
+    return alter(proxy, (target) => {
+      const result = proxy[0];
+      target.shift();
       return result;
     });
   };
 
   box.unshift = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
     ...payload: NonReadonly<T[number]>[]
   ): number {
     return alter(
-      proxyTarget,
-      (realTarget: T) => realTarget.unshift(...payload),
+      proxy,
+      (target: T) => target.unshift(...payload),
     );
   };
 
   // TODO: test
   box.reverse = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
   ): ReadonlyBasic<T> {
-    return alter(proxyTarget, (realTarget: T) => {
-      realTarget.reverse();
-      return proxyTarget;
+    return alter(proxy, (target: T) => {
+      target.reverse();
+      return proxy;
     });
   };
 
   box.sort = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
     sorter?: (
       a: ReadonlyBasic<T>[number],
       b: ReadonlyBasic<T>[number],
     ) => number,
   ): ReadonlyBasic<T> {
-    return alter(proxyTarget, (realTarget: T) => {
+    return alter(proxy, (target: T) => {
       if (!sorter) {
-        realTarget.sort();
-        return proxyTarget;
+        target.sort();
+        return proxy;
       }
-      realTarget.sort((a, b) => {
+      target.sort((a, b) => {
         const proxyA = typeof a === "object" ? originMap.get(a as Basic) : a;
         const proxyB = typeof b === "object" ? originMap.get(b as Basic) : b;
         return sorter(
@@ -187,37 +186,37 @@ export function createBox<T extends Basic>(origin: T) {
           proxyB as ReadonlyBasic<T>[number],
         );
       });
-      return proxyTarget;
+      return proxy;
     });
   };
 
   // Custom methods
   box.insert = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
     position: number,
     ...payload: NonReadonly<T[number]>[]
   ): void {
     return alter(
-      proxyTarget,
-      (realTarget) => {
+      proxy,
+      (target) => {
         if (isNaN(position)) throw new Error("Position must be a number");
-        realTarget.splice(position, 0, ...payload);
+        target.splice(position, 0, ...payload);
       },
     );
   };
 
   box.extract = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
+    proxy: ReadonlyBasic<T>,
     first: number,
     amount = 1,
   ): T[number][] {
     return alter(
-      proxyTarget,
-      (realTarget) => {
+      proxy,
+      (target) => {
         if (isNaN(first) || isNaN(amount)) {
           throw new Error("First and amount must be a number");
         }
-        return realTarget.splice(first, amount);
+        return target.splice(first, amount);
       },
     );
   };
@@ -240,8 +239,10 @@ function makeReadonly<T extends Basic>(
 
     get: (origin, property) => {
       const value = origin[property as keyof typeof origin];
-      if (!isObject(value)) return value;
-      if (listenersMap.has(value as ReadonlyBasic<typeof value>)) return value;
+      if (
+        !isObject(value) ||
+        listenersMap.has(value as ReadonlyBasic<typeof value>)
+      ) return value;
       return originMap.get(value) || makeReadonly(value, proxyMap);
     },
   }) as ReadonlyBasic<T>;

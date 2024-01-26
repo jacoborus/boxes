@@ -17,7 +17,7 @@ const box = getBox(origin);
 const { update, patch } = box;
 const data = box(); // { a: "abc", o: { x: 1 } }
 
-// data is a deep immutable proxy of the origin
+// data is a readonly proxy of the origin
 data === origin; // false
 data.a === origin.a; // true
 data.o === origin.o; // false
@@ -54,9 +54,9 @@ import { getBox } from "boxes";
 const box = getBox({ a: 1 });
 ```
 
-### Box
+## Box
 
-It's a function that returns a deep immutable proxy of the origin
+It's a function that returns a readonly proxy of the origin
 
 ```js
 import { getBox } from "boxes";
@@ -65,6 +65,28 @@ const box = getBox({ a: 1 });
 console.log(box());
 // { a:1 }
 ```
+
+**Dict methods**:
+
+- update
+- patch
+
+
+**List methods**:
+
+- push: like js
+- pop: like js
+- shift: like js
+- unshift: like js
+- reverse: like js
+- sort: like js
+
+- insert(pos, item1, item2, ...itemn)
+- extract(from, to)
+- clear: empties the array
+- ? add(item, key?) adds item if not found. Optional: filter by key
+- ? remove(item, key?) removes item from the list. Optional: filter by key
+
 
 ### Box.update(target, payload)
 

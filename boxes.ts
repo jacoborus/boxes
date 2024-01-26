@@ -113,28 +113,15 @@ export function createBox<T extends Basic>(origin: T) {
     listeners?.forEach((listener) => listener());
   };
 
-  box.copyWithin = function <T extends List>(
+  // JS methods
+  box.push = function <T extends List>(
     proxyTarget: ReadonlyBasic<T>,
-    target: number,
-    start: number,
-    end?: number,
-  ) {
+    ...payload: NonReadonly<T[number]>[]
+  ): number {
     return alter(
       proxyTarget,
-      (realTarget) => realTarget.copyWithin(target, start, end),
+      (realTarget) => realTarget.push(...payload),
     );
-  };
-
-  box.fill = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-    value: T[number],
-    start?: number,
-    end?: number,
-  ) {
-    return alter(proxyTarget, (realTarget: T) => {
-      realTarget.fill(value, start, end);
-      return proxyTarget;
-    });
   };
 
   box.pop = function <T extends List>(
@@ -150,25 +137,6 @@ export function createBox<T extends Basic>(origin: T) {
     );
   };
 
-  box.push = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-    ...payload: NonReadonly<T[number]>[]
-  ): number {
-    return alter(
-      proxyTarget,
-      (realTarget) => realTarget.push(...payload),
-    );
-  };
-
-  box.reverse = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-  ): ReadonlyBasic<T> {
-    return alter(proxyTarget, (realTarget: T) => {
-      realTarget.reverse();
-      return proxyTarget;
-    });
-  };
-
   box.shift = function <T extends List>(
     proxyTarget: ReadonlyBasic<T>,
   ): ReadonlyBasic<T>[number] {
@@ -176,6 +144,26 @@ export function createBox<T extends Basic>(origin: T) {
       const result = proxyTarget[0];
       realTarget.shift();
       return result;
+    });
+  };
+
+  box.unshift = function <T extends List>(
+    proxyTarget: ReadonlyBasic<T>,
+    ...payload: NonReadonly<T[number]>[]
+  ): number {
+    return alter(
+      proxyTarget,
+      (realTarget: T) => realTarget.unshift(...payload),
+    );
+  };
+
+  // TODO: test
+  box.reverse = function <T extends List>(
+    proxyTarget: ReadonlyBasic<T>,
+  ): ReadonlyBasic<T> {
+    return alter(proxyTarget, (realTarget: T) => {
+      realTarget.reverse();
+      return proxyTarget;
     });
   };
 
@@ -203,13 +191,45 @@ export function createBox<T extends Basic>(origin: T) {
     });
   };
 
-  box.unshift = function <T extends List>(
+  // Custom methods
+  box.insert = function <T extends List>(
     proxyTarget: ReadonlyBasic<T>,
+    position: number,
     ...payload: NonReadonly<T[number]>[]
-  ): number {
+  ): void {
     return alter(
       proxyTarget,
-      (realTarget: T) => realTarget.unshift(...payload),
+      (realTarget) => {
+        if (isNaN(position)) throw new Error("Position must be a number");
+        realTarget.splice(position, 0, ...payload);
+      },
+    );
+  };
+
+  box.extract = function <T extends List>(
+    proxyTarget: ReadonlyBasic<T>,
+    first: number,
+    amount = 1,
+  ): T[number][] {
+    return alter(
+      proxyTarget,
+      (realTarget) => {
+        if (isNaN(first) || isNaN(amount)) {
+          throw new Error("First and amount must be a number");
+        }
+        return realTarget.splice(first, amount);
+      },
+    );
+  };
+
+  box.clear = function <T extends List>(
+    proxyTarget: ReadonlyBasic<T>,
+  ): void {
+    return alter(
+      proxyTarget,
+      (realTarget) => {
+        realTarget.length = 0;
+      },
     );
   };
 

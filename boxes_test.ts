@@ -248,18 +248,3 @@ Deno.test("clear", () => {
   box.clear(data);
   assertEquals(control, 1);
 });
-
-// Deno.test("fill", () => {
-//   const arr = [1, 2, 3];
-//   const box = createBox(arr);
-//   const data = box();
-//   let control = 0;
-//   watch(data, () => {
-//     ++control;
-//   });
-//   const result = box.fill(data, 4);
-//   result.toReversed;
-//   assertEquals(control, 1);
-//   assertEquals(result, [4, 4, 4]);
-//   assertEquals(true, result === data);
-// });

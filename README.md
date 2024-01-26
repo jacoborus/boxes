@@ -82,8 +82,7 @@ console.log(box());
 - sort: like js
 
 - insert(pos, item1, item2, ...itemn)
-- extract(from, to)
-- clear: empties the array
+- extract(from, amount)
 - ? add(item, key?) adds item if not found. Optional: filter by key
 - ? remove(item, key?) removes item from the list. Optional: filter by key
 

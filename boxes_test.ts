@@ -231,20 +231,3 @@ Deno.test("extract", () => {
   assertEquals(control, 1);
   assertEquals(data[0], 5);
 });
-
-Deno.test("clear", () => {
-  const box = createBox([1, 2, 3]);
-  const data = box();
-  let control = 0;
-  const off = watch(data, () => {
-    ++control;
-  });
-  box.clear(data);
-  assertEquals(control, 1);
-  assertEquals(data.length, 0);
-  off();
-  box.push(data, 6);
-  assertEquals(data.length, 1);
-  box.clear(data);
-  assertEquals(control, 1);
-});

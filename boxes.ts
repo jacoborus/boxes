@@ -80,10 +80,10 @@ export function createBox<T extends Basic>(origin: T) {
     if (!realTarget) throw new Error("Can't update non box");
     if (isDict(realTarget)) {
       if (Array.isArray(payload)) throw new Error("not gonna happen");
-      Object.keys(payload).forEach((key) => {
+      for (const key in payload) {
         const value = payload[key];
         realTarget[key as keyof typeof realTarget] = value;
-      });
+      }
     } else {
       if (!Array.isArray(payload)) throw new Error("not gonna happen");
       payload.forEach((value, i) => {
@@ -104,11 +104,11 @@ export function createBox<T extends Basic>(origin: T) {
     if (Array.isArray(payload) || Array.isArray(realTarget)) {
       throw new Error("Method not allowed on arrays");
     }
-    Object.keys(payload).forEach((key) => {
+    for (const key in payload) {
       const value = payload[key];
       if (value === null) delete realTarget[key];
       else realTarget[key] = value;
-    });
+    }
     const listeners = listenersMap.get(proxyTarget);
     listeners?.forEach((listener) => listener());
   };
@@ -218,17 +218,6 @@ export function createBox<T extends Basic>(origin: T) {
           throw new Error("First and amount must be a number");
         }
         return realTarget.splice(first, amount);
-      },
-    );
-  };
-
-  box.clear = function <T extends List>(
-    proxyTarget: ReadonlyBasic<T>,
-  ): void {
-    return alter(
-      proxyTarget,
-      (realTarget) => {
-        realTarget.length = 0;
       },
     );
   };

@@ -1,10 +1,9 @@
 type Primitive = boolean | number | string | undefined;
-
+type Basic = List | Dict;
+type List = Array<Primitive | List | Dict>;
 interface Dict {
   [key: string]: Primitive | Dict | List;
 }
-type List = Array<Primitive | List | Dict>;
-type Basic = List | Dict;
 
 type ReadonlyDict<T extends Dict> = {
   readonly [k in keyof T]: T[k] extends Primitive ? T[k]
@@ -40,22 +39,59 @@ function isDict(value: unknown): value is Dict {
 
 function isBoxed(
   value: unknown,
-  proxyMap: ProxyMap,
 ): value is ReadonlyBasic<Basic> {
-  return proxyMap.has(value as ReadonlyBasic<Basic>);
+  return listenersMap.has(value as ReadonlyBasic<Basic>);
 }
 
 const listenersMap: WeakMap<ReadonlyBasic<Basic>, Set<() => void>> =
   new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
 
-function makeReadonly<T extends Basic>(
-  origin: T | ReadonlyBasic<T>,
+function copyDict<T extends Dict>(
+  origin: T,
   proxyMap: ProxyMap,
-): ReadonlyBasic<T> {
-  if (isBoxed(origin, proxyMap)) {
-    return origin as ReadonlyBasic<T>;
+): T {
+  const result = {} as unknown as T;
+  for (const j in origin) {
+    const i = j as keyof typeof origin;
+    const item = origin[i];
+    if (item === undefined || item === null) continue;
+    if (!isObject(item)) {
+      result[i] = item;
+    } else if (isBoxed(item)) result[i] = proxyMap.get(item) as T[keyof T];
+    else {
+      const [data] = inbox(item, proxyMap);
+      result[i] = data;
+    }
   }
+  return result;
+}
+
+function copyList<T extends List>(
+  origin: T,
+  proxyMap: ProxyMap,
+): T {
+  const result = [] as unknown as T;
+  for (const item of origin) {
+    if (!isObject(item)) {
+      result.push(item);
+    } else if (isBoxed(item)) {
+      result.push(proxyMap.get(item));
+    } else {
+      const [data] = inbox(item, proxyMap);
+      result.push(data);
+    }
+  }
+  return result;
+}
+
+function inbox<T extends Basic>(
+  input: T,
+  proxyMap: ProxyMap,
+): [T, ReadonlyBasic<T>] {
+  const origin = Array.isArray(input)
+    ? copyList(input, proxyMap)
+    : copyDict(input, proxyMap);
 
   const proxy = new Proxy(origin, {
     set: () => {
@@ -64,10 +100,7 @@ function makeReadonly<T extends Basic>(
 
     get: (origin, property) => {
       const value = origin[property as keyof typeof origin];
-      if (
-        !isObject(value) ||
-        proxyMap.has(value as ReadonlyBasic<Basic>)
-      ) return value;
+      if (!isObject(value) || isBoxed(value)) return value;
       return originMap.get(value);
     },
   }) as ReadonlyBasic<T>;
@@ -76,14 +109,7 @@ function makeReadonly<T extends Basic>(
   originMap.set(origin, proxy);
   listenersMap.set(proxy, new Set());
 
-  for (const i in origin) {
-    const value = origin[i as keyof typeof origin];
-    if (isObject(value)) {
-      makeReadonly(value, proxyMap);
-    }
-  }
-
-  return proxy;
+  return [origin as T, proxy];
 }
 
 export function watch(target: unknown, listener: () => void): () => void {
@@ -97,14 +123,14 @@ export function watch(target: unknown, listener: () => void): () => void {
 
 export function createBox<T extends Basic>(origin: T) {
   const proxyMap: ProxyMap = new WeakMap();
-  const data = makeReadonly(origin, proxyMap);
+  const [_, data] = inbox(origin, proxyMap);
 
   function box() {
     return data;
   }
 
   function alter<T extends List, R>(
-    proxy: ReadonlyBasic<T>,
+    proxy: ReadonlyList<T>,
     change: (target: T) => R,
   ) {
     const target = proxyMap.get(
@@ -114,7 +140,7 @@ export function createBox<T extends Basic>(origin: T) {
       throw new Error("Method only allowed on lists");
     }
     const result = change(target as T);
-    const listeners = listenersMap.get(proxy);
+    const listeners = listenersMap.get(proxy as ReadonlyBasic<Basic>);
     listeners?.forEach((listener) => listener());
     return result;
   }
@@ -173,9 +199,9 @@ export function createBox<T extends Basic>(origin: T) {
     return alter(
       proxy,
       (target) => {
-        const result = proxy[proxy.length - 1];
-        target.pop();
-        return result;
+        const result = target.pop();
+        if (!isBoxed(result)) return result as ReadonlyBasic<T>[number];
+        return originMap.get(result) as ReadonlyBasic<T>[number];
       },
     );
   };
@@ -199,40 +225,6 @@ export function createBox<T extends Basic>(origin: T) {
       (target: T) => target.unshift(...payload),
     );
   };
-
-  // // TODO: test
-  // box.reverse = function <T extends List>(
-  //   proxy: ReadonlyBasic<T>,
-  // ): ReadonlyBasic<T> {
-  //   return alter(proxy, (target: T) => {
-  //     target.reverse();
-  //     return proxy;
-  //   });
-  // };
-  //
-  // box.sort = function <T extends List>(
-  //   proxy: ReadonlyBasic<T>,
-  //   sorter?: (
-  //     a: ReadonlyBasic<T>[number],
-  //     b: ReadonlyBasic<T>[number],
-  //   ) => number,
-  // ): ReadonlyBasic<T> {
-  //   return alter(proxy, (target: T) => {
-  //     if (!sorter) {
-  //       target.sort();
-  //       return proxy;
-  //     }
-  //     target.sort((a, b) => {
-  //       const proxyA = typeof a === "object" ? originMap.get(a as Basic) : a;
-  //       const proxyB = typeof b === "object" ? originMap.get(b as Basic) : b;
-  //       return sorter(
-  //         proxyA as ReadonlyBasic<T>[number],
-  //         proxyB as ReadonlyBasic<T>[number],
-  //       );
-  //     });
-  //     return proxy;
-  //   });
-  // };
 
   // Custom methods
   box.insert = function <T extends List>(

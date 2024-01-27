@@ -176,7 +176,15 @@ export function createBox<T extends Basic>(origin: T) {
     for (const key in payload) {
       const value = payload[key];
       if (value === null) delete target[key];
-      else target[key] = value;
+      else {
+        if (!isObject(value)) {
+          target[key] = value;
+        } else if (isBoxed(value)) {
+          target[key] = proxyMap.get(value);
+        } else {
+          target[key] = inbox(value, proxyMap)[0];
+        }
+      }
     }
     const listeners = listenersMap.get(proxy);
     listeners?.forEach((listener) => listener());
@@ -243,7 +251,7 @@ export function createBox<T extends Basic>(origin: T) {
 
   box.extract = function <T extends List>(
     proxy: ReadonlyBasic<T>,
-    first: number,
+    first = proxy.length,
     amount = 1,
   ): T[number][] {
     return alter(

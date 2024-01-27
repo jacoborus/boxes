@@ -94,6 +94,8 @@ Deno.test("patch deep", () => {
   off();
   box.patch(box().o, { x: 6 });
   assertEquals(control, 1);
+  assertEquals(box().o.x, 6);
+  assertEquals(box().o.y, 2);
 });
 
 Deno.test("update", () => {
@@ -129,88 +131,6 @@ Deno.test("foreach", () => {
   box.update(box()[0], { a: 22 });
   assertEquals(control, 1);
 });
-
-Deno.test("push", () => {
-  const arr = [1, 2, 3];
-  const box = createBox(arr);
-  const data = box();
-  let control = 0;
-  const off = watch(data, () => {
-    ++control;
-  });
-  const len = box.push(data, 4);
-  assertEquals(control, 1);
-  assertEquals(len, 4);
-  assertEquals(data[3], 4);
-  off();
-  box.push(data, 6);
-  assertEquals(control, 1);
-});
-
-Deno.test({
-  name: "pop",
-  fn() {
-    const arr = [{ x: 1 }, { x: 2 }, { x: 3 }];
-    const box = createBox(arr);
-    const data = box();
-    let control = 0;
-    watch(data, () => {
-      ++control;
-    });
-    const result = box.pop(data);
-    assertEquals(control, 1);
-    assertEquals(result.x, 3);
-    assertEquals(data[0].x, 1);
-    assertEquals(data[1].x, 2);
-    assertEquals(data[2], undefined);
-  },
-});
-
-Deno.test("shift", () => {
-  const arr = [{ x: 1 }, { x: 2 }, { x: 3 }];
-  const box = createBox(arr);
-  const data = box();
-  let control = 0;
-  watch(data, () => {
-    ++control;
-  });
-  const result = box.shift(data);
-  assertEquals(control, 1);
-  assertEquals(result.x, 1);
-  assertEquals(data, [{ x: 2 }, { x: 3 }]);
-});
-
-Deno.test("unshift", () => {
-  const arr = [1, 2, 3];
-  const box = createBox(arr);
-  const data = box();
-  let control = 0;
-  const off = watch(data, () => {
-    ++control;
-  });
-  const len = box.unshift(data, 4);
-  assertEquals(control, 1);
-  assertEquals(len, 4);
-  assertEquals(data[0], 4);
-  off();
-  box.unshift(data, 6);
-  assertEquals(control, 1);
-  assertEquals(data[0], 6);
-});
-
-// Deno.test("sort simple", () => {
-//   const arr = [4, 3, 1, 2];
-//   const box = createBox(arr);
-//   const data = box();
-//   let control = 0;
-//   watch(data, () => {
-//     ++control;
-//   });
-//   const result = box.sort(data);
-//   assertEquals(control, 1);
-//   assertEquals(data, result);
-//   assertEquals(data, [1, 2, 3, 4]);
-// });
 
 Deno.test("insert", () => {
   const arr = [1, 2, 3];

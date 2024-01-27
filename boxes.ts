@@ -52,14 +52,14 @@ function copyDict<T extends Dict>(
   proxyMap: ProxyMap,
 ): T {
   const result = {} as unknown as T;
-  for (const j in origin) {
-    const i = j as keyof typeof origin;
+  for (const i in origin) {
     const item = origin[i];
     if (item === undefined || item === null) continue;
     if (!isObject(item)) {
       result[i] = item;
-    } else if (isBoxed(item)) result[i] = proxyMap.get(item) as T[keyof T];
-    else {
+    } else if (isBoxed(item)) {
+      result[i as keyof typeof origin] = proxyMap.get(item) as T[keyof T];
+    } else {
       const [data] = inbox(item, proxyMap);
       result[i] = data;
     }
@@ -125,10 +125,6 @@ export function createBox<T extends Basic>(origin: T) {
   const proxyMap: ProxyMap = new WeakMap();
   const [_, data] = inbox(origin, proxyMap);
 
-  function box() {
-    return data;
-  }
-
   function alter<T extends List, R>(
     proxy: ReadonlyList<T>,
     change: (target: T) => R,
@@ -143,6 +139,10 @@ export function createBox<T extends Basic>(origin: T) {
     const listeners = listenersMap.get(proxy as ReadonlyBasic<Basic>);
     listeners?.forEach((listener) => listener());
     return result;
+  }
+
+  function box() {
+    return data;
   }
 
   box.update = function (proxy: ReadonlyBasic<Basic>, payload: Basic) {
@@ -190,51 +190,6 @@ export function createBox<T extends Basic>(origin: T) {
     listeners?.forEach((listener) => listener());
   };
 
-  // JS methods
-  box.push = function <T extends List>(
-    proxy: ReadonlyBasic<T>,
-    ...payload: NonReadonly<T[number]>[]
-  ): number {
-    return alter(
-      proxy,
-      (target) => target.push(...payload),
-    );
-  };
-
-  box.pop = function <T extends List>(
-    proxy: ReadonlyBasic<T>,
-  ): ReadonlyBasic<T>[number] {
-    return alter(
-      proxy,
-      (target) => {
-        const result = target.pop();
-        if (!isBoxed(result)) return result as ReadonlyBasic<T>[number];
-        return originMap.get(result) as ReadonlyBasic<T>[number];
-      },
-    );
-  };
-
-  box.shift = function <T extends List>(
-    proxy: ReadonlyBasic<T>,
-  ): ReadonlyBasic<T>[number] {
-    return alter(proxy, (target) => {
-      const result = proxy[0];
-      target.shift();
-      return result;
-    });
-  };
-
-  box.unshift = function <T extends List>(
-    proxy: ReadonlyBasic<T>,
-    ...payload: NonReadonly<T[number]>[]
-  ): number {
-    return alter(
-      proxy,
-      (target: T) => target.unshift(...payload),
-    );
-  };
-
-  // Custom methods
   box.insert = function <T extends List>(
     proxy: ReadonlyBasic<T>,
     position: number,

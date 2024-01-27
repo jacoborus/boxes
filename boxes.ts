@@ -8,19 +8,17 @@ type Basic = List | Dict;
 
 type ReadonlyDict<T extends Dict> = {
   readonly [k in keyof T]: T[k] extends Primitive ? T[k]
-    : T[k] extends Dict ? ReadonlyDict<T[k]>
-    : T[k] extends List ? ReadonlyList<T[k]>
+    : T[k] extends Basic ? ReadonlyBasic<T[k]>
     : never;
 };
 
 type ReadonlyList<T extends List> = ReadonlyArray<
   T[number] extends Primitive ? T[number]
-    : T[number] extends Dict ? ReadonlyDict<T[number]>
-    : T[number] extends List ? ReadonlyList<T[number]>
+    : T[number] extends Basic ? ReadonlyBasic<T[number]>
     : never
 >;
 
-type ReadonlyBasic<T extends List | Dict> = T extends Dict ? ReadonlyDict<T>
+type ReadonlyBasic<T extends Basic> = T extends Dict ? ReadonlyDict<T>
   : T extends List ? ReadonlyList<T>
   : never;
 
@@ -30,9 +28,7 @@ type Nullable<T extends Basic> = {
   [K in keyof T]: T[K] | undefined | null;
 };
 
-const listenersMap: WeakMap<ReadonlyBasic<Basic>, Set<() => void>> =
-  new WeakMap();
-const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
+type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
 
 function isObject(value: unknown): value is Basic {
   return typeof value === "object" && value !== null;
@@ -40,6 +36,54 @@ function isObject(value: unknown): value is Basic {
 
 function isDict(value: unknown): value is Dict {
   return isObject(value) && !Array.isArray(value);
+}
+
+function isBoxed(
+  value: unknown,
+  proxyMap: ProxyMap,
+): value is ReadonlyBasic<Basic> {
+  return proxyMap.has(value as ReadonlyBasic<Basic>);
+}
+
+const listenersMap: WeakMap<ReadonlyBasic<Basic>, Set<() => void>> =
+  new WeakMap();
+const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
+
+function makeReadonly<T extends Basic>(
+  origin: T | ReadonlyBasic<T>,
+  proxyMap: ProxyMap,
+): ReadonlyBasic<T> {
+  if (isBoxed(origin, proxyMap)) {
+    return origin as ReadonlyBasic<T>;
+  }
+
+  const proxy = new Proxy(origin, {
+    set: () => {
+      throw new Error("Cannot modify a readonly object");
+    },
+
+    get: (origin, property) => {
+      const value = origin[property as keyof typeof origin];
+      if (
+        !isObject(value) ||
+        proxyMap.has(value as ReadonlyBasic<Basic>)
+      ) return value;
+      return originMap.get(value);
+    },
+  }) as ReadonlyBasic<T>;
+
+  proxyMap.set(proxy, origin);
+  originMap.set(origin, proxy);
+  listenersMap.set(proxy, new Set());
+
+  for (const i in origin) {
+    const value = origin[i as keyof typeof origin];
+    if (isObject(value)) {
+      makeReadonly(value, proxyMap);
+    }
+  }
+
+  return proxy;
 }
 
 export function watch(target: unknown, listener: () => void): () => void {
@@ -52,7 +96,7 @@ export function watch(target: unknown, listener: () => void): () => void {
 }
 
 export function createBox<T extends Basic>(origin: T) {
-  const proxyMap: WeakMap<ReadonlyBasic<Basic>, Basic> = new WeakMap();
+  const proxyMap: ProxyMap = new WeakMap();
   const data = makeReadonly(origin, proxyMap);
 
   function box() {
@@ -156,39 +200,39 @@ export function createBox<T extends Basic>(origin: T) {
     );
   };
 
-  // TODO: test
-  box.reverse = function <T extends List>(
-    proxy: ReadonlyBasic<T>,
-  ): ReadonlyBasic<T> {
-    return alter(proxy, (target: T) => {
-      target.reverse();
-      return proxy;
-    });
-  };
-
-  box.sort = function <T extends List>(
-    proxy: ReadonlyBasic<T>,
-    sorter?: (
-      a: ReadonlyBasic<T>[number],
-      b: ReadonlyBasic<T>[number],
-    ) => number,
-  ): ReadonlyBasic<T> {
-    return alter(proxy, (target: T) => {
-      if (!sorter) {
-        target.sort();
-        return proxy;
-      }
-      target.sort((a, b) => {
-        const proxyA = typeof a === "object" ? originMap.get(a as Basic) : a;
-        const proxyB = typeof b === "object" ? originMap.get(b as Basic) : b;
-        return sorter(
-          proxyA as ReadonlyBasic<T>[number],
-          proxyB as ReadonlyBasic<T>[number],
-        );
-      });
-      return proxy;
-    });
-  };
+  // // TODO: test
+  // box.reverse = function <T extends List>(
+  //   proxy: ReadonlyBasic<T>,
+  // ): ReadonlyBasic<T> {
+  //   return alter(proxy, (target: T) => {
+  //     target.reverse();
+  //     return proxy;
+  //   });
+  // };
+  //
+  // box.sort = function <T extends List>(
+  //   proxy: ReadonlyBasic<T>,
+  //   sorter?: (
+  //     a: ReadonlyBasic<T>[number],
+  //     b: ReadonlyBasic<T>[number],
+  //   ) => number,
+  // ): ReadonlyBasic<T> {
+  //   return alter(proxy, (target: T) => {
+  //     if (!sorter) {
+  //       target.sort();
+  //       return proxy;
+  //     }
+  //     target.sort((a, b) => {
+  //       const proxyA = typeof a === "object" ? originMap.get(a as Basic) : a;
+  //       const proxyB = typeof b === "object" ? originMap.get(b as Basic) : b;
+  //       return sorter(
+  //         proxyA as ReadonlyBasic<T>[number],
+  //         proxyB as ReadonlyBasic<T>[number],
+  //       );
+  //     });
+  //     return proxy;
+  //   });
+  // };
 
   // Custom methods
   box.insert = function <T extends List>(
@@ -222,33 +266,4 @@ export function createBox<T extends Basic>(origin: T) {
   };
 
   return box;
-}
-
-function makeReadonly<T extends Basic>(
-  origin: T | ReadonlyBasic<T>,
-  proxyMap: WeakMap<ReadonlyBasic<Basic>, Basic>,
-): ReadonlyBasic<T> {
-  if (proxyMap.has(origin as ReadonlyBasic<T>)) {
-    return origin as ReadonlyBasic<T>;
-  }
-
-  const proxy = new Proxy(origin, {
-    set: () => {
-      throw new Error("Cannot modify a readonly object");
-    },
-
-    get: (origin, property) => {
-      const value = origin[property as keyof typeof origin];
-      if (
-        !isObject(value) ||
-        listenersMap.has(value as ReadonlyBasic<typeof value>)
-      ) return value;
-      return originMap.get(value) || makeReadonly(value, proxyMap);
-    },
-  }) as ReadonlyBasic<T>;
-
-  proxyMap.set(proxy, origin as Basic);
-  listenersMap.set(proxy, new Set());
-  originMap.set(origin as Basic, proxy);
-  return proxy;
 }

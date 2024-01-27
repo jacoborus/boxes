@@ -181,19 +181,19 @@ Deno.test("unshift", () => {
   assertEquals(data[0], 6);
 });
 
-Deno.test("sort simple", () => {
-  const arr = [4, 3, 1, 2];
-  const box = createBox(arr);
-  const data = box();
-  let control = 0;
-  watch(data, () => {
-    ++control;
-  });
-  const result = box.sort(data);
-  assertEquals(control, 1);
-  assertEquals(data, result);
-  assertEquals(data, [1, 2, 3, 4]);
-});
+// Deno.test("sort simple", () => {
+//   const arr = [4, 3, 1, 2];
+//   const box = createBox(arr);
+//   const data = box();
+//   let control = 0;
+//   watch(data, () => {
+//     ++control;
+//   });
+//   const result = box.sort(data);
+//   assertEquals(control, 1);
+//   assertEquals(data, result);
+//   assertEquals(data, [1, 2, 3, 4]);
+// });
 
 Deno.test("insert", () => {
   const arr = [1, 2, 3];

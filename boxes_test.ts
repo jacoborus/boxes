@@ -1,70 +1,83 @@
 import { assertEquals } from "https://deno.land/std@0.174.0/testing/asserts.ts";
 import { createBox, watch } from "./boxes.ts";
 
-Deno.test("basic test", () => {
-  const obj = { a: 1 };
-  const box = createBox(obj);
-  let control = 0;
-  assertEquals(box().a, obj.a);
-  const off = watch(box(), () => {
-    ++control;
-  });
-  box.update(box(), { a: 4 });
-  assertEquals(control, 1);
-  assertEquals(box().a, obj.a);
-  assertEquals(box().a, 4);
-  off();
-  box.update(box(), { a: 6 });
-  assertEquals(control, 1);
+Deno.test({
+  name: "basic test",
+  fn() {
+    const obj = { a: 1 };
+    const box = createBox(obj);
+    let control = 0;
+    assertEquals(box().a, obj.a, "copy works");
+    const off = watch(box(), () => {
+      ++control;
+    });
+    box.update(box(), { a: 4 });
+    assertEquals(control, 1, "watch works");
+    assertEquals(box().a, 4, "update works");
+    off();
+    box.update(box(), { a: 6 });
+    assertEquals(control, 1);
+  },
 });
 
-Deno.test("deep binding", () => {
-  const obj = { a: 1, o: { x: 1 } };
-  const box = createBox(obj);
-  const data = box();
-  assertEquals(data.o, obj.o);
-  let control = 0;
-  const off = watch(box().o, () => {
-    ++control;
-  });
-  box.update(data.o, { x: 42 });
-  assertEquals(control, 1);
-  assertEquals(data.o.x, obj.o.x);
-  off();
-  box.update(box(), { a: 6, o: { x: 1 } });
-  assertEquals(control, 1);
+Deno.test({
+  name: "deep binding",
+  fn() {
+    const obj = { a: 1, o: { x: 1 } };
+    const box = createBox(obj);
+    const data = box();
+    assertEquals(data.o, obj.o);
+    let control = 0;
+    const off = watch(box().o, () => {
+      ++control;
+    });
+    box.update(data.o, { x: 42 });
+    assertEquals(control, 1);
+    assertEquals(data.o.x, 42);
+    off();
+    box.update(box(), { a: 6, o: { x: 1 } });
+    assertEquals(control, 1, "asdfsa");
+    assertEquals(data.a, 6);
+    assertEquals(data.o.x, 1);
+  },
 });
 
-Deno.test("patchMethod", () => {
-  const obj = { a: 1, b: "abc" };
-  const box = createBox(obj);
-  assertEquals(box().a, obj.a);
-  let control = 0;
-  const off = watch(box(), () => {
-    ++control;
-  });
-  box.patch(box(), { a: 2 });
-  assertEquals(control, 1);
-  assertEquals(box().a, obj.a);
-  assertEquals(box().a, 2);
-  assertEquals(box().b, "abc");
-  off();
-  box.patch(box(), { a: 6 });
-  assertEquals(control, 1);
+Deno.test({
+  name: "patchMethod",
+  fn() {
+    const obj = { a: 1, b: "abc" };
+    const box = createBox(obj);
+    assertEquals(box().a, obj.a);
+    let control = 0;
+    const off = watch(box(), () => {
+      ++control;
+    });
+    box.patch(box(), { a: 2 });
+    assertEquals(control, 1);
+    assertEquals(box().a, 2);
+    assertEquals(box().b, "abc");
+    off();
+    box.patch(box(), { a: 6 });
+    assertEquals(control, 1);
+    assertEquals(box().a, 6);
+  },
 });
 
-Deno.test("patch with null", () => {
-  type Target = {
-    a: number;
-    b?: string;
-  };
-  const obj = { a: 1, b: "abc" } as Target;
-  const box = createBox(obj);
-  assertEquals(box().a, obj.a);
-  assertEquals(box().b, obj.b);
-  box.patch(box(), { a: 2, b: null });
-  assertEquals(box().a, obj.a);
-  assertEquals(box().b, undefined);
+Deno.test({
+  name: "patch with null",
+  fn() {
+    type Target = {
+      a: number;
+      b?: string;
+    };
+    const obj = { a: 1, b: "abc" };
+    const box = createBox<Target>(obj);
+    assertEquals(box().a, obj.a);
+    assertEquals(box().b, obj.b);
+    box.patch(box(), { a: 2, b: null });
+    assertEquals(box().a, 2);
+    assertEquals(box().b, undefined);
+  },
 });
 
 Deno.test("patch deep", () => {
@@ -76,7 +89,6 @@ Deno.test("patch deep", () => {
   });
   box.patch(box().o, { x: 99 });
   assertEquals(control, 1);
-  assertEquals(box().o, obj.o);
   assertEquals(box().o.x, 99);
   assertEquals(box().o.y, 2);
   off();
@@ -135,18 +147,23 @@ Deno.test("push", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("pop", () => {
-  const arr = [{ x: 1 }, { x: 2 }, { x: 3 }];
-  const box = createBox(arr);
-  const data = box();
-  let control = 0;
-  watch(data, () => {
-    ++control;
-  });
-  const result = box.pop(data);
-  assertEquals(control, 1);
-  assertEquals(result.x, 3);
-  assertEquals(data, [{ x: 1 }, { x: 2 }]);
+Deno.test({
+  name: "pop",
+  fn() {
+    const arr = [{ x: 1 }, { x: 2 }, { x: 3 }];
+    const box = createBox(arr);
+    const data = box();
+    let control = 0;
+    watch(data, () => {
+      ++control;
+    });
+    const result = box.pop(data);
+    assertEquals(control, 1);
+    assertEquals(result.x, 3);
+    assertEquals(data[0].x, 1);
+    assertEquals(data[1].x, 2);
+    assertEquals(data[2], undefined);
+  },
 });
 
 Deno.test("shift", () => {

@@ -100,7 +100,9 @@ function inbox<T extends Basic>(
 
     get: (origin, property) => {
       const value = origin[property as keyof typeof origin];
+      // console.log({ origin, property, value });
       if (!isObject(value) || isBoxed(value)) return value;
+      // console.log(value);
       return originMap.get(value);
     },
   }) as ReadonlyBasic<T>;
@@ -151,7 +153,14 @@ export function createBox<T extends Basic>(origin: T) {
     if (isDict(target)) {
       if (Array.isArray(payload)) throw new Error("not gonna happen");
       for (const key in payload) {
-        target[key as keyof typeof target] = payload[key];
+        const value = payload[key as keyof typeof payload];
+        if (!isObject(value)) {
+          target[key] = value;
+        } else if (isBoxed(value)) {
+          target[key] = proxyMap.get(value);
+        } else {
+          target[key] = inbox(value, proxyMap)[0];
+        }
       }
     } else {
       if (!Array.isArray(payload)) throw new Error("not gonna happen");

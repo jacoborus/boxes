@@ -47,10 +47,7 @@ const listenersMap: WeakMap<ReadonlyBasic<Basic>, Set<() => void>> =
   new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
 
-function copyDict<T extends Dict>(
-  origin: T,
-  proxyMap: ProxyMap,
-): T {
+function copyDict<T extends Dict>(origin: T, proxyMap: ProxyMap): T {
   const result = {} as unknown as T;
   for (const i in origin) {
     const item = origin[i];
@@ -58,7 +55,7 @@ function copyDict<T extends Dict>(
     if (!isObject(item)) {
       result[i] = item;
     } else if (isBoxed(item)) {
-      result[i as keyof typeof origin] = proxyMap.get(item) as T[keyof T];
+      result[i as keyof T] = proxyMap.get(item) as T[keyof T];
     } else {
       const [data] = inbox(item, proxyMap);
       result[i] = data;
@@ -67,10 +64,7 @@ function copyDict<T extends Dict>(
   return result;
 }
 
-function copyList<T extends List>(
-  origin: T,
-  proxyMap: ProxyMap,
-): T {
+function copyList<T extends List>(origin: T, proxyMap: ProxyMap): T {
   const result = [] as unknown as T;
   for (const item of origin) {
     if (!isObject(item)) {
@@ -100,9 +94,7 @@ function inbox<T extends Basic>(
 
     get: (origin, property) => {
       const value = origin[property as keyof typeof origin];
-      // console.log({ origin, property, value });
       if (!isObject(value) || isBoxed(value)) return value;
-      // console.log(value);
       return originMap.get(value);
     },
   }) as ReadonlyBasic<T>;
@@ -123,9 +115,9 @@ export function watch(target: unknown, listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-export function createBox<T extends Basic>(origin: T) {
+export function createBox<T extends Basic>(source: T) {
   const proxyMap: ProxyMap = new WeakMap();
-  const [_, data] = inbox(origin, proxyMap);
+  const [_, data] = inbox(source, proxyMap);
 
   function alter<T extends List, R>(
     proxy: ReadonlyList<T>,
@@ -173,10 +165,7 @@ export function createBox<T extends Basic>(origin: T) {
     listeners?.forEach((listener) => listener());
   };
 
-  box.patch = function (
-    proxy: ReadonlyBasic<Basic>,
-    payload: Nullable<Basic>,
-  ) {
+  box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     if (Array.isArray(payload) || Array.isArray(target)) {

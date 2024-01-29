@@ -3,7 +3,7 @@
 (Work in progress)
 
 ```ts
-import { getBox, watch } from "boxes";
+import { createBox, watch } from "boxes";
 
 const origin = {
   a: "abc",
@@ -12,16 +12,14 @@ const origin = {
   },
 };
 
-const box = getBox(origin);
+const box = createBox(origin);
 
 const { update, patch } = box;
 const data = box(); // { a: "abc", o: { x: 1 } }
 
-// data is a deep immutable proxy of the origin
+// data is a readonly proxy of the origin
 data === origin; // false
 data.a === origin.a; // true
-data.o === origin.o; // false
-data.o.x === origin.o.x; // true
 
 const unwatch = watch(data, () => console.log(data));
 
@@ -39,10 +37,10 @@ update(data.o, { x: 2 });
 
 **API:**
 
-- getBox
+- createBox
 - watch
 
-## getBox(origin)
+## createBox(origin)
 
 Creates a box.
 
@@ -54,9 +52,9 @@ import { getBox } from "boxes";
 const box = getBox({ a: 1 });
 ```
 
-### Box
+## Box
 
-It's a function that returns a deep immutable proxy of the origin
+It's a function that returns a readonly proxy of the origin
 
 ```js
 import { getBox } from "boxes";
@@ -65,6 +63,16 @@ const box = getBox({ a: 1 });
 console.log(box());
 // { a:1 }
 ```
+
+**Dict and List methods**:
+
+- update
+- patch
+
+**Only List methods**:
+- insert(pos, item1, item2, ...itemn)
+- extract(from, amount)
+
 
 ### Box.update(target, payload)
 
@@ -101,25 +109,10 @@ console.log(box());
 // { o: { x: 1 } }
 ```
 
-### Box.push(target, ...items)
-
-Pushes to the box data. Only allowed for arrays
-
-```js
-import { getBox } from "boxes";
-
-const arr = [1, 2, 3];
-const box = getBox(arr);
-const data = box();
-box.push(data, 4);
-box.push(data, 5);
-console.log(data);
-// [1, 2, 3, 4, 5]
-```
 
 ## watch(target)
 
-Watches the box data and executes a callback every time it changes. It can oly
+Watches the box data and executes a callback every time it changes. It can only
 watch objects and arrays.
 
 Returns a function to destroy the listener

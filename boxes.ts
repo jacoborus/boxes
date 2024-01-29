@@ -29,6 +29,13 @@ type Nullable<T extends Basic> = {
 
 type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
 
+type Thing<T extends Primitive> = T extends number ? number
+  : T extends string ? string
+  : T extends boolean ? boolean
+  : undefined;
+type SetThing<T extends Primitive> = (input: Thing<T>) => void;
+type ThingReturn<T extends Primitive> = [() => Thing<T>, SetThing<T>];
+
 function isObject(value: unknown): value is Basic {
   return typeof value === "object" && value !== null;
 }
@@ -43,9 +50,25 @@ function isBoxed(
   return listenersMap.has(value as ReadonlyBasic<Basic>);
 }
 
-const listenersMap: WeakMap<ReadonlyBasic<Basic>, Set<() => void>> =
-  new WeakMap();
+const listenersMap: WeakMap<
+  ReadonlyBasic<Basic> | SetThing<Primitive>,
+  Set<() => void>
+> = new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
+
+export function createThing<T extends Primitive>(input?: T): ThingReturn<T> {
+  let origin = input as unknown as Thing<T>;
+  const getThing = () => origin as unknown as Thing<T>;
+  listenersMap.set(getThing, new Set());
+  return [
+    getThing,
+    (value: Thing<T>) => {
+      if (origin === value) return;
+      origin = value;
+      listenersMap.get(getThing)?.forEach((listener) => listener());
+    },
+  ];
+}
 
 function copyItem<T>(item: T, proxyMap: ProxyMap) {
   return !isObject(item)
@@ -101,7 +124,9 @@ function inbox<T extends Basic>(
 }
 
 export function watch(target: unknown, listener: () => void): () => void {
-  const listeners = listenersMap.get(target as ReadonlyBasic<Basic>);
+  const listeners = listenersMap.get(
+    target as ReadonlyBasic<Basic> | SetThing<Primitive>,
+  );
   if (!listeners) {
     throw new Error("Can't subscribe to non box");
   }

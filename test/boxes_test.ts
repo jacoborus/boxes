@@ -1,5 +1,5 @@
-import { assertEquals } from "https://deno.land/std@0.174.0/testing/asserts.ts";
-import { createBox, watch } from "./boxes.ts";
+import { assertEquals } from "assert";
+import { createBox, watch } from "../boxes.ts";
 
 Deno.test({
   name: "basic test",

@@ -47,19 +47,20 @@ const listenersMap: WeakMap<ReadonlyBasic<Basic>, Set<() => void>> =
   new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
 
+function copyItem<T>(item: T, proxyMap: ProxyMap) {
+  return !isObject(item)
+    ? item
+    : isBoxed(item)
+    ? proxyMap.get(item) as typeof item
+    : inbox(item, proxyMap)[0];
+}
+
 function copyDict<T extends Dict>(origin: T, proxyMap: ProxyMap): T {
   const result = {} as unknown as T;
   for (const i in origin) {
     const item = origin[i];
     if (item === undefined || item === null) continue;
-    if (!isObject(item)) {
-      result[i] = item;
-    } else if (isBoxed(item)) {
-      result[i as keyof T] = proxyMap.get(item) as T[keyof T];
-    } else {
-      const [data] = inbox(item, proxyMap);
-      result[i] = data;
-    }
+    result[i as keyof T] = copyItem(item, proxyMap);
   }
   return result;
 }
@@ -67,14 +68,7 @@ function copyDict<T extends Dict>(origin: T, proxyMap: ProxyMap): T {
 function copyList<T extends List>(origin: T, proxyMap: ProxyMap): T {
   const result = [] as unknown as T;
   for (const item of origin) {
-    if (!isObject(item)) {
-      result.push(item);
-    } else if (isBoxed(item)) {
-      result.push(proxyMap.get(item));
-    } else {
-      const [data] = inbox(item, proxyMap);
-      result.push(data);
-    }
+    result.push(copyItem(item, proxyMap));
   }
   return result;
 }
@@ -117,7 +111,7 @@ export function watch(target: unknown, listener: () => void): () => void {
 
 export function createBox<T extends Basic>(source: T) {
   const proxyMap: ProxyMap = new WeakMap();
-  const [_, data] = inbox(source, proxyMap);
+  const mirror = inbox(source, proxyMap)[1];
 
   function alter<T extends List, R>(
     proxy: ReadonlyList<T>,
@@ -136,7 +130,7 @@ export function createBox<T extends Basic>(source: T) {
   }
 
   function box() {
-    return data;
+    return mirror;
   }
 
   box.update = function (proxy: ReadonlyBasic<Basic>, payload: Basic) {
@@ -146,13 +140,7 @@ export function createBox<T extends Basic>(source: T) {
       if (Array.isArray(payload)) throw new Error("not gonna happen");
       for (const key in payload) {
         const value = payload[key as keyof typeof payload];
-        if (!isObject(value)) {
-          target[key] = value;
-        } else if (isBoxed(value)) {
-          target[key] = proxyMap.get(value);
-        } else {
-          target[key] = inbox(value, proxyMap)[0];
-        }
+        target[key] = copyItem(value, proxyMap);
       }
     } else {
       if (!Array.isArray(payload)) throw new Error("not gonna happen");
@@ -173,15 +161,11 @@ export function createBox<T extends Basic>(source: T) {
     }
     for (const key in payload) {
       const value = payload[key];
-      if (value === null) delete target[key];
-      else {
-        if (!isObject(value)) {
-          target[key] = value;
-        } else if (isBoxed(value)) {
-          target[key] = proxyMap.get(value);
-        } else {
-          target[key] = inbox(value, proxyMap)[0];
-        }
+      if (value === undefined) continue;
+      if (value === null) {
+        delete target[key];
+      } else {
+        target[key] = copyItem(value, proxyMap);
       }
     }
     const listeners = listenersMap.get(proxy);

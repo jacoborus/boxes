@@ -1,5 +1,5 @@
 type Primitive = boolean | number | string | undefined;
-type Basic = List | Dict;
+export type Basic = List | Dict;
 type List = Array<Primitive | List | Dict>;
 interface Dict {
   [key: string]: Primitive | Dict | List;
@@ -17,7 +17,7 @@ type ReadonlyList<T extends List> = ReadonlyArray<
     : never
 >;
 
-type ReadonlyBasic<T extends Basic> = T extends Dict ? ReadonlyDict<T>
+export type ReadonlyBasic<T extends Basic> = T extends Dict ? ReadonlyDict<T>
   : T extends List ? ReadonlyList<T>
   : never;
 
@@ -222,6 +222,7 @@ export function createBox<T extends Basic>(source: T) {
         if (isNaN(first) || isNaN(amount)) {
           throw new Error("First and amount must be a number");
         }
+        // TODO: return a readonly copy of the extracted items
         return target.splice(first, amount);
       },
     );

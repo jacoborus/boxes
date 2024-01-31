@@ -1,7 +1,7 @@
 type Primitive = boolean | number | string | undefined;
 export type Basic = List | Dict;
 type List = Array<Primitive | List | Dict>;
-interface Dict {
+export interface Dict {
   [key: string]: Primitive | Dict | List;
 }
 

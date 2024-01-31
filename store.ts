@@ -1,24 +1,23 @@
 import type { Dict, ReadonlyBasic } from "./boxes.ts";
 import { createBox } from "./boxes.ts";
 
-type GetterFn<S extends Dict, F extends (s: ReadonlyBasic<S>) => unknown> =
-  () => ReturnType<F>;
+type GetterFn<
+  S extends Dict,
+  G extends GettersConfig<S>,
+  K extends keyof G,
+> = () => ReturnType<G[K]>;
 
 type Getters<S extends Dict, G extends GettersConfig<S>> = {
-  [K in keyof G]: GetterFn<S, G[K]>;
+  [K in keyof G]: GetterFn<S, G, K>;
 };
 
-type GetterFactory<S extends Dict> = (state: ReadonlyBasic<S>) => unknown;
-
-type GettersConfig<S extends Dict> = Record<string, GetterFactory<S>>;
-
-type StoreConfig<S extends Dict, G extends GettersConfig<S>> = {
-  state: () => S;
-  getters: G;
-};
+type GettersConfig<S extends Dict> = Record<
+  string,
+  (state: ReadonlyBasic<S>, getters: Getters<S, GettersConfig<S>>) => unknown
+>;
 
 export function createStore<S extends Dict, G extends GettersConfig<S>>(
-  config = { state: () => {}, getters: {} } as StoreConfig<S, G>,
+  config = { state: () => {}, getters: {} } as { state: () => S; getters: G },
 ) {
   const box = createBox(config.state());
   const state = box();
@@ -28,8 +27,8 @@ export function createStore<S extends Dict, G extends GettersConfig<S>>(
   for (const i in config.getters) {
     const getterFactory = config.getters[i];
     getters[i] = function () {
-      return getterFactory(state);
-    } as GetterFn<S, G[typeof i]>;
+      return getterFactory(state, getters);
+    } as GetterFn<S, G, typeof i>;
   }
 
   return {
@@ -40,3 +39,8 @@ export function createStore<S extends Dict, G extends GettersConfig<S>>(
     getters,
   };
 }
+
+// type StoreConfig<S extends Dict, G extends GettersConfig<S>> = {
+//   state: () => S;
+//   getters: G;
+// };

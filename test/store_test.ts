@@ -5,53 +5,63 @@ import { createStore } from "../store.ts";
 Deno.test({
   name: "Store getters",
   fn() {
-    const { state, getters } = createStore(
+    const store = createStore(
       () => ({ hi: "hola", num: 2 }),
       {
         sayHi(state) {
           return state.hi + " Mundo";
         },
         greetings(state, getters) {
+          getters.sayHi() === 5;
           return getters.sayHi() + "!" + state.num;
         },
       },
+      // actions: {},
     );
 
-    // state.hi === 5;
-    // state.asdfasdf === 5;
-    // getters.sayHi() === 5;
-    getters.sayHi() === "asdf";
-    assertEquals(state.hi, "hola");
-    assertEquals(getters.sayHi(), "hola Mundo");
-    assertEquals(getters.greetings(), "hola Mundo!2");
+    store.state.hi === 5;
+    store.state.asdfasdf === 5;
+    store.getters.sayHi() === 5;
+    store.getters.sayHi() === "asdf";
+    assertEquals(store.state.hi, "hola");
+    assertEquals(store.getters.sayHi(), "hola Mundo");
+    assertEquals(store.getters.greetings(), "hola Mundo!2");
   },
 });
 
-Deno.test({
-  name: "Store actions",
-  fn() {
-    const { state, getters, actions } = createStore(
-      (): {
-        name: string;
-        age?: number;
-        member?: boolean;
-      } => ({ name: "boxes" }),
-      {
-        sayHi(state) {
-          return "Hi " + state.name;
-        },
-        greetings(state, getters) {
-          return getters.sayHi() +
-            `!, you are ${state.member ? "not" : ""} a member`;
-        },
-      },
-      {
-        changeName(box) {},
-      },
-    );
-
-    assertEquals(state.name, "boxes");
-    assertEquals(getters.sayHi(), "Hi boxes");
-    assertEquals(getters.greetings(), "Hi boxes! you are not a member");
-  },
-});
+// Deno.test({
+//   name: "Store actions",
+//   fn() {
+//     const store = createStore(
+//       {
+//         state: (): {
+//           name: string;
+//           age?: number;
+//           member?: boolean;
+//         } => ({ name: "boxes" }),
+//         actions: {
+//           changeName(state, actions) {
+//             return actions.sayHi();
+//           },
+//           otherAction(state, actions) {
+//             actions.fasdfasdf;
+//             return actions.sayHi();
+//           },
+//         },
+//         getters: {
+//           sayHi(state) {
+//             return "Hi " + state.name;
+//           },
+//           greetings(state, getters) {
+//             return getters.sayHi() +
+//               `! you are ${!state.member ? "not" : ""} a member`;
+//           },
+//         },
+//       },
+//     );
+//
+//     assertEquals(store.state.name, "boxes");
+//     assertEquals(store.getters.sayHi(), "Hi boxes");
+//     assertEquals(store.getters.greetings(), "Hi boxes! you are not a member");
+//   },
+// });

@@ -1,35 +1,12 @@
-type Primitive = NonObjectNull<unknown>;
-type NonObjectNull<T> = T extends object ? never
-  : T extends null ? never
-  : T;
-
-export type Basic = List | Dict;
-type List = Array<Primitive | List | Dict>;
-export interface Dict {
-  [key: string]: Primitive | Dict | List;
-}
-
-type ReadonlyDict<T extends Dict> = {
-  readonly [k in keyof T]: T[k] extends Primitive ? T[k]
-    : T[k] extends Basic ? ReadonlyBasic<T[k]>
-    : never;
-};
-
-type ReadonlyList<T extends List> = ReadonlyArray<
-  T[number] extends Primitive ? T[number]
-    : T[number] extends Basic ? ReadonlyBasic<T[number]>
-    : never
->;
-
-export type ReadonlyBasic<T extends Basic> = T extends Dict ? ReadonlyDict<T>
-  : T extends List ? ReadonlyList<T>
-  : never;
-
-type NonReadonly<T> = T extends readonly (infer U)[] ? NonReadonly<U>[] : T;
-
-type Nullable<T extends Basic> = {
-  [K in keyof T]: T[K] | undefined | null;
-};
+import type {
+  Basic,
+  Dict,
+  List,
+  NonReadonlyList,
+  Nullable,
+  ReadonlyBasic,
+  ReadonlyList,
+} from "./common_types.ts";
 
 type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
 
@@ -181,7 +158,7 @@ export function createBox<T extends Basic>(source: T) {
   box.insert = function <T extends List>(
     proxy: ReadonlyBasic<T>,
     position: number,
-    ...payload: NonReadonly<T[number]>[]
+    ...payload: NonReadonlyList<T[number]>[]
   ): void {
     return alter(
       proxy,

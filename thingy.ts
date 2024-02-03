@@ -1,6 +1,4 @@
-type NonObjectNull<T> = T extends object ? never
-  : T extends null ? never
-  : T;
+import type { NonObjectNull } from "./common_types.ts";
 
 type GetThing<T> = () => NonObjectNull<T>;
 type SetThing<T> = (input: NonObjectNull<T>) => void;

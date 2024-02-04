@@ -17,15 +17,18 @@ const listenersMap: ListenersMap = new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
 
 export function watch<T>(
-  target: GetThing<T> | ReadonlyBasic<Basic>,
-  listener: () => void,
+  target: T,
+  listener: (value: T) => void,
 ) {
-  const listeners = listenersMap.get(target);
+  const listeners = listenersMap.get(
+    target as ReadonlyBasic<Basic> | GetThing<T>,
+  );
   if (!listeners) {
     throw new Error("Can't subscribe to non box");
   }
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+  const finalListener = () => listener(target);
+  listeners.add(finalListener);
+  return () => listeners.delete(finalListener);
 }
 
 export function createThingy<T>(

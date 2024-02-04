@@ -1,4 +1,4 @@
-import type { Dict, ReadonlyBasic } from "./boxes.ts";
+import type { Dict, ReadonlyBasic } from "./common_types.ts";
 import { createBox } from "./boxes.ts";
 
 interface GettersConfig<S extends Dict, G extends GettersConfig<S, G>> {

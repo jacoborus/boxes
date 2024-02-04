@@ -18,25 +18,21 @@ const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
 
 export function watch<T>(
   target: T,
-  listener: (value: T) => void,
+  callback: (value: T) => void,
 ) {
   const listeners = listenersMap.get(
     target as ReadonlyBasic<Basic> | GetThing<T>,
   );
-  if (!listeners) {
-    throw new Error("Can't subscribe to non box");
-  }
-  const finalListener = () => listener(target);
-  listeners.add(finalListener);
-  return () => listeners.delete(finalListener);
+  if (!listeners) throw new Error("Can't subscribe to non box");
+  const listener = () => callback(target);
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
 export function createThingy<T>(
   input: NonObjectNull<T>,
 ): [GetThing<T>, SetThing<T>] {
-  if (!isPrimitive(input)) {
-    throw new Error("Can't box non-primitive");
-  }
+  if (!isPrimitive(input)) throw new Error("Can't box non-primitive");
   let origin = input;
   const getThing = () => origin;
   listenersMap.set(getThing, new Set());
@@ -45,9 +41,7 @@ export function createThingy<T>(
     getThing,
     (value: NonObjectNull<T>) => {
       if (origin === value) return;
-      if (!isPrimitive(value)) {
-        throw new Error("Can't box non-primitive");
-      }
+      if (!isPrimitive(value)) throw new Error("Can't box non-primitive");
       origin = value;
       listenersMap.get(getThing)?.forEach((listener) => listener());
     },

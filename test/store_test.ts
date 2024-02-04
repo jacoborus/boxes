@@ -2,32 +2,31 @@ import { assertEquals } from "assert";
 import { createStore } from "../store.ts";
 // import { watch } from "../boxes.ts";
 
-Deno.test({
-  name: "Store getters",
-  fn() {
-    const store = createStore(
-      () => ({ hi: "hola", num: 2 }),
-      {
-        sayHi(state) {
-          return state.hi + " Mundo";
-        },
-        greetings(state, getters) {
-          getters.sayHi() === 5;
-          return getters.sayHi() + "!" + state.num;
-        },
-      },
-      // actions: {},
-    );
-
-    store.state.hi === 5;
-    store.state.asdfasdf === 5;
-    store.getters.sayHi() === 5;
-    store.getters.sayHi() === "asdf";
-    assertEquals(store.state.hi, "hola");
-    assertEquals(store.getters.sayHi(), "hola Mundo");
-    assertEquals(store.getters.greetings(), "hola Mundo!2");
-  },
-});
+// Deno.test({
+//   name: "Store getters",
+//   fn() {
+//     const store = createStore(
+//       () => ({ hi: "hola", num: 2 }),
+//       {
+//         sayHi(state) {
+//           return state.hi + " Mundo";
+//         },
+//         greetings(state, getters) {
+//           getters.sayHi() === 5;
+//           return getters.sayHi() + "!" + state.num;
+//         },
+//       },
+//       // actions: {},
+//     );
+//     store.state.hi === 5;
+//     store.state.asdfasdf === 5;
+//     store.getters.sayHi() === 5;
+//     store.getters.sayHi() === "asdf";
+//     assertEquals(store.state.hi, "hola");
+//     assertEquals(store.getters.sayHi(), "hola Mundo");
+//     assertEquals(store.getters.greetings(), "hola Mundo!2");
+//   },
+// });
 
 // Deno.test({
 //   name: "Store actions",

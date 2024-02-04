@@ -31,3 +31,13 @@ export type NonReadonlyList<T> = T extends readonly (infer U)[]
 export type Nullable<T extends Basic> = {
   [K in keyof T]: T[K] | undefined | null;
 };
+
+export type GetThing<T> = () => NonObjectNull<T>;
+export type SetThing<T> = (input: NonObjectNull<T>) => void;
+
+export type ListenersMap = WeakMap<
+  ReadonlyBasic<Basic> | GetThing<unknown>,
+  Set<() => void>
+>;
+
+export type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;

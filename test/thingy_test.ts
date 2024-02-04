@@ -1,5 +1,5 @@
 import { assertEquals } from "assert";
-import { createThingy, watch } from "../thingy.ts";
+import { createThingy, watch } from "../boxes.ts";
 
 Deno.test({
   name: "basic thingy",

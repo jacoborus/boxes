@@ -199,16 +199,11 @@ function inbox<T extends Basic>(
       throw new Error("Cannot modify a readonly object");
     },
 
-    get: (origin, property) => {
+    get: (origin, property, mirror) => {
+      ping(mirror);
       const value = origin[property as keyof typeof origin];
-      if (!isObject(value)) return value;
-      if (isBoxed(value)) {
-        ping(value);
-        return value;
-      }
-      const mirror = originMap.get(value);
-      if (mirror !== undefined) ping(mirror);
-      return mirror;
+      if (!isObject(value) || isBoxed(value)) return value;
+      return originMap.get(value);
     },
   }) as ReadonlyBasic<T>;
 

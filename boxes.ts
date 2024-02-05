@@ -1,6 +1,5 @@
 import type {
   Basic,
-  Computed,
   Dict,
   GetThing,
   List,
@@ -17,7 +16,7 @@ import type {
 const listenersMap: ListenersMap = new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
 let listenersStack: Set<ReadonlyBasic<Basic> | GetThing<unknown>> = new Set();
-let isWatching = false;
+let isTracking = false;
 
 export function watch<T>(
   target: T,
@@ -35,12 +34,12 @@ export function watch<T>(
 }
 
 function ping(value: ReadonlyBasic<Basic> | GetThing<unknown>) {
-  if (!isWatching) return;
+  if (!isTracking) return;
   listenersStack.add(value);
 }
 
-function stopWatching() {
-  isWatching = false;
+function stopTracking() {
+  isTracking = false;
   const stack = listenersStack;
   listenersStack = new Set();
   return stack;
@@ -50,17 +49,18 @@ export function watchFn<T>(
   getter: () => T,
   callback: (value: T) => void,
 ) {
-  isWatching = true;
+  isTracking = true;
   const computed = { value: getter() };
-  const stack = stopWatching();
+  const stack = stopTracking();
+  const off: (() => void)[] = [];
   stack.forEach((value) => {
-    watch(value, () => {
+    off.push(watch(value, () => {
       const newValue = getter();
       if (newValue === computed.value) return;
       callback(newValue as T);
-    });
+    }));
   });
-  return computed;
+  return () => off.forEach((fn) => fn());
 }
 
 export function createThingy<T>(

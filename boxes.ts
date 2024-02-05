@@ -1,5 +1,6 @@
 import type {
   Basic,
+  Computed,
   Dict,
   GetThing,
   List,
@@ -15,6 +16,8 @@ import type {
 
 const listenersMap: ListenersMap = new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
+let listenersStack: Set<ReadonlyBasic<Basic> | GetThing<unknown>> = new Set();
+let isWatching = false;
 
 export function watch<T>(
   target: T,
@@ -23,10 +26,41 @@ export function watch<T>(
   const listeners = listenersMap.get(
     target as ReadonlyBasic<Basic> | GetThing<T>,
   );
-  if (!listeners) throw new Error("Can't subscribe to non box");
+  if (!listeners) {
+    throw new Error("Can't subscribe to non box");
+  }
   const listener = () => callback(target);
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+function ping(value: ReadonlyBasic<Basic> | GetThing<unknown>) {
+  if (!isWatching) return;
+  listenersStack.add(value);
+}
+
+function stopWatching() {
+  isWatching = false;
+  const stack = listenersStack;
+  listenersStack = new Set();
+  return stack;
+}
+
+export function watchFn<T>(
+  getter: () => T,
+  callback: (value: T) => void,
+) {
+  isWatching = true;
+  const computed = { value: getter() };
+  const stack = stopWatching();
+  stack.forEach((value) => {
+    watch(value, () => {
+      const newValue = getter();
+      if (newValue === computed.value) return;
+      callback(newValue as T);
+    });
+  });
+  return computed;
 }
 
 export function createThingy<T>(
@@ -34,7 +68,10 @@ export function createThingy<T>(
 ): [GetThing<T>, SetThing<T>] {
   if (!isPrimitive(input)) throw new Error("Can't box non-primitive");
   let origin = input;
-  const getThing = () => origin;
+  const getThing = () => {
+    ping(getThing);
+    return origin;
+  };
   listenersMap.set(getThing, new Set());
 
   return [
@@ -96,7 +133,7 @@ export function createBox<T extends Basic>(source: T) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     if (Array.isArray(payload) || Array.isArray(target)) {
-      throw new Error("Method not allowed on arrays");
+      throw new Error("Method only allowed on lists");
     }
     for (const key in payload) {
       const value = payload[key];
@@ -158,10 +195,20 @@ function inbox<T extends Basic>(
       throw new Error("Cannot modify a readonly object");
     },
 
+    deleteProperty: () => {
+      throw new Error("Cannot modify a readonly object");
+    },
+
     get: (origin, property) => {
       const value = origin[property as keyof typeof origin];
-      if (!isObject(value) || isBoxed(value)) return value;
-      return originMap.get(value);
+      if (!isObject(value)) return value;
+      if (isBoxed(value)) {
+        ping(value);
+        return value;
+      }
+      const mirror = originMap.get(value);
+      if (mirror !== undefined) ping(mirror);
+      return mirror;
     },
   }) as ReadonlyBasic<T>;
 

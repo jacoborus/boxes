@@ -4,7 +4,7 @@ export type NonObjectNull<T> = T extends object ? never
 export type Primitive = NonObjectNull<unknown>;
 export type List = Array<Primitive | List | Dict>;
 export interface Dict {
-  [key: string]: Primitive | Dict | List;
+  [key: PropertyKey]: Primitive | Dict | List;
 }
 export type Basic = List | Dict;
 
@@ -36,10 +36,17 @@ export type GetThing<T> = () => NonObjectNull<T>;
 export type SetThing<T> = (input: NonObjectNull<T>) => void;
 
 export type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
+// export type ListenersMap = WeakMap<
+//   ReadonlyBasic<Basic> | GetThing<unknown>,
+//   Set<() => void>
+// >;
+
 export type ListenersMap = WeakMap<
   ReadonlyBasic<Basic> | GetThing<unknown>,
-  Set<() => void>
+  Map<PropertyKey, Set<(value: unknown) => void>>
 >;
+
+export type Fn1 = (value: unknown) => void;
 
 export type Computed<T> = {
   value: T;

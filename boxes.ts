@@ -1,6 +1,7 @@
 import type {
   Basic,
   Dict,
+  Fn1,
   GetThing,
   List,
   ListenersMap,
@@ -13,35 +14,56 @@ import type {
   SetThing,
 } from "./common_types.ts";
 
+const SELF = Symbol("self");
+
 const listenersMap: ListenersMap = new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
-let listenersStack: Set<ReadonlyBasic<Basic> | GetThing<unknown>> = new Set();
+let listenersStack: Map<
+  ReadonlyBasic<Basic> | GetThing<unknown>,
+  Set<PropertyKey>
+> = new Map();
+
 let isTracking = false;
+
+function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
+  target: T,
+  property?: keyof T,
+) {
+  const handlersMap = listenersMap.get(target);
+  if (!handlersMap) {
+    throw new Error("Can't subscribe to non box");
+  }
+  const key = property || SELF;
+  return handlersMap.get(key) || handlersMap.set(key, new Set<Fn1>())
+    .get(key)!;
+}
 
 export function watch<T>(
   target: T,
   callback: (value: T) => void,
 ) {
-  const listeners = listenersMap.get(
+  const handlers = getHandlers(
     target as ReadonlyBasic<Basic> | GetThing<T>,
   );
-  if (!listeners) {
-    throw new Error("Can't subscribe to non box");
-  }
-  const listener = () => callback(target);
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+  const handler = () => callback(target);
+  handlers.add(handler);
+  return () => handlers.delete(handler);
 }
 
-function ping(value: ReadonlyBasic<Basic> | GetThing<unknown>) {
+function ping<T extends Basic>(
+  value: ReadonlyBasic<T> | GetThing<unknown>,
+  prop?: keyof T,
+) {
   if (!isTracking) return;
-  listenersStack.add(value);
+  const stack = listenersStack.get(value) ||
+    listenersStack.set(value, new Set()).get(value)!;
+  stack.add(prop || SELF);
 }
 
 function stopTracking() {
   isTracking = false;
   const stack = listenersStack;
-  listenersStack = new Set();
+  listenersStack = new Map();
   return stack;
 }
 
@@ -52,15 +74,15 @@ export function watchFn<T>(
   isTracking = true;
   const computed = { value: getter() };
   const stack = stopTracking();
-  const off: (() => void)[] = [];
-  stack.forEach((value) => {
-    off.push(watch(value, () => {
+  const offStack: (() => void)[] = [];
+  stack.forEach((_, propkey) => {
+    offStack.push(watch(propkey, () => {
       const newValue = getter();
       if (newValue === computed.value) return;
       callback(newValue as T);
     }));
   });
-  return () => off.forEach((fn) => fn());
+  return () => offStack.forEach((fn) => fn());
 }
 
 export function createThingy<T>(
@@ -72,7 +94,7 @@ export function createThingy<T>(
     ping(getThing);
     return origin;
   };
-  listenersMap.set(getThing, new Set());
+  listenersMap.set(getThing, new Map());
 
   return [
     getThing,
@@ -80,7 +102,9 @@ export function createThingy<T>(
       if (origin === value) return;
       if (!isPrimitive(value)) throw new Error("Can't box non-primitive");
       origin = value;
-      listenersMap.get(getThing)?.forEach((listener) => listener());
+      listenersMap.get(getThing)?.get(SELF)?.forEach((listener) =>
+        listener(origin)
+      );
     },
   ];
 }
@@ -100,8 +124,8 @@ export function createBox<T extends Basic>(source: T) {
       throw new Error("Method only allowed on lists");
     }
     const result = change(target as T);
-    const listeners = listenersMap.get(proxy as ReadonlyBasic<Basic>);
-    listeners?.forEach((listener) => listener());
+    const handlers = getHandlers(proxy);
+    handlers.forEach((handler) => handler(target));
     return result;
   }
 
@@ -109,7 +133,7 @@ export function createBox<T extends Basic>(source: T) {
     return mirror;
   }
 
-  box.update = function (proxy: ReadonlyBasic<Basic>, payload: Basic) {
+  box.update = function <T extends Basic>(proxy: ReadonlyBasic<T>, payload: T) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     if (isDict(target)) {
@@ -125,8 +149,8 @@ export function createBox<T extends Basic>(source: T) {
       });
       target.length = payload.length;
     }
-    const listeners = listenersMap.get(proxy);
-    listeners?.forEach((listener) => listener());
+    const handlers = getHandlers(proxy);
+    handlers.forEach((listener) => listener(target));
   };
 
   box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
@@ -135,17 +159,21 @@ export function createBox<T extends Basic>(source: T) {
     if (Array.isArray(payload) || Array.isArray(target)) {
       throw new Error("Method only allowed on lists");
     }
+    const propsToCall: PropertyKey[] = [];
     for (const key in payload) {
       const value = payload[key];
       if (value === undefined) continue;
       if (value === null) {
+        if (target[key] === undefined) continue;
         delete target[key];
+        propsToCall.push(key);
       } else {
         target[key] = copyItem(value, proxyMap);
+        propsToCall.push(key);
       }
     }
-    const listeners = listenersMap.get(proxy);
-    listeners?.forEach((listener) => listener());
+    const handlers = getHandlers(proxy);
+    handlers?.forEach((handler) => handler(proxy));
   };
 
   box.insert = function <T extends List>(
@@ -200,7 +228,9 @@ function inbox<T extends Basic>(
     },
 
     get: (origin, property, mirror) => {
-      ping(mirror);
+      if (Object.prototype.hasOwnProperty.call(origin, property)) {
+        ping(mirror, property as keyof T);
+      }
       const value = origin[property as keyof typeof origin];
       if (!isObject(value) || isBoxed(value)) return value;
       return originMap.get(value);
@@ -209,7 +239,7 @@ function inbox<T extends Basic>(
 
   proxyMap.set(proxy, origin);
   originMap.set(origin, proxy);
-  listenersMap.set(proxy, new Set());
+  listenersMap.set(proxy, new Map());
 
   return [origin as T, proxy];
 }

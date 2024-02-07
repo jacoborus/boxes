@@ -16,6 +16,7 @@ import type {
 
 const SELF = Symbol("self");
 
+const proxyMap: ProxyMap = new WeakMap();
 const listenersMap: ListenersMap = new WeakMap();
 const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
 let listenersStack: Map<
@@ -119,8 +120,7 @@ export function createThingy<T>(
 }
 
 export function createBox<T extends Basic>(source: T) {
-  const proxyMap: ProxyMap = new WeakMap();
-  const mirror = inbox(source, proxyMap)[1];
+  const mirror = inbox(source)[1];
 
   function alter<T extends List, R>(
     proxy: ReadonlyList<T>,
@@ -148,7 +148,7 @@ export function createBox<T extends Basic>(source: T) {
       if (Array.isArray(payload)) throw new Error("not gonna happen");
       for (const key in payload) {
         const value = payload[key as keyof typeof payload];
-        target[key] = copyItem(value, proxyMap);
+        target[key] = copyItem(value);
       }
     } else {
       if (!Array.isArray(payload)) throw new Error("not gonna happen");
@@ -176,7 +176,7 @@ export function createBox<T extends Basic>(source: T) {
         delete target[key];
         propsToCall.push(key);
       } else {
-        target[key] = copyItem(value, proxyMap);
+        target[key] = copyItem(value);
         propsToCall.push(key);
       }
     }
@@ -225,11 +225,8 @@ export function createBox<T extends Basic>(source: T) {
 
 function inbox<T extends Basic>(
   input: T,
-  proxyMap: ProxyMap,
 ): [T, ReadonlyBasic<T>] {
-  const origin = Array.isArray(input)
-    ? copyList(input, proxyMap)
-    : copyDict(input, proxyMap);
+  const origin = Array.isArray(input) ? copyList(input) : copyDict(input);
 
   const proxy = new Proxy(origin, {
     set: () => {
@@ -257,28 +254,28 @@ function inbox<T extends Basic>(
   return [origin as T, proxy];
 }
 
-function copyItem<T>(item: T, proxyMap: ProxyMap) {
+function copyItem<T>(item: T) {
   return !isObject(item)
     ? item
     : isBoxed(item)
     ? proxyMap.get(item) as typeof item
-    : inbox(item, proxyMap)[0];
+    : inbox(item)[0];
 }
 
-function copyDict<T extends Dict>(origin: T, proxyMap: ProxyMap): T {
+function copyDict<T extends Dict>(origin: T): T {
   const result: T = {} as T;
   for (const i in origin) {
     const item = origin[i];
     if (item === undefined || item === null) continue;
-    result[i as keyof T] = copyItem(item, proxyMap);
+    result[i as keyof T] = copyItem(item);
   }
   return result;
 }
 
-function copyList<T extends List>(origin: T, proxyMap: ProxyMap): T {
+function copyList<T extends List>(origin: T): T {
   const result: T = [] as unknown as T;
   for (const item of origin) {
-    result.push(copyItem(item, proxyMap));
+    result.push(copyItem(item));
   }
   return result;
 }

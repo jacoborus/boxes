@@ -132,7 +132,7 @@ Deno.test("foreach", () => {
   assertEquals(control, 1);
 });
 
-Deno.test("insert", () => {
+Deno.test("insert one", () => {
   const arr = [1, 2, 3];
   const box = createBox(arr);
   const data = box();
@@ -140,16 +140,38 @@ Deno.test("insert", () => {
   const off = watch(data, () => {
     ++control;
   });
-  box.insert(data, 1, 4);
+  box.insert(data, 5);
   assertEquals(control, 1);
-  assertEquals(data.length, 4);
-  assertEquals(data[1], 4);
+  console.log({ data });
+  assertEquals(data.length, 4, "data length");
+  assertEquals(data[3], 5, "pushed item");
   off();
-  box.insert(data, 2, 6);
+  box.insert(data, 4, 3);
   assertEquals(control, 1);
+  assertEquals(data[3], 4);
 });
 
-Deno.test("extract", () => {
+Deno.test("insert many", () => {
+  const arr = [1, 2, 3];
+  const box = createBox(arr);
+  const data = box();
+  let control = 0;
+  const off = watch(data, () => {
+    ++control;
+  });
+  box.insert(data, [6, 7]);
+  assertEquals(control, 1);
+  assertEquals(data.length, 5);
+  assertEquals(data[3], 6);
+  assertEquals(data[4], 7);
+  off();
+  box.insert(data, [4, 5], 3);
+  assertEquals(control, 1);
+  assertEquals(data[3], 4);
+  assertEquals(data[4], 5);
+});
+
+Deno.test("remove", () => {
   const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   const box = createBox(arr);
   const data = box();
@@ -157,14 +179,12 @@ Deno.test("extract", () => {
   const off = watch(data, () => {
     ++control;
   });
-  const x = box.extract(data, 1, 3);
-  assertEquals(x, [2, 3, 4]);
+  box.remove(data, 1, 3);
   assertEquals(control, 1);
   assertEquals(data.length, 6);
   assertEquals(data[1], 5);
   off();
-  const y = box.extract(data, 0);
-  assertEquals(y, [1]);
+  box.remove(data, 0);
   assertEquals(control, 1);
   assertEquals(data[0], 5);
 });

@@ -178,31 +178,36 @@ export function createBox<T extends Basic>(source: T) {
 
   box.insert = function <T extends List>(
     proxy: ReadonlyBasic<T>,
-    position: number,
-    ...payload: NonReadonlyList<T[number]>[]
+    payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
+    position = proxy.length,
   ): void {
     return alter(
       proxy,
       (target) => {
         if (isNaN(position)) throw new Error("Position must be a number");
-        target.splice(position, 0, ...payload);
+        if (position === proxy.length) {
+          if (Array.isArray(payload)) target.push(...payload);
+          else target.push(payload);
+          return;
+        }
+        if (Array.isArray(payload)) target.splice(position, 0, ...payload);
+        else target.splice(position, 0, payload);
       },
     );
   };
 
-  box.extract = function <T extends List>(
+  box.remove = function <T extends List>(
     proxy: ReadonlyBasic<T>,
     first = proxy.length,
     amount = 1,
-  ): T[number][] {
-    return alter(
+  ) {
+    alter(
       proxy,
       (target) => {
         if (isNaN(first) || isNaN(amount)) {
           throw new Error("First and amount must be a number");
         }
-        // TODO: return a readonly copy of the extracted items
-        return target.splice(first, amount);
+        target.splice(first, amount);
       },
     );
   };

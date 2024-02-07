@@ -38,18 +38,6 @@ function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
     .get(key)!;
 }
 
-export function watch<T>(
-  target: T,
-  callback: (value: T) => void,
-) {
-  const handlers = getHandlers(
-    target as ReadonlyBasic<Basic> | GetThing<T>,
-  );
-  const handler = () => callback(target);
-  handlers.add(handler);
-  return () => handlers.delete(handler);
-}
-
 function ping<T extends Basic>(
   value: ReadonlyBasic<T> | GetThing<unknown>,
   prop?: keyof T,
@@ -65,6 +53,27 @@ function stopTracking() {
   const stack = listenersStack;
   listenersStack = new Map();
   return stack;
+}
+
+export function watch<T>(
+  target: T,
+  callback: (value: T) => void,
+) {
+  const handlers = getHandlers(target as ReadonlyBasic<Basic>);
+  const handler = () => callback(target);
+  handlers.add(handler);
+  return () => handlers.delete(handler);
+}
+
+export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
+  target: T,
+  property: K,
+  callback: (value: T[K]) => void,
+) {
+  const handlers = getHandlers(target, property);
+  const handler = () => callback(target[property]);
+  handlers.add(handler);
+  return () => handlers.delete(handler);
 }
 
 export function watchFn<T>(
@@ -123,10 +132,9 @@ export function createBox<T extends Basic>(source: T) {
     if (!target || !Array.isArray(target)) {
       throw new Error("Method only allowed on lists");
     }
-    const result = change(target as T);
+    change(target as T);
     const handlers = getHandlers(proxy);
     handlers.forEach((handler) => handler(target));
-    return result;
   }
 
   function box() {
@@ -258,17 +266,17 @@ function copyItem<T>(item: T, proxyMap: ProxyMap) {
 }
 
 function copyDict<T extends Dict>(origin: T, proxyMap: ProxyMap): T {
-  const result = {} as T;
+  const result: T = {} as T;
   for (const i in origin) {
     const item = origin[i];
     if (item === undefined || item === null) continue;
     result[i as keyof T] = copyItem(item, proxyMap);
   }
-  return result as T;
+  return result;
 }
 
 function copyList<T extends List>(origin: T, proxyMap: ProxyMap): T {
-  const result = [] as unknown as T;
+  const result: T = [] as unknown as T;
   for (const item of origin) {
     result.push(copyItem(item, proxyMap));
   }

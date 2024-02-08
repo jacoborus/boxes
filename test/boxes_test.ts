@@ -142,7 +142,6 @@ Deno.test("insert one", () => {
   });
   box.insert(data, 5);
   assertEquals(control, 1);
-  console.log({ data });
   assertEquals(data.length, 4, "data length");
   assertEquals(data[3], 5, "pushed item");
   off();

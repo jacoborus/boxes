@@ -18,7 +18,7 @@ const SELF = Symbol("self");
 
 const proxyMap: ProxyMap = new WeakMap();
 const listenersMap: ListenersMap = new WeakMap();
-const originMap: WeakMap<Basic, ReadonlyBasic<Basic>> = new WeakMap();
+const originUpdates = new Map<ReadonlyBasic<Basic>, (value: Basic) => void>();
 let listenersStack: Map<
   ReadonlyBasic<Basic> | GetThing<unknown>,
   Set<PropertyKey>
@@ -86,11 +86,15 @@ export function watchFn<T>(
   const stack = stopTracking();
   const offStack: (() => void)[] = [];
   stack.forEach((_, propkey) => {
-    offStack.push(watch(propkey, () => {
-      const newValue = getter();
-      if (newValue === computed.value) return;
-      callback(newValue as T);
-    }));
+    offStack.push(
+      watch(propkey, () => {
+        // TODO: Fix this: the comparison should be between
+        // the old value and the new one, not the getter result
+        const newValue = getter();
+        if (newValue === computed.value) return;
+        callback(newValue as T);
+      }),
+    );
   });
   return () => offStack.forEach((fn) => fn());
 }
@@ -189,19 +193,16 @@ export function createBox<T extends Basic>(source: T) {
     payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
     position = proxy.length,
   ): void {
-    return alter(
-      proxy,
-      (target) => {
-        if (isNaN(position)) throw new Error("Position must be a number");
-        if (position === proxy.length) {
-          if (Array.isArray(payload)) target.push(...payload);
-          else target.push(payload);
-          return;
-        }
-        if (Array.isArray(payload)) target.splice(position, 0, ...payload);
-        else target.splice(position, 0, payload);
-      },
-    );
+    return alter(proxy, (target) => {
+      if (isNaN(position)) throw new Error("Position must be a number");
+      if (position === proxy.length) {
+        if (Array.isArray(payload)) target.push(...payload);
+        else target.push(payload);
+        return;
+      }
+      if (Array.isArray(payload)) target.splice(position, 0, ...payload);
+      else target.splice(position, 0, payload);
+    });
   };
 
   box.remove = function <T extends List>(
@@ -209,15 +210,12 @@ export function createBox<T extends Basic>(source: T) {
     first = proxy.length,
     amount = 1,
   ) {
-    alter(
-      proxy,
-      (target) => {
-        if (isNaN(first) || isNaN(amount)) {
-          throw new Error("First and amount must be a number");
-        }
-        target.splice(first, amount);
-      },
-    );
+    alter(proxy, (target) => {
+      if (isNaN(first) || isNaN(amount)) {
+        throw new Error("First and amount must be a number");
+      }
+      target.splice(first, amount);
+    });
   };
 
   return box;
@@ -226,7 +224,7 @@ export function createBox<T extends Basic>(source: T) {
 function inbox<T extends Basic>(
   input: T,
 ): [T, ReadonlyBasic<T>] {
-  const origin = Array.isArray(input) ? copyList(input) : copyDict(input);
+  let origin = Array.isArray(input) ? copyList(input) : copyDict(input);
 
   const proxy = new Proxy(origin, {
     set: () => {
@@ -237,29 +235,25 @@ function inbox<T extends Basic>(
       throw new Error("Cannot modify a readonly object");
     },
 
-    get: (origin, property, mirror) => {
+    get: (_, property, mirror) => {
       if (Object.prototype.hasOwnProperty.call(origin, property)) {
         ping(mirror, property as keyof T);
       }
-      const value = origin[property as keyof typeof origin];
-      if (!isObject(value) || isBoxed(value)) return value;
-      return originMap.get(value);
+      return origin[property as keyof typeof origin];
     },
   }) as ReadonlyBasic<T>;
 
   proxyMap.set(proxy, origin);
-  originMap.set(origin, proxy);
   listenersMap.set(proxy, new Map());
+  originUpdates.set(proxy, (value) => {
+    origin = value as T;
+  });
 
   return [origin as T, proxy];
 }
 
 function copyItem<T>(item: T) {
-  return !isObject(item)
-    ? item
-    : isBoxed(item)
-    ? proxyMap.get(item) as typeof item
-    : inbox(item)[0];
+  return !isObject(item) || isBoxed(item) ? item : inbox(item)[1];
 }
 
 function copyDict<T extends Dict>(origin: T): T {

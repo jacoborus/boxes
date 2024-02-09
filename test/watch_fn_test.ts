@@ -1,5 +1,5 @@
 import { assertEquals } from "assert";
-import { watchFn } from "../reactive.ts";
+import { watchFn } from "../src/reactive.ts";
 import { createThingy } from "../boxes.ts";
 
 Deno.test({

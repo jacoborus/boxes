@@ -1,6 +1,6 @@
 import { assertEquals } from "assert";
-import { createStore } from "../store.ts";
-// import { watch } from "../boxes.ts";
+import { createStore } from "../src/store.ts";
+// import { watch } from "../src/reactive.ts";
 
 // Deno.test({
 //   name: "Store getters",

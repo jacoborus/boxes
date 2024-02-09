@@ -1,6 +1,6 @@
 import { assertEquals } from "assert";
 import { createThingy } from "../boxes.ts";
-import { watchThing } from "../reactive.ts";
+import { watchThing } from "../src/reactive.ts";
 
 Deno.test({
   name: "basic thingy",

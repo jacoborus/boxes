@@ -1,10 +1,8 @@
 import type {
   Basic,
   Dict,
-  Fn1,
   GetThing,
   List,
-  ListenersMap,
   NonObjectNull,
   NonReadonlyList,
   Nullable,
@@ -13,91 +11,12 @@ import type {
   ReadonlyList,
   SetThing,
 } from "./common_types.ts";
+import { SELF } from "./symbols.ts";
 
-const SELF = Symbol("self");
+import { getHandlers, listenersMap, ping } from "./reactive.ts";
 
 const proxyMap: ProxyMap = new WeakMap();
-const listenersMap: ListenersMap = new WeakMap();
 const originUpdates = new Map<ReadonlyBasic<Basic>, (value: Basic) => void>();
-let listenersStack: Map<
-  ReadonlyBasic<Basic> | GetThing<unknown>,
-  Set<PropertyKey>
-> = new Map();
-
-let isTracking = false;
-
-function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
-  target: T,
-  property?: keyof T,
-) {
-  const handlersMap = listenersMap.get(target);
-  if (!handlersMap) {
-    throw new Error("Can't subscribe to non box");
-  }
-  const key = property || SELF;
-  return handlersMap.get(key) || handlersMap.set(key, new Set<Fn1>())
-    .get(key)!;
-}
-
-function ping<T extends Basic>(
-  value: ReadonlyBasic<T> | GetThing<unknown>,
-  prop?: keyof T,
-) {
-  if (!isTracking) return;
-  const stack = listenersStack.get(value) ||
-    listenersStack.set(value, new Set()).get(value)!;
-  stack.add(prop || SELF);
-}
-
-function stopTracking() {
-  isTracking = false;
-  const stack = listenersStack;
-  listenersStack = new Map();
-  return stack;
-}
-
-export function watch<T>(
-  target: T,
-  callback: (value: T) => void,
-) {
-  const handlers = getHandlers(target as ReadonlyBasic<Basic>);
-  const handler = () => callback(target);
-  handlers.add(handler);
-  return () => handlers.delete(handler);
-}
-
-export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
-  target: T,
-  property: K,
-  callback: (value: T[K]) => void,
-) {
-  const handlers = getHandlers(target, property);
-  const handler = () => callback(target[property]);
-  handlers.add(handler);
-  return () => handlers.delete(handler);
-}
-
-export function watchFn<T>(
-  getter: () => T,
-  callback: (value: T) => void,
-) {
-  isTracking = true;
-  const computed = { value: getter() };
-  const stack = stopTracking();
-  const offStack: (() => void)[] = [];
-  stack.forEach((_, propkey) => {
-    offStack.push(
-      watch(propkey, () => {
-        // TODO: Fix this: the comparison should be between
-        // the old value and the new one, not the getter result
-        const newValue = getter();
-        if (newValue === computed.value) return;
-        callback(newValue as T);
-      }),
-    );
-  });
-  return () => offStack.forEach((fn) => fn());
-}
 
 export function createThingy<T>(
   input: NonObjectNull<T>,
@@ -168,9 +87,6 @@ export function createBox<T extends Basic>(source: T) {
   box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
-    if (Array.isArray(payload) || Array.isArray(target)) {
-      throw new Error("Method only allowed on lists");
-    }
     const propsToCall: PropertyKey[] = [];
     for (const key in payload) {
       const value = payload[key];
@@ -180,12 +96,15 @@ export function createBox<T extends Basic>(source: T) {
         delete target[key];
         propsToCall.push(key);
       } else {
+        // TODO: deep patch AND TRANSFER EVENTS instead of updating
         target[key] = copyItem(value);
         propsToCall.push(key);
       }
     }
-    const handlers = getHandlers(proxy);
-    handlers?.forEach((handler) => handler(proxy));
+    propsToCall.forEach((prop) => {
+      const handlers = getHandlers(proxy, prop as number);
+      handlers?.forEach((handler) => handler(proxy));
+    });
   };
 
   box.insert = function <T extends List>(

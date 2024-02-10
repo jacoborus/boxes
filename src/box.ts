@@ -20,7 +20,7 @@ const proxyMap: ProxyMap = new WeakMap();
 const originUpdates = new Map<ReadonlyBasic<Basic>, (value: Basic) => void>();
 
 export function createBox<T extends Basic>(source: T) {
-  const mirror = inbox(source)[1];
+  const mirror = inbox(source);
 
   function alter<T extends List, R>(
     proxy: ReadonlyList<T>,
@@ -125,7 +125,7 @@ export function createBox<T extends Basic>(source: T) {
 
 function inbox<T extends Basic>(
   input: T,
-): [T, ReadonlyBasic<T>] {
+): ReadonlyBasic<T> {
   let origin = Array.isArray(input) ? copyList(input) : copyDict(input);
 
   const proxy = new Proxy(origin, {
@@ -151,11 +151,11 @@ function inbox<T extends Basic>(
     origin = value as T;
   });
 
-  return [origin as T, proxy];
+  return proxy;
 }
 
 function copyItem<T>(item: T) {
-  return !isObject(item) || isBoxed(item) ? item : inbox(item)[1];
+  return !isObject(item) || isBoxed(item) ? item : inbox(item);
 }
 
 function copyDict<T extends Dict>(origin: T): T {

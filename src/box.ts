@@ -8,9 +8,11 @@ import type {
   ReadonlyBasic,
   ReadonlyList,
 } from "./common_types.ts";
-import { addToTriggerStack } from "./reactive.ts";
-import { closeTriggerStack } from "./reactive.ts";
-import { openTriggerStack } from "./reactive.ts";
+import {
+  addToTriggerStack,
+  closeTriggerStack,
+  openTriggerStack,
+} from "./reactive.ts";
 
 import { getHandlers, listenersMap, ping } from "./reactive.ts";
 
@@ -67,20 +69,21 @@ export function createBox<T extends Basic>(source: T) {
     openTriggerStack(stackKey);
     for (const key in payload) {
       const value = payload[key];
-      if (value === undefined) continue;
+      const targetValue = target[key];
+      if (value === targetValue || value === undefined) continue;
       if (value === null) {
         if (target[key] === undefined) continue;
+        propsToCall.push(key);
         delete target[key];
-        propsToCall.push(key);
-      } else {
-        const targetValue = target[key];
-        if (isDict(targetValue)) {
-          box.patch(targetValue, copyItem(value) as Nullable<Basic>);
-        } else {
-          target[key] = copyItem(value);
-        }
-        propsToCall.push(key);
+        continue;
       }
+      if (isObject(value)) {
+        if (isObject(targetValue)) {
+          box.patch(targetValue, copyItem(value) as Nullable<Basic>);
+          continue;
+        }
+      }
+      target[key] = copyItem(value);
     }
     propsToCall.forEach((prop) => {
       const handlers = getHandlers(proxy, prop as number);

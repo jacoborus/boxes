@@ -1,7 +1,5 @@
 import type { GetThing, NonObjectNull, SetThing } from "./common_types.ts";
-
-import { listenersMap, ping } from "./reactive.ts";
-import { SELF } from "./symbols.ts";
+import { getHandlers, listenersMap, ping } from "./reactive.ts";
 
 export function createThingy<T>(
   input: NonObjectNull<T>,
@@ -20,7 +18,8 @@ export function createThingy<T>(
       if (origin === value) return;
       if (!isPrimitive(value)) throw new Error("Can't box non-primitive");
       origin = value;
-      listenersMap.get(getThing)?.get(SELF)?.forEach((listener) => listener());
+      const handlers = getHandlers(getThing);
+      handlers.forEach((listener) => listener());
     },
   ];
 }

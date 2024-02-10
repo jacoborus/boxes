@@ -5,9 +5,10 @@ import type {
   ReadonlyBasic,
 } from "./common_types.ts";
 
-import { SELF } from "./symbols.ts";
+const SELF = Symbol("self");
 
 export const listenersMap: ListenersMap = new WeakMap();
+
 let watchStack: Map<
   ReadonlyBasic<Basic> | GetThing<unknown>,
   Set<PropertyKey>

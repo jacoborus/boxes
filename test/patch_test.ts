@@ -62,20 +62,21 @@ Deno.test({
   },
 });
 
-// Deno.test("patch deep", () => {
-//   const obj = { o: { x: 1, y: 2 } };
-//   const box = createBox(obj);
-//   let control = 0;
-//   const off = watch(box().o, () => {
-//     ++control;
-//   });
-//   box.patch(box().o, { x: 99 });
-//   assertEquals(control, 1);
-//   assertEquals(box().o.x, 99);
-//   assertEquals(box().o.y, 2);
-//   off();
-//   box.patch(box().o, { x: 6 });
-//   assertEquals(control, 1);
-//   assertEquals(box().o.x, 6);
-//   assertEquals(box().o.y, 2);
-// });
+Deno.test("patch deep", () => {
+  const obj = { o: { x: 1, y: 2 } };
+  const box = createBox(obj);
+  const data = box();
+  let control = 0;
+  const off = watchProp(data.o, "x", (value) => {
+    control = value;
+  });
+  box.patch(data.o, { x: 99 });
+  assertEquals(control, 99);
+  assertEquals(data.o.x, 99);
+  assertEquals(data.o.y, 2);
+  off();
+  box.patch(data.o, { x: 6 });
+  assertEquals(control, 99);
+  assertEquals(data.o.x, 6);
+  assertEquals(data.o.y, 2);
+});

@@ -73,8 +73,12 @@ export function createBox<T extends Basic>(source: T) {
         delete target[key];
         propsToCall.push(key);
       } else {
-        // TODO: deep patch AND TRANSFER EVENTS instead of updating
-        target[key] = copyItem(value);
+        const targetValue = target[key];
+        if (isDict(targetValue)) {
+          box.patch(targetValue, copyItem(value) as Nullable<Basic>);
+        } else {
+          target[key] = copyItem(value);
+        }
         propsToCall.push(key);
       }
     }

@@ -18,8 +18,10 @@ const triggerKeys = new Set<symbol>();
 
 let isTracking = false;
 
-export function openTriggerStack(key: symbol) {
+export function openTriggerStack(): symbol {
+  const key = Symbol("stackKey");
   triggerKeys.add(key);
+  return key;
 }
 
 export function addToTriggerStack(fn: () => void) {
@@ -46,6 +48,18 @@ export function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
   const key = property || SELF;
   return handlersMap.get(key) || handlersMap.set(key, new Set<() => void>())
     .get(key)!;
+}
+
+export function getHandlersKeys<
+  T extends ReadonlyBasic<Basic> | GetThing<unknown>,
+>(
+  target: T,
+) {
+  const handlersMap = listenersMap.get(target);
+  if (!handlersMap) {
+    throw new Error("Can't subscribe to non box");
+  }
+  return Object.keys(handlersMap);
 }
 
 export function ping<T extends Basic>(
@@ -83,6 +97,7 @@ export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
   const handler = () => callback(target[property]);
   const handlers = getHandlers(target, property);
   handlers.add(handler);
+  console.log({ handlers });
   return () => handlers.delete(handler);
 }
 
@@ -124,3 +139,10 @@ export function watchFn<T>(
 
   return () => offStack.forEach((fn) => fn());
 }
+
+// export function batch(fn: () => void) {
+//   const stackKey = Symbol("stackKey");
+//   openTriggerStack(stackKey);
+//   fn();
+//   closeTriggerStack(stackKey);
+// }

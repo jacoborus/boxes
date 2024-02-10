@@ -21,6 +21,10 @@ Deno.test({
   },
 });
 
+// TODO: FIX!! deno runs all the tests at the same time
+// and that messes with the triggerStack
+// why? no idea
+
 Deno.test({
   name: "patchMethod",
   fn() {
@@ -33,7 +37,7 @@ Deno.test({
       control = value;
     });
     box.patch(data, { a: 2 });
-    assertEquals(control, 2);
+    assertEquals(control, 2, "watch works");
     assertEquals(data.a, 2);
     assertEquals(data.b, "abc");
     assertEquals(control, 2);

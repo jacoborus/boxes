@@ -8,6 +8,8 @@ import type {
   ReadonlyBasic,
   ReadonlyList,
 } from "./common_types.ts";
+import { getHandlersKeys } from "./reactive.ts";
+// import { batch } from "./reactive.ts";
 import {
   addToTriggerStack,
   closeTriggerStack,
@@ -20,7 +22,7 @@ const proxyMap: ProxyMap = new WeakMap();
 const originUpdates = new Map<ReadonlyBasic<Basic>, (value: Basic) => void>();
 
 export function createBox<T extends Basic>(source: T) {
-  const mirror = inbox(source);
+  const mirror = inbox(source)[1];
 
   function alter<T extends List, R>(
     proxy: ReadonlyList<T>,
@@ -42,31 +44,33 @@ export function createBox<T extends Basic>(source: T) {
   }
 
   box.update = function <T extends Basic>(proxy: ReadonlyBasic<T>, payload: T) {
-    const target = proxyMap.get(proxy);
-    if (!target) throw new Error("Can't update non box");
-    if (isDict(target)) {
-      if (Array.isArray(payload)) throw new Error("not gonna happen");
-      for (const key in payload) {
-        const value = payload[key as keyof typeof payload];
-        target[key] = copyItem(value);
+    const stackKey = openTriggerStack();
+    const updater = originUpdates.get(proxy)!;
+    if (proxy === payload) return;
+    const target = proxyMap.get(proxy) as T;
+    const newTarget = inbox(payload)[0];
+    updater(newTarget);
+    const handlerKeys = getHandlersKeys(proxy);
+    const propsToCall = new Set<PropertyKey>();
+
+    for (const key in handlerKeys) {
+      if (target[key as keyof T] !== newTarget[key as keyof T]) {
+        propsToCall.add(key);
       }
-    } else {
-      if (!Array.isArray(payload)) throw new Error("not gonna happen");
-      payload.forEach((value, i) => {
-        target[i] = value;
-      });
-      target.length = payload.length;
     }
-    const handlers = getHandlers(proxy);
-    handlers.forEach((listener) => listener());
+
+    propsToCall.forEach((prop) => {
+      const handlers = getHandlers(proxy, prop as number);
+      handlers?.forEach((handler) => addToTriggerStack(handler));
+    });
+    closeTriggerStack(stackKey);
   };
 
   box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     const propsToCall: PropertyKey[] = [];
-    const stackKey = Symbol("stackKey");
-    openTriggerStack(stackKey);
+    const stackKey = openTriggerStack();
     for (const key in payload) {
       const value = payload[key];
       const targetValue = target[key];
@@ -125,7 +129,7 @@ export function createBox<T extends Basic>(source: T) {
 
 function inbox<T extends Basic>(
   input: T,
-): ReadonlyBasic<T> {
+): [T, ReadonlyBasic<T>] {
   let origin = Array.isArray(input) ? copyList(input) : copyDict(input);
 
   const proxy = new Proxy(origin, {
@@ -151,11 +155,11 @@ function inbox<T extends Basic>(
     origin = value as T;
   });
 
-  return proxy;
+  return [origin as T, proxy];
 }
 
 function copyItem<T>(item: T) {
-  return !isObject(item) || isBoxed(item) ? item : inbox(item);
+  return !isObject(item) || isBoxed(item) ? item : inbox(item)[1];
 }
 
 function copyDict<T extends Dict>(origin: T): T {

@@ -34,7 +34,7 @@ export function createBox<T extends Basic>(source: T) {
     }
     change(target as T);
     const handlers = getHandlers(proxy);
-    handlers.forEach((handler) => handler(target));
+    handlers.forEach((handler) => handler());
   }
 
   function box() {
@@ -58,7 +58,7 @@ export function createBox<T extends Basic>(source: T) {
       target.length = payload.length;
     }
     const handlers = getHandlers(proxy);
-    handlers.forEach((listener) => listener(target));
+    handlers.forEach((listener) => listener());
   };
 
   box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
@@ -73,22 +73,20 @@ export function createBox<T extends Basic>(source: T) {
       if (value === targetValue || value === undefined) continue;
       if (value === null) {
         if (target[key] === undefined) continue;
-        propsToCall.push(key);
         delete target[key];
-        continue;
+      } else if (isObject(value) && isObject(targetValue)) {
+        box.patch(targetValue, copyItem(value) as Nullable<Basic>);
+      } else {
+        target[key] = copyItem(value);
       }
-      if (isObject(value)) {
-        if (isObject(targetValue)) {
-          box.patch(targetValue, copyItem(value) as Nullable<Basic>);
-          continue;
-        }
-      }
-      target[key] = copyItem(value);
+      propsToCall.push(key);
     }
+
     propsToCall.forEach((prop) => {
       const handlers = getHandlers(proxy, prop as number);
-      addToTriggerStack(() => handlers?.forEach((handler) => handler(proxy)));
+      handlers?.forEach((handler) => addToTriggerStack(handler));
     });
+
     closeTriggerStack(stackKey);
   };
 

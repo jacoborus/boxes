@@ -44,7 +44,7 @@ export function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
     throw new Error("Can't subscribe to non box");
   }
   const key = property || SELF;
-  return handlersMap.get(key) || handlersMap.set(key, new Set<Fn1>())
+  return handlersMap.get(key) || handlersMap.set(key, new Set<() => void>())
     .get(key)!;
 }
 
@@ -80,8 +80,8 @@ export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
   property: K,
   callback: (value: T[K]) => void,
 ) {
-  const handlers = getHandlers(target, property);
   const handler = () => callback(target[property]);
+  const handlers = getHandlers(target, property);
   handlers.add(handler);
   return () => handlers.delete(handler);
 }
@@ -121,5 +121,6 @@ export function watchFn<T>(
       }
     });
   });
+
   return () => offStack.forEach((fn) => fn());
 }

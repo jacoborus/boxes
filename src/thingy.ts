@@ -20,9 +20,7 @@ export function createThingy<T>(
       if (origin === value) return;
       if (!isPrimitive(value)) throw new Error("Can't box non-primitive");
       origin = value;
-      listenersMap.get(getThing)?.get(SELF)?.forEach((listener) =>
-        listener(origin)
-      );
+      listenersMap.get(getThing)?.get(SELF)?.forEach((listener) => listener());
     },
   ];
 }

@@ -43,7 +43,7 @@ export type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
 
 export type ListenersMap = WeakMap<
   ReadonlyBasic<Basic> | GetThing<unknown>,
-  Map<PropertyKey, Set<(value: unknown) => void>>
+  Map<PropertyKey, Set<() => void>>
 >;
 
 export type Fn1 = (value: unknown) => void;

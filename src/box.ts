@@ -8,6 +8,9 @@ import type {
   ReadonlyBasic,
   ReadonlyList,
 } from "./common_types.ts";
+import { addToTriggerStack } from "./reactive.ts";
+import { closeTriggerStack } from "./reactive.ts";
+import { openTriggerStack } from "./reactive.ts";
 
 import { getHandlers, listenersMap, ping } from "./reactive.ts";
 
@@ -60,6 +63,8 @@ export function createBox<T extends Basic>(source: T) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     const propsToCall: PropertyKey[] = [];
+    const stackKey = Symbol("stackKey");
+    openTriggerStack(stackKey);
     for (const key in payload) {
       const value = payload[key];
       if (value === undefined) continue;
@@ -75,8 +80,9 @@ export function createBox<T extends Basic>(source: T) {
     }
     propsToCall.forEach((prop) => {
       const handlers = getHandlers(proxy, prop as number);
-      handlers?.forEach((handler) => handler(proxy));
+      addToTriggerStack(() => handlers?.forEach((handler) => handler(proxy)));
     });
+    closeTriggerStack(stackKey);
   };
 
   box.insert = function <T extends List>(

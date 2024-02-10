@@ -13,9 +13,27 @@ let watchStack: Map<
   ReadonlyBasic<Basic> | GetThing<unknown>,
   Set<PropertyKey>
 > = new Map();
-let triggerStack: Set<Set<Fn1>> = new Set();
+const triggerStack: Set<() => void> = new Set();
+const triggerKeys = new Set<symbol>();
 
 let isTracking = false;
+
+export function openTriggerStack(key: symbol) {
+  triggerKeys.add(key);
+}
+
+export function addToTriggerStack(fn: () => void) {
+  triggerStack.add(fn);
+}
+
+export function closeTriggerStack(key: symbol) {
+  triggerKeys.delete(key);
+  if (triggerKeys.size !== 0) return;
+  triggerStack.forEach((fn, key) => {
+    triggerStack.delete(key);
+    fn();
+  });
+}
 
 export function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
   target: T,
@@ -104,10 +122,4 @@ export function watchFn<T>(
     });
   });
   return () => offStack.forEach((fn) => fn());
-}
-
-export function isBoxed(
-  value: unknown,
-): value is ReadonlyBasic<Basic> {
-  return listenersMap.has(value as ReadonlyBasic<Basic>);
 }

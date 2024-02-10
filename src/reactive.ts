@@ -17,14 +17,14 @@ const triggerKeys = new Set<symbol>();
 
 let isTracking = false;
 
+export function addToTriggerStack(fn: () => void) {
+  triggerStack.add(fn);
+}
+
 export function openTriggerStack(): symbol {
   const key = Symbol("stackKey");
   triggerKeys.add(key);
   return key;
-}
-
-export function addToTriggerStack(fn: () => void) {
-  triggerStack.add(fn);
 }
 
 export function closeTriggerStack(key: symbol) {
@@ -138,10 +138,3 @@ export function watchFn<T>(
 
   return () => offStack.forEach((fn) => fn());
 }
-
-// export function batch(fn: () => void) {
-//   const stackKey = Symbol("stackKey");
-//   openTriggerStack(stackKey);
-//   fn();
-//   closeTriggerStack(stackKey);
-// }

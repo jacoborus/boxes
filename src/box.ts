@@ -29,9 +29,7 @@ export function createBox<T extends Basic>(source: T) {
     proxy: ReadonlyList<T>,
     change: (target: T) => R,
   ) {
-    const target = proxyMap.get(
-      proxy as unknown as ReadonlyBasic<Basic>,
-    );
+    const target = proxyMap.get(proxy);
     if (!target || !Array.isArray(target)) {
       throw new Error("Method only allowed on lists");
     }
@@ -45,25 +43,27 @@ export function createBox<T extends Basic>(source: T) {
   }
 
   box.update = function <T extends Basic>(proxy: ReadonlyBasic<T>, payload: T) {
-    const stackKey = openTriggerStack();
-    const updater = originUpdates.get(proxy)!;
     if (proxy === payload) return;
+    const stackKey = openTriggerStack();
+    const updateOrigin = originUpdates.get(proxy)!;
     const target = proxyMap.get(proxy) as T;
     const newTarget = inbox(payload)[0];
-    updater(newTarget);
-    const handlerKeys = getHandlersKeys(proxy);
-    const propsToCall = new Set<PropertyKey>();
+    updateOrigin(newTarget);
 
-    for (const key of handlerKeys) {
+    const propsToCall: PropertyKey[] = [];
+
+    for (const key of getHandlersKeys(proxy)) {
       if (target[key as keyof T] !== newTarget[key as keyof T]) {
-        propsToCall.add(key);
+        propsToCall.push(key);
       }
     }
 
     propsToCall.forEach((prop) => {
-      const handlers = getHandlers(proxy, prop as number);
-      handlers?.forEach((handler) => addToTriggerStack(handler));
+      getHandlers(proxy, prop as number).forEach((handler) =>
+        addToTriggerStack(handler)
+      );
     });
+
     closeTriggerStack(stackKey);
   };
 
@@ -128,12 +128,16 @@ export function createBox<T extends Basic>(source: T) {
   return box;
 }
 
+const theArray: unknown[] = [];
+const theObject = {};
+
 function inbox<T extends Basic>(
   input: T,
 ): [T, ReadonlyBasic<T>] {
-  let origin = Array.isArray(input) ? copyList(input) : copyDict(input);
+  const isArray = Array.isArray(input);
+  let origin = isArray ? copyList(input) : copyDict(input);
 
-  const proxy = new Proxy(origin, {
+  const proxy = new Proxy((isArray ? theArray : theObject) as T, {
     set: () => {
       throw new Error("Cannot modify a readonly object");
     },
@@ -148,6 +152,7 @@ function inbox<T extends Basic>(
       }
       return origin[property as keyof typeof origin];
     },
+    // TODO  ownkeys
   }) as ReadonlyBasic<T>;
 
   proxyMap.set(proxy, origin);

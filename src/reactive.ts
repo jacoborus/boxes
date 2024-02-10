@@ -1,6 +1,5 @@
 import type {
   Basic,
-  Fn1,
   GetThing,
   ListenersMap,
   ReadonlyBasic,
@@ -59,7 +58,8 @@ export function getHandlersKeys<
   if (!handlersMap) {
     throw new Error("Can't subscribe to non box");
   }
-  return Object.keys(handlersMap);
+  const keys = Array.from(handlersMap.keys());
+  return keys;
 }
 
 export function ping<T extends Basic>(
@@ -97,7 +97,6 @@ export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
   const handler = () => callback(target[property]);
   const handlers = getHandlers(target, property);
   handlers.add(handler);
-  console.log({ handlers });
   return () => handlers.delete(handler);
 }
 

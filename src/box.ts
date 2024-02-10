@@ -8,15 +8,16 @@ import type {
   ReadonlyBasic,
   ReadonlyList,
 } from "./common_types.ts";
-import { getHandlersKeys } from "./reactive.ts";
-// import { batch } from "./reactive.ts";
+
 import {
   addToTriggerStack,
   closeTriggerStack,
+  getHandlers,
+  getHandlersKeys,
+  listenersMap,
   openTriggerStack,
+  ping,
 } from "./reactive.ts";
-
-import { getHandlers, listenersMap, ping } from "./reactive.ts";
 
 const proxyMap: ProxyMap = new WeakMap();
 const originUpdates = new Map<ReadonlyBasic<Basic>, (value: Basic) => void>();
@@ -53,7 +54,7 @@ export function createBox<T extends Basic>(source: T) {
     const handlerKeys = getHandlersKeys(proxy);
     const propsToCall = new Set<PropertyKey>();
 
-    for (const key in handlerKeys) {
+    for (const key of handlerKeys) {
       if (target[key as keyof T] !== newTarget[key as keyof T]) {
         propsToCall.add(key);
       }
@@ -188,8 +189,4 @@ export function isBoxed(
 
 function isObject(value: unknown): value is Basic {
   return typeof value === "object" && value !== null;
-}
-
-function isDict(value: unknown): value is Dict {
-  return isObject(value) && !Array.isArray(value);
 }

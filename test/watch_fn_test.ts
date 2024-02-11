@@ -12,8 +12,9 @@ Deno.test({
     });
 
     assertEquals(control, 0);
-    setThing(2);
-    assertEquals(control, 3);
+    setThing(22);
+    assertEquals(getThing(), 22);
+    assertEquals(control, 23);
     setThing(3);
     assertEquals(control, 4);
     off();

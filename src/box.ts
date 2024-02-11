@@ -164,7 +164,7 @@ function inbox<T extends Basic>(
   return [origin as T, proxy];
 }
 
-function copyItem<T>(item: T) {
+export function copyItem<T>(item: T) {
   return !isObject(item) || isBoxed(item) ? item : inbox(item)[1];
 }
 

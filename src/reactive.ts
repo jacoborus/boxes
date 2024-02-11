@@ -4,6 +4,7 @@ import type {
   ListenersMap,
   ReadonlyBasic,
 } from "./common_types.ts";
+import { copyItem } from "./box.ts";
 
 const SELF = Symbol("self");
 
@@ -37,14 +38,21 @@ export function closeTriggerStack(key: symbol) {
   });
 }
 
-export function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
+function getHandlersMap<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
   target: T,
-  property?: keyof T,
 ) {
   const handlersMap = listenersMap.get(target);
   if (!handlersMap) {
     throw new Error("Can't subscribe to non box");
   }
+  return handlersMap;
+}
+
+export function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
+  target: T,
+  property?: keyof T,
+) {
+  const handlersMap = getHandlersMap(target);
   const key = property || SELF;
   return handlersMap.get(key) || handlersMap.set(key, new Set<() => void>())
     .get(key)!;
@@ -55,12 +63,8 @@ export function getHandlersKeys<
 >(
   target: T,
 ) {
-  const handlersMap = listenersMap.get(target);
-  if (!handlersMap) {
-    throw new Error("Can't subscribe to non box");
-  }
-  const keys = Array.from(handlersMap.keys());
-  return keys;
+  const handlersMap = getHandlersMap(target);
+  return Array.from(handlersMap.keys());
 }
 
 export function ping<T extends Basic>(
@@ -101,41 +105,42 @@ export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
   return () => handlers.delete(handler);
 }
 
-export function watchFn<T>(
+export function computed<T>(
   getter: () => T,
-  callback: (value: T) => void,
 ) {
-  isTracking = true;
-  const computed = { value: getter() };
-  const stack = stopTracking();
-  const offStack: (() => void)[] = [];
+  let result: T;
+  const getResult = () => result as T;
 
-  function finalCallback() {
-    const newValue = getter();
-    if (newValue === computed.value) return;
-    callback(getter());
-  }
+  isTracking = true;
+  result = copyItem(getter());
+  const stack = stopTracking();
+
+  const handlersMap = listenersMap.set(getResult, new Map([[SELF, new Set()]]))
+    .get(getResult)!;
+
+  const updateResult = () => {
+    // TODO: retrack function on every update
+    result = copyItem(getter());
+    handlersMap.get(SELF)!.forEach((fn) => fn());
+  };
 
   stack.forEach((set, target) => {
     set.forEach((propKey) => {
-      const isThing = target instanceof Function;
-      let value = isThing ? target() : target[propKey as number];
-
-      const trigger = (newValue: typeof value) => {
-        if (value === newValue) return;
-        value = newValue as typeof value;
-        finalCallback();
-      };
-
-      if (isThing) {
-        offStack.push(watchThing(target, trigger));
+      if (target instanceof Function) {
+        watchThing(target, updateResult);
       } else {
-        offStack.push(
-          watchProp(target, propKey as keyof typeof target, trigger),
-        );
+        watchProp(target, propKey as keyof typeof target, updateResult);
       }
     });
   });
 
-  return () => offStack.forEach((fn) => fn());
+  return getResult;
+}
+
+export function watchFn<T>(
+  getter: () => T,
+  callback: (value: T) => void,
+) {
+  const memo = computed(getter);
+  return watchThing(memo as GetThing<T>, callback);
 }

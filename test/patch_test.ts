@@ -21,10 +21,6 @@ Deno.test({
   },
 });
 
-// TODO: FIX!! deno runs all the tests at the same time
-// and that messes with the triggerStack
-// why? no idea
-
 Deno.test({
   name: "patchMethod",
   fn() {

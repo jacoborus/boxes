@@ -1,6 +1,6 @@
 import { assertEquals } from "assert";
 import { watchFn } from "../src/reactive.ts";
-import { createThingy } from "../boxes.ts";
+import { createBox, createThingy } from "../boxes.ts";
 
 Deno.test({
   name: "watchFn with 1 thing",
@@ -10,7 +10,6 @@ Deno.test({
     const off = watchFn(() => getThing() + 1, (value) => {
       control = value;
     });
-
     assertEquals(control, 0);
     setThing(22);
     assertEquals(getThing(), 22);
@@ -41,5 +40,54 @@ Deno.test({
     off();
     setThingOne(6);
     assertEquals(control, 5);
+  },
+});
+
+Deno.test({
+  name: "watchFn + patch with 1 box",
+  fn() {
+    let control = 0;
+    const box = createBox({ a: 1 });
+    const data = box();
+    const off = watchFn(() => data.a + 1, (value) => {
+      control = value;
+    });
+    assertEquals(control, 0);
+    box.patch(data, { a: 4 });
+    assertEquals(data.a, 4);
+    assertEquals(control, 5);
+    box.patch(data, { a: 99 });
+    assertEquals(control, 100);
+    off();
+    box.patch(data, { a: 1 });
+    assertEquals(control, 100);
+  },
+});
+
+Deno.test({
+  name: "watchFn + patch with 1 box deep binding",
+  fn() {
+    let control = 0;
+    const box = createBox<{
+      a?: number;
+      o: { x: number; y: number };
+    }>({
+      a: 1,
+      o: { x: 1, y: 2 },
+    });
+    const data = box();
+    const off = watchFn(() => data.o.x + 1, (value) => {
+      control = value;
+    });
+    assertEquals(control, 0);
+    box.patch(data, { o: { x: 3 } });
+    assertEquals(data.o.x, 3);
+    assertEquals(control, 4);
+    // TODO: this is not working as expected, count should be 1
+    box.patch(data, { o: { y: 99 } });
+    assertEquals(control, 4);
+    off();
+    box.patch(data, { o: { x: 99 } });
+    assertEquals(control, 4);
   },
 });

@@ -80,7 +80,7 @@ export function createBox<T extends Basic>(source: T) {
         if (target[key] === undefined) continue;
         delete target[key];
       } else if (isObject(value) && isObject(targetValue)) {
-        box.patch(targetValue, copyItem(value) as Nullable<Basic>);
+        box.patch(targetValue, value);
       } else {
         target[key] = copyItem(value);
       }

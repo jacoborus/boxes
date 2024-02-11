@@ -44,7 +44,7 @@ export function createBox<T extends Basic>(source: T) {
 
   box.update = function <T extends Basic>(proxy: ReadonlyBasic<T>, payload: T) {
     if (proxy === payload) return;
-    const stackKey = openTriggerStack();
+    openTriggerStack();
     const updateOrigin = originUpdates.get(proxy)!;
     const target = proxyMap.get(proxy) as T;
     const newTarget = inbox(payload)[0];
@@ -64,14 +64,14 @@ export function createBox<T extends Basic>(source: T) {
       );
     });
 
-    closeTriggerStack(stackKey);
+    closeTriggerStack();
   };
 
   box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     const propsToCall: PropertyKey[] = [];
-    const stackKey = openTriggerStack();
+    openTriggerStack();
     for (const key in payload) {
       const value = payload[key];
       const targetValue = target[key];
@@ -92,7 +92,7 @@ export function createBox<T extends Basic>(source: T) {
       handlers?.forEach((handler) => addToTriggerStack(handler));
     });
 
-    closeTriggerStack(stackKey);
+    closeTriggerStack();
   };
 
   box.insert = function <T extends List>(

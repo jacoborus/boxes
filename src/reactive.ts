@@ -15,7 +15,7 @@ let watchStack: Map<
   Set<PropertyKey>
 > = new Map();
 const triggerStack: Set<() => void> = new Set();
-const triggerKeys = new Set<symbol>();
+let triggerCount = 0;
 
 let isTracking = false;
 
@@ -23,15 +23,13 @@ export function addToTriggerStack(fn: () => void) {
   triggerStack.add(fn);
 }
 
-export function openTriggerStack(): symbol {
-  const key = Symbol("stackKey");
-  triggerKeys.add(key);
-  return key;
+export function openTriggerStack() {
+  triggerCount++;
 }
 
-export function closeTriggerStack(key: symbol) {
-  triggerKeys.delete(key);
-  if (triggerKeys.size !== 0) return;
+export function closeTriggerStack() {
+  triggerCount--;
+  if (triggerCount !== 0) return;
   triggerStack.forEach((fn, key) => {
     triggerStack.delete(key);
     fn();

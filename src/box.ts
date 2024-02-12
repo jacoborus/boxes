@@ -11,12 +11,12 @@ import type {
 
 import {
   addToTriggerStack,
-  closeTriggerStack,
   getHandlers,
   getHandlersKeys,
   listenersMap,
-  openTriggerStack,
+  lockTriggerStack,
   ping,
+  unlockTriggerStack,
 } from "./reactive.ts";
 
 const proxyMap: ProxyMap = new WeakMap();
@@ -44,34 +44,33 @@ export function createBox<T extends Basic>(source: T) {
 
   box.update = function <T extends Basic>(proxy: ReadonlyBasic<T>, payload: T) {
     if (proxy === payload) return;
-    openTriggerStack();
-    const updateOrigin = originUpdates.get(proxy)!;
     const target = proxyMap.get(proxy) as T;
+    if (!target) throw new Error("Can't update non box");
     const newTarget = inbox(payload)[0];
+    const updateOrigin = originUpdates.get(proxy)!;
     updateOrigin(newTarget);
 
     const propsToCall: PropertyKey[] = [];
-
     for (const key of getHandlersKeys(proxy)) {
       if (target[key as keyof T] !== newTarget[key as keyof T]) {
         propsToCall.push(key);
       }
     }
 
+    lockTriggerStack();
     propsToCall.forEach((prop) => {
       getHandlers(proxy, prop as number).forEach((handler) =>
         addToTriggerStack(handler)
       );
     });
-
-    closeTriggerStack();
+    unlockTriggerStack();
   };
 
   box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     const propsToCall: PropertyKey[] = [];
-    openTriggerStack();
+    lockTriggerStack();
     for (const key in payload) {
       const value = payload[key];
       const targetValue = target[key];
@@ -92,7 +91,7 @@ export function createBox<T extends Basic>(source: T) {
       handlers?.forEach((handler) => addToTriggerStack(handler));
     });
 
-    closeTriggerStack();
+    unlockTriggerStack();
   };
 
   box.insert = function <T extends List>(

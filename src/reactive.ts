@@ -23,11 +23,11 @@ export function addToTriggerStack(fn: () => void) {
   triggerStack.add(fn);
 }
 
-export function openTriggerStack() {
+export function lockTriggerStack() {
   triggerCount++;
 }
 
-export function closeTriggerStack() {
+export function unlockTriggerStack() {
   triggerCount--;
   if (triggerCount !== 0) return;
   triggerStack.forEach((fn, key) => {

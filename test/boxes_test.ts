@@ -57,26 +57,27 @@ Deno.test({
 //   box.update(box()[0], { a: 22 });
 //   assertEquals(control, 1);
 // });
-//
-// Deno.test("foreach", () => {
-//   const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
-//   const box = createBox(arr);
-//   let control = 0;
-//   const off = watch(box()[0], () => {
-//     ++control;
-//   });
-//   box().forEach((item, i) => {
-//     const same = item === box()[i];
-//     assertEquals(same, true);
-//   });
-//   box.update(box()[0], { a: 99 });
-//   assertEquals(control, 1);
-//   assertEquals(box()[0].a, 99);
-//   off();
-//   box.update(box()[0], { a: 22 });
-//   assertEquals(control, 1);
-// });
-//
+
+Deno.test("foreach", () => {
+  const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
+  const box = createBox(arr);
+  const data = box();
+  let control = 0;
+  const off = watchProp(data[0], "a", (value) => {
+    control = value;
+  });
+  box().forEach((item, i) => {
+    const same = item === box()[i];
+    assertEquals(same, true);
+  });
+  box.update(data[0], { a: 99 });
+  assertEquals(control, 99, "dfasd");
+  assertEquals(box()[0].a, 99);
+  off();
+  box.update(box()[0], { a: 22 });
+  assertEquals(control, 99);
+});
+
 // Deno.test("insert one", () => {
 //   const arr = [1, 2, 3];
 //   const box = createBox(arr);

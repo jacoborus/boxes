@@ -50,19 +50,16 @@ export function createBox<T extends Basic>(source: T) {
     const updateOrigin = originUpdates.get(proxy)!;
     updateOrigin(newTarget);
 
-    const propsToCall: PropertyKey[] = [];
+    lockTriggerStack();
+
     for (const key of getHandlersKeys(proxy)) {
       if (target[key as keyof T] !== newTarget[key as keyof T]) {
-        propsToCall.push(key);
+        getHandlers(proxy, key as number).forEach((handler) =>
+          addToTriggerStack(handler)
+        );
       }
     }
 
-    lockTriggerStack();
-    propsToCall.forEach((prop) => {
-      getHandlers(proxy, prop as number).forEach((handler) =>
-        addToTriggerStack(handler)
-      );
-    });
     unlockTriggerStack();
   };
 

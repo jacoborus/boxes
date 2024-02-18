@@ -97,9 +97,7 @@ export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
   property: K,
   callback: (value: T[K]) => void,
 ) {
-  const handler = () => {
-    callback(target[property]);
-  };
+  const handler = () => callback(target[property]);
   const handlers = getHandlers(target, property);
   handlers.add(handler);
   return () => handlers.delete(handler);
@@ -111,28 +109,29 @@ export function computed<T>(
   let result: T;
   const getResult = () => result as T;
 
-  isTracking = true;
-  result = copyItem(getter());
-  const stack = stopTracking();
-
   const handlersMap = listenersMap.set(getResult, new Map([[SELF, new Set()]]))
     .get(getResult)!;
 
   const updateResult = () => {
-    // TODO: retrack function on every update
     result = copyItem(getter());
     handlersMap.get(SELF)!.forEach((fn) => fn());
+
+    isTracking = true;
+    result = copyItem(getter());
+    const stack = stopTracking();
+
+    stack.forEach((set, target) => {
+      set.forEach((propKey) => {
+        if (target instanceof Function) {
+          watchThing(target, updateResult);
+        } else {
+          watchProp(target, propKey as keyof typeof target, updateResult);
+        }
+      });
+    });
   };
 
-  stack.forEach((set, target) => {
-    set.forEach((propKey) => {
-      if (target instanceof Function) {
-        watchThing(target, updateResult);
-      } else {
-        watchProp(target, propKey as keyof typeof target, updateResult);
-      }
-    });
-  });
+  updateResult();
 
   return getResult;
 }

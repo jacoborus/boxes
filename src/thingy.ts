@@ -1,5 +1,12 @@
 import type { GetThing, NonObjectNull, SetThing } from "./common_types.ts";
-import { getHandlers, listenersMap, ping } from "./reactive.ts";
+import {
+  addToTriggerStack,
+  getHandlers,
+  listenersMap,
+  lockTriggerStack,
+  ping,
+  unlockTriggerStack,
+} from "./reactive.ts";
 
 export function createThingy<T>(
   input: NonObjectNull<T>,
@@ -18,8 +25,10 @@ export function createThingy<T>(
       if (origin === value) return;
       if (!isPrimitive(value)) throw new Error("Can't box non-primitive");
       origin = value;
+      lockTriggerStack();
       const handlers = getHandlers(getThing);
-      handlers.forEach((listener) => listener());
+      handlers.forEach((listener) => addToTriggerStack(listener));
+      unlockTriggerStack();
     },
   ];
 }

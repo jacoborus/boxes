@@ -29,3 +29,30 @@ Deno.test({
     assertEquals(comp(), -1);
   },
 });
+
+Deno.test({
+  name: "computed recomputed",
+  fn() {
+    const obj = { a: 1, o: { x: 99 } };
+    const box = createBox(obj);
+    const data = box();
+    const [thing, setThing] = createThingy(8);
+    const comp = computed(() => {
+      if (thing() % 2 === 0) return data.a + data.o.x;
+      return data.a - thing();
+    });
+    assertEquals(comp(), 100);
+    setThing(7);
+    assertEquals(comp(), -6);
+    setThing(6);
+    assertEquals(comp(), 100);
+  },
+});
+
+// TODO: test recomputed computed
+// TODO: test recomputed computed
+// TODO: test recomputed computed
+// TODO: test recomputed computed
+// TODO: test recomputed computed
+// TODO: test recomputed computed
+// TODO: test recomputed computed

@@ -20,7 +20,10 @@ import {
 } from "./reactive.ts";
 
 const proxyMap: ProxyMap = new WeakMap();
-const originUpdates = new Map<ReadonlyBasic<Basic>, (value: Basic) => void>();
+const originUpdates = new Map<
+  ReadonlyBasic<Basic>,
+  (value: Basic) => PropertyKey[]
+>();
 
 export function createBox<T extends Basic>(source: T) {
   const mirror = inbox(source)[1];
@@ -48,12 +51,14 @@ export function createBox<T extends Basic>(source: T) {
     if (!target) throw new Error("Can't update non box");
     const newTarget = inbox(payload)[0];
     const updateOrigin = originUpdates.get(proxy)!;
-    updateOrigin(newTarget);
 
+    const updatedKeys = updateOrigin(newTarget);
     lockTriggerStack();
 
-    for (const key of getHandlersKeys(proxy)) {
-      if (target[key as keyof T] !== newTarget[key as keyof T]) {
+    const handlerKeys = getHandlersKeys(proxy);
+
+    for (const key of handlerKeys) {
+      if (updatedKeys.includes(key)) {
         getHandlers(proxy, key as number).forEach((handler) =>
           addToTriggerStack(handler)
         );
@@ -124,16 +129,13 @@ export function createBox<T extends Basic>(source: T) {
   return box;
 }
 
-const theArray: unknown[] = [];
-const theObject = {};
-
 function inbox<T extends Basic>(
   input: T,
 ): [T, ReadonlyBasic<T>] {
   const isArray = Array.isArray(input);
-  let origin = isArray ? copyList(input) : copyDict(input);
+  const origin = isArray ? copyList(input) : copyDict(input);
 
-  const proxy = new Proxy((isArray ? theArray : theObject) as T, {
+  const proxy = new Proxy(origin, {
     set: () => {
       throw new Error("Cannot modify a readonly object");
     },
@@ -148,13 +150,27 @@ function inbox<T extends Basic>(
       }
       return origin[property as keyof typeof origin];
     },
-    // TODO  ownkeys
   }) as ReadonlyBasic<T>;
 
   proxyMap.set(proxy, origin);
   listenersMap.set(proxy, new Map());
-  originUpdates.set(proxy, (value) => {
-    origin = value as T;
+
+  originUpdates.set(proxy, (input) => {
+    const keys = new Set(Object.keys(input).concat(Object.keys(origin)));
+    const updatedKeys: PropertyKey[] = [];
+    keys.forEach((key) => {
+      const newValue = input[key as unknown as number];
+      if (newValue === origin[key as unknown as number]) return;
+      updatedKeys.push(key);
+      if (newValue === undefined || newValue === null) {
+        delete origin[key as unknown as number];
+        return;
+      }
+
+      origin[key as unknown as number] = input[key as unknown as number];
+    });
+
+    return updatedKeys;
   });
 
   return [origin as T, proxy];

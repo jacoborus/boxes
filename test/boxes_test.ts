@@ -21,61 +21,27 @@ Deno.test({
   },
 });
 
-// Deno.test({
-//   name: "deep binding",
-//   fn() {
-//     const obj = { a: 1, o: { x: 1, y: 2 } };
-//     const box = createBox(obj);
-//     const data = box();
-//     assertEquals(data.o, obj.o);
-//     let control = 0;
-//     const off = watchProp(box().o, "x", (value) => {
-//       control = value;
-//     });
-//     box.patch(data.o, { x: 42 });
-//     assertEquals(control, 42);
-//     assertEquals(data.o.x, 42);
-//     off();
-//     box.patch(box(), { a: 6, o: { x: 1 } });
-//     assertEquals(control, 1, "asdfsa");
-//     assertEquals(data.a, 6);
-//     assertEquals(data.o.x, 1);
-//   },
-// });
-
-// Deno.test("update", () => {
-//   const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
-//   const box = createBox(arr);
-//   let control = 0;
-//   const off = watch(box()[0], () => {
-//     ++control;
-//   });
-//   box.update(box()[0], { a: 99 });
-//   assertEquals(control, 1);
-//   assertEquals(box()[0].a, 99);
-//   off();
-//   box.update(box()[0], { a: 22 });
-//   assertEquals(control, 1);
-// });
-
-Deno.test("foreach", () => {
-  const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
-  const box = createBox(arr);
-  const data = box();
-  let control = 0;
-  const off = watchProp(data[0], "a", (value) => {
-    control = value;
-  });
-  box().forEach((item, i) => {
-    const same = item === box()[i];
-    assertEquals(same, true);
-  });
-  box.update(data[0], { a: 99 });
-  assertEquals(control, 99, "dfasd");
-  assertEquals(box()[0].a, 99);
-  off();
-  box.update(box()[0], { a: 22 });
-  assertEquals(control, 99);
+Deno.test({
+  name: "foreach",
+  fn() {
+    const arr = [{ a: 1 }, { a: 2 }, { a: 3 }];
+    const box = createBox(arr);
+    const data = box();
+    let control = 0;
+    const off = watchProp(data[0], "a", (value) => {
+      control = value;
+    });
+    box().forEach((item, i) => {
+      const same = item === box()[i];
+      assertEquals(same, true);
+    });
+    box.update(data[0], { a: 99 });
+    assertEquals(control, 99, "dfasd");
+    assertEquals(box()[0].a, 99);
+    off();
+    box.update(box()[0], { a: 22 });
+    assertEquals(control, 99);
+  },
 });
 
 // Deno.test("insert one", () => {

@@ -97,7 +97,9 @@ export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
   property: K,
   callback: (value: T[K]) => void,
 ) {
-  const handler = () => callback(target[property]);
+  const handler = () => {
+    callback(target[property]);
+  };
   const handlers = getHandlers(target, property);
   handlers.add(handler);
   return () => handlers.delete(handler);

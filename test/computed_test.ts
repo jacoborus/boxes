@@ -48,11 +48,3 @@ Deno.test({
     assertEquals(comp(), 100);
   },
 });
-
-// TODO: test recomputed computed
-// TODO: test recomputed computed
-// TODO: test recomputed computed
-// TODO: test recomputed computed
-// TODO: test recomputed computed
-// TODO: test recomputed computed
-// TODO: test recomputed computed

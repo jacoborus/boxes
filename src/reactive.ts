@@ -113,7 +113,9 @@ export function computed<T>(
     .get(getResult)!;
 
   const updateResult = () => {
-    result = copyItem(getter());
+    const preResult = copyItem(getter());
+    if (preResult === result) return;
+    result = preResult;
     handlersMap.get(SELF)!.forEach((fn) => fn());
 
     isTracking = true;

@@ -118,14 +118,15 @@ export function createBox<T extends Basic>(source: T) {
     if (!target || !Array.isArray(target)) {
       throw new Error("Method only allowed on lists");
     }
-    if (isNaN(first) || isNaN(amount)) {
-      throw new Error("First and amount must be a number");
+    if (isNaN(first)) {
+      throw new Error("First must be a number");
     }
-    if (amount < 0) throw new Error("Amount must be a positive number");
+    if (isNaN(amount) || amount < 0) {
+      throw new Error("Amount must be a positive number");
+    }
     if (first < 0) first = target.length + first;
 
     const result = target.splice(first, amount);
-
     const keys = getHandlersMap(proxy).keys();
 
     batch(() => {

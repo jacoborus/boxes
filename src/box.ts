@@ -111,12 +111,26 @@ export function createBox<T extends Basic>(source: T) {
     first = proxy.length,
     amount = 1,
   ) {
-    alter(proxy, (target) => {
-      if (isNaN(first) || isNaN(amount)) {
-        throw new Error("First and amount must be a number");
+    const target = proxyMap.get(proxy);
+    if (!target || !Array.isArray(target)) {
+      throw new Error("Method only allowed on lists");
+    }
+    if (isNaN(first) || isNaN(amount)) {
+      throw new Error("First and amount must be a number");
+    }
+
+    const result = target.splice(first, amount);
+
+    batch(() => {
+      let count = 0;
+      const len = target.length - amount;
+      while (count < len) {
+        addToTriggerStack(getHandlers(proxy, first + count));
+        count++;
       }
-      target.splice(first, amount);
     });
+
+    return result;
   };
 
   return box;

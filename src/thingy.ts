@@ -1,11 +1,10 @@
 import type { GetThing, NonObjectNull, SetThing } from "./common_types.ts";
 import {
   addToTriggerStack,
+  batch,
   getHandlers,
   listenersMap,
-  lockTriggerStack,
   ping,
-  unlockTriggerStack,
 } from "./reactive.ts";
 
 export function createThingy<T>(
@@ -25,10 +24,7 @@ export function createThingy<T>(
       if (origin === value) return;
       if (!isPrimitive(value)) throw new Error("Can't box non-primitive");
       origin = value;
-      lockTriggerStack();
-      const handlers = getHandlers(getThing);
-      handlers.forEach((listener) => addToTriggerStack(listener));
-      unlockTriggerStack();
+      batch(() => addToTriggerStack(getHandlers(getThing)));
     },
   ];
 }

@@ -8,15 +8,14 @@ import type {
   ReadonlyBasic,
   ReadonlyList,
 } from "./common_types.ts";
+import { batch } from "./reactive.ts";
 
 import {
   addToTriggerStack,
   getHandlers,
   getHandlersMap,
   listenersMap,
-  lockTriggerStack,
   ping,
-  unlockTriggerStack,
 } from "./reactive.ts";
 
 const proxyMap: ProxyMap = new WeakMap();
@@ -37,8 +36,7 @@ export function createBox<T extends Basic>(source: T) {
       throw new Error("Method only allowed on lists");
     }
     change(target as T);
-    const handlers = getHandlers(proxy);
-    handlers.forEach((handler) => handler());
+    batch(() => addToTriggerStack(getHandlers(proxy)));
   }
 
   function box() {
@@ -53,26 +51,22 @@ export function createBox<T extends Basic>(source: T) {
     const updateOrigin = originUpdates.get(proxy)!;
 
     const updatedKeys = updateOrigin(newTarget);
-    lockTriggerStack();
 
     const handlerKeys = Array.from(getHandlersMap(proxy).keys());
 
-    for (const key of handlerKeys) {
-      if (updatedKeys.includes(key)) {
-        getHandlers(proxy, key as number).forEach((handler) =>
-          addToTriggerStack(handler)
-        );
+    batch(() => {
+      for (const key of handlerKeys) {
+        if (updatedKeys.includes(key)) {
+          addToTriggerStack(getHandlers(proxy, key as number));
+        }
       }
-    }
-
-    unlockTriggerStack();
+    });
   };
 
   box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     const propsToCall: PropertyKey[] = [];
-    lockTriggerStack();
     for (const key in payload) {
       const value = payload[key];
       const targetValue = target[key];
@@ -88,12 +82,11 @@ export function createBox<T extends Basic>(source: T) {
       propsToCall.push(key);
     }
 
-    propsToCall.forEach((prop) => {
-      const handlers = getHandlers(proxy, prop as number);
-      handlers?.forEach((handler) => addToTriggerStack(handler));
+    batch(() => {
+      propsToCall.forEach((prop) => {
+        addToTriggerStack(getHandlers(proxy, prop as number));
+      });
     });
-
-    unlockTriggerStack();
   };
 
   box.insert = function <T extends List>(

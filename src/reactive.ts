@@ -19,15 +19,13 @@ let triggerCount = 0;
 
 let isTracking = false;
 
-export function addToTriggerStack(fn: () => void) {
-  triggerStack.add(fn);
+export function addToTriggerStack(fns: Set<() => void>) {
+  fns.forEach((fn) => triggerStack.add(fn));
 }
 
-export function lockTriggerStack() {
+export function batch(callback: () => unknown) {
   triggerCount++;
-}
-
-export function unlockTriggerStack() {
+  callback();
   triggerCount--;
   if (triggerCount !== 0) return;
   triggerStack.forEach((fn, key) => {
@@ -131,7 +129,7 @@ export function computed<T>(
   return getResult;
 }
 
-export function watchFn<T>(
+export function watch<T>(
   getter: () => T,
   callback: (value: T) => void,
 ) {

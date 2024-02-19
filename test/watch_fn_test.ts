@@ -1,5 +1,5 @@
 import { assertEquals } from "assert";
-import { watchFn } from "../src/reactive.ts";
+import { watch } from "../src/reactive.ts";
 import { createBox, createThingy } from "../boxes.ts";
 
 Deno.test({
@@ -7,7 +7,7 @@ Deno.test({
   fn() {
     let control = 0;
     const [getThing, setThing] = createThingy(1);
-    const off = watchFn(() => getThing() + 1, (value) => {
+    const off = watch(() => getThing() + 1, (value) => {
       control = value;
     });
     assertEquals(control, 0);
@@ -28,7 +28,7 @@ Deno.test({
     let control = 0;
     const [getThingOne, setThingOne] = createThingy(1);
     const [getThingTwo, setThingTwo] = createThingy(99);
-    const off = watchFn(() => getThingOne() + getThingTwo(), (value) => {
+    const off = watch(() => getThingOne() + getThingTwo(), (value) => {
       control = value;
     });
 
@@ -49,7 +49,7 @@ Deno.test({
     let control = 0;
     const box = createBox({ a: 1 });
     const data = box();
-    const off = watchFn(() => data.a + 1, (value) => {
+    const off = watch(() => data.a + 1, (value) => {
       control = value;
     });
     assertEquals(control, 0);
@@ -77,7 +77,7 @@ Deno.test({
       o: { x: 1, y: 2 },
     });
     const data = box();
-    const off = watchFn(() => data.o.x + 1, (value) => {
+    const off = watch(() => data.o.x + 1, (value) => {
       count++;
       control = value;
     });

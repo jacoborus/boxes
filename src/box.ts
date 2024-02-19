@@ -49,7 +49,7 @@ export function createBox<T extends Basic>(source: T) {
     if (proxy === payload) return;
     const target = proxyMap.get(proxy) as T;
     if (!target) throw new Error("Can't update non box");
-    const newTarget = inbox(payload)[0];
+    const newTarget = copyBasic(payload);
     const updateOrigin = originUpdates.get(proxy)!;
 
     const updatedKeys = updateOrigin(newTarget);
@@ -132,8 +132,7 @@ export function createBox<T extends Basic>(source: T) {
 function inbox<T extends Basic>(
   input: T,
 ): [T, ReadonlyBasic<T>] {
-  const isArray = Array.isArray(input);
-  const origin = isArray ? copyList(input) : copyDict(input);
+  const origin = copyBasic(input);
 
   const proxy = new Proxy(origin, {
     set: () => {
@@ -174,6 +173,10 @@ function inbox<T extends Basic>(
   });
 
   return [origin as T, proxy];
+}
+
+function copyBasic<T extends Basic>(origin: T): T {
+  return Array.isArray(origin) ? copyList(origin) : copyDict(origin) as T;
 }
 
 export function copyItem<T>(item: T) {

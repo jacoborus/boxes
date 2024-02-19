@@ -83,7 +83,6 @@ Deno.test({
     });
     assertEquals(control, 0);
     box.patch(data, { o: { x: 3 } });
-    // TODO: this is not working as expected, count should be 1
     assertEquals(count, 1, "times listener has been triggered");
     assertEquals(data.o.x, 3);
     assertEquals(control, 4);

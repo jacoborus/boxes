@@ -52,13 +52,16 @@ export function createBox<T extends Basic>(source: T) {
 
     const updatedKeys = updateOrigin(newTarget);
 
-    const handlerKeys = Array.from(getHandlersMap(proxy).keys());
+    const keys = getHandlersMap(proxy).keys();
 
     batch(() => {
-      for (const key of handlerKeys) {
+      let nextKey = keys.next();
+      while (!nextKey.done) {
+        const key = nextKey.value;
         if (updatedKeys.includes(key)) {
-          addToTriggerStack(getHandlers(proxy, key as number));
+          addToTriggerStack(getHandlers(proxy, nextKey.value as number));
         }
+        nextKey = keys.next();
       }
     });
   };
@@ -121,12 +124,16 @@ export function createBox<T extends Basic>(source: T) {
 
     const result = target.splice(first, amount);
 
+    const keys = getHandlersMap(proxy).keys();
+
     batch(() => {
-      let count = 0;
-      const len = target.length - amount;
-      while (count < len) {
-        addToTriggerStack(getHandlers(proxy, first + count));
-        count++;
+      let nextKey = keys.next();
+      while (!nextKey.done) {
+        const key = nextKey.value;
+        if (key as number > first) {
+          addToTriggerStack(getHandlers(proxy, key as number));
+        }
+        nextKey = keys.next();
       }
     });
 

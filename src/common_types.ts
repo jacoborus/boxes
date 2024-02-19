@@ -33,7 +33,7 @@ export type Nullable<T extends Basic> = {
 };
 
 export type GetThing<T> = () => NonObjectNull<T>;
-export type SetThing<T> = (input: NonObjectNull<T>) => void;
+export type SetThing<T> = (input: NonObjectNull<T>) => T;
 
 export type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
 

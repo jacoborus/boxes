@@ -20,12 +20,13 @@ export function createThingy<T>(
 
   return [
     getThing,
-    (value: NonObjectNull<T>) => {
+    ((value) => {
       if (origin === value) return;
       if (!isPrimitive(value)) throw new Error("Can't box non-primitive");
       origin = value;
       batch(() => addToTriggerStack(getHandlers(getThing)));
-    },
+      return origin;
+    }) as SetThing<T>,
   ];
 }
 

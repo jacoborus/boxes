@@ -11,12 +11,14 @@ Deno.test({
     const off = watchThing(get, (value) => {
       control = value;
     });
-    set(4);
+    let result = set(4);
     assertEquals(get(), 4, "update works");
     assertEquals(control, 4, "watch works");
+    assertEquals(result, 4, "set returns value");
     off();
-    set(6);
+    result = set(6);
     assertEquals(control, 4, "off works");
     assertEquals(get(), 6, "update 2 works");
+    assertEquals(result, 6, "set returns value");
   },
 });

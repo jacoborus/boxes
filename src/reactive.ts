@@ -36,7 +36,9 @@ export function unlockTriggerStack() {
   });
 }
 
-function getHandlersMap<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
+export function getHandlersMap<
+  T extends ReadonlyBasic<Basic> | GetThing<unknown>,
+>(
   target: T,
 ) {
   const handlersMap = listenersMap.get(target);
@@ -54,15 +56,6 @@ export function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
   const key = property || SELF;
   return handlersMap.get(key) || handlersMap.set(key, new Set<() => void>())
     .get(key)!;
-}
-
-export function getHandlersKeys<
-  T extends ReadonlyBasic<Basic> | GetThing<unknown>,
->(
-  target: T,
-) {
-  const handlersMap = getHandlersMap(target);
-  return Array.from(handlersMap.keys());
 }
 
 export function ping<T extends Basic>(

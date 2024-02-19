@@ -36,10 +36,6 @@ export type GetThing<T> = () => NonObjectNull<T>;
 export type SetThing<T> = (input: NonObjectNull<T>) => void;
 
 export type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
-// export type ListenersMap = WeakMap<
-//   ReadonlyBasic<Basic> | GetThing<unknown>,
-//   Set<() => void>
-// >;
 
 export type ListenersMap = WeakMap<
   ReadonlyBasic<Basic> | GetThing<unknown>,

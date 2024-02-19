@@ -12,7 +12,7 @@ import type {
 import {
   addToTriggerStack,
   getHandlers,
-  getHandlersKeys,
+  getHandlersMap,
   listenersMap,
   lockTriggerStack,
   ping,
@@ -55,7 +55,7 @@ export function createBox<T extends Basic>(source: T) {
     const updatedKeys = updateOrigin(newTarget);
     lockTriggerStack();
 
-    const handlerKeys = getHandlersKeys(proxy);
+    const handlerKeys = Array.from(getHandlersMap(proxy).keys());
 
     for (const key of handlerKeys) {
       if (updatedKeys.includes(key)) {

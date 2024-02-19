@@ -111,7 +111,7 @@ export function createBox<T extends Basic>(source: T) {
 
   box.remove = function <T extends List>(
     proxy: ReadonlyBasic<T>,
-    first = proxy.length,
+    first = proxy.length - 1,
     amount = 1,
   ) {
     const target = proxyMap.get(proxy);
@@ -121,6 +121,8 @@ export function createBox<T extends Basic>(source: T) {
     if (isNaN(first) || isNaN(amount)) {
       throw new Error("First and amount must be a number");
     }
+    if (amount < 0) throw new Error("Amount must be a positive number");
+    if (first < 0) first = target.length + first;
 
     const result = target.splice(first, amount);
 
@@ -130,7 +132,7 @@ export function createBox<T extends Basic>(source: T) {
       let nextKey = keys.next();
       while (!nextKey.done) {
         const key = nextKey.value;
-        if (key as number > first) {
+        if (key as number >= first) {
           addToTriggerStack(getHandlers(proxy, key as number));
         }
         nextKey = keys.next();

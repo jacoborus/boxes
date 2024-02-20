@@ -27,7 +27,11 @@ const originUpdates = new Map<
 export function createBox<T extends Basic>(source: T) {
   const mirror = inbox(source);
 
-  function box() {
+  function box(payload?: T, isPatch = false) {
+    if (payload !== undefined) {
+      if (isPatch) box.patch(mirror, payload);
+      else box.update(mirror, payload);
+    }
     return mirror;
   }
 
@@ -57,26 +61,33 @@ export function createBox<T extends Basic>(source: T) {
   box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
-    const propsToCall: PropertyKey[] = [];
-    for (const key in payload) {
-      const value = payload[key];
-      const targetValue = target[key];
-      if (value === targetValue || value === undefined) continue;
-      if (value === null) {
-        if (target[key] === undefined) continue;
-        delete target[key];
-      } else if (isObject(value) && isObject(targetValue)) {
-        box.patch(targetValue, value);
-      } else {
-        target[key] = copyItem(value);
-      }
-      propsToCall.push(key);
-    }
+    const updatedKeys: PropertyKey[] = [];
+    const keys = getHandlersMap(proxy).keys();
 
     batch(() => {
-      propsToCall.forEach((prop) => {
-        addToTriggerStack(getHandlers(proxy, prop as number));
-      });
+      for (const key in payload) {
+        const value = payload[key];
+        const targetValue = target[key];
+        if (value === targetValue || value === undefined) continue;
+        if (value === null) {
+          if (target[key] === undefined) continue;
+          delete target[key];
+        } else if (isObject(value) && isObject(targetValue)) {
+          box.patch(targetValue, value);
+        } else {
+          target[key] = copyItem(value);
+        }
+        updatedKeys.push(key);
+      }
+
+      let nextKey = keys.next();
+      while (!nextKey.done) {
+        const key = nextKey.value;
+        if (updatedKeys.includes(key)) {
+          addToTriggerStack(getHandlers(proxy, nextKey.value as number));
+        }
+        nextKey = keys.next();
+      }
     });
   };
 

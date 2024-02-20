@@ -104,14 +104,13 @@ export function computed<T>(
     .get(getResult)!;
 
   const updateResult = () => {
+    isTracking = true;
     const preResult = copyItem(getter());
+    const stack = stopTracking();
     if (preResult === result) return;
+
     result = preResult;
     handlersMap.get(SELF)!.forEach((fn) => fn());
-
-    isTracking = true;
-    result = copyItem(getter());
-    const stack = stopTracking();
 
     stack.forEach((set, target) => {
       set.forEach((propKey) => {

@@ -27,18 +27,6 @@ const originUpdates = new Map<
 export function createBox<T extends Basic>(source: T) {
   const mirror = inbox(source);
 
-  function alter<T extends List, R>(
-    proxy: ReadonlyList<T>,
-    change: (target: T) => R,
-  ) {
-    const target = proxyMap.get(proxy);
-    if (!target || !Array.isArray(target)) {
-      throw new Error("Method only allowed on lists");
-    }
-    change(target as T);
-    batch(() => addToTriggerStack(getHandlers(proxy)));
-  }
-
   function box() {
     return mirror;
   }
@@ -97,15 +85,30 @@ export function createBox<T extends Basic>(source: T) {
     payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
     position = proxy.length,
   ): void {
-    return alter(proxy, (target) => {
-      if (isNaN(position)) throw new Error("Position must be a number");
-      if (position === proxy.length) {
-        if (Array.isArray(payload)) target.push(...payload);
-        else target.push(payload);
-        return;
+    const target = proxyMap.get(proxy);
+    if (!target || !Array.isArray(target)) {
+      throw new Error("Method only allowed on lists");
+    }
+    if (isNaN(position)) throw new Error("Position must be a number");
+    if (position === proxy.length) {
+      if (Array.isArray(payload)) target.push(...payload);
+      else target.push(payload);
+      return;
+    }
+    if (Array.isArray(payload)) target.splice(position, 0, ...payload);
+    else target.splice(position, 0, payload);
+
+    const keys = getHandlersMap(proxy).keys();
+
+    batch(() => {
+      let nextKey = keys.next();
+      while (!nextKey.done) {
+        const key = nextKey.value;
+        if (key as number >= position) {
+          addToTriggerStack(getHandlers(proxy, key as number));
+        }
+        nextKey = keys.next();
       }
-      if (Array.isArray(payload)) target.splice(position, 0, ...payload);
-      else target.splice(position, 0, payload);
     });
   };
 

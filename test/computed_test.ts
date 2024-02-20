@@ -48,3 +48,23 @@ Deno.test({
     assertEquals(comp(), 100);
   },
 });
+
+Deno.test({
+  name: "computed trigger count",
+  fn() {
+    const obj = { a: 1, o: { x: 99 } };
+    const box = createBox(obj);
+    const data = box();
+    let count = 0;
+    const comp = computed(() => {
+      count++;
+      return data.a + data.o.x;
+    });
+    assertEquals(count, 1, "first count");
+    box.patch(data, { a: 3, o: { x: 55 } });
+    assertEquals(count, 2, "second count");
+    assertEquals(comp(), 58);
+    box.patch(data, { a: 4, o: { x: 5 } });
+    assertEquals(comp(), 9, "third count");
+  },
+});

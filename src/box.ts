@@ -90,26 +90,16 @@ export function createBox<T extends Basic>(source: T) {
       throw new Error("Method only allowed on lists");
     }
     if (isNaN(position)) throw new Error("Position must be a number");
+
     if (position === proxy.length) {
       if (Array.isArray(payload)) target.push(...payload);
       else target.push(payload);
-      return;
+    } else if (Array.isArray(payload)) {
+      target.splice(position, 0, ...payload);
+    } else {
+      target.splice(position, 0, payload);
     }
-    if (Array.isArray(payload)) target.splice(position, 0, ...payload);
-    else target.splice(position, 0, payload);
-
-    const keys = getHandlersMap(proxy).keys();
-
-    batch(() => {
-      let nextKey = keys.next();
-      while (!nextKey.done) {
-        const key = nextKey.value;
-        if (key as number >= position) {
-          addToTriggerStack(getHandlers(proxy, key as number));
-        }
-        nextKey = keys.next();
-      }
-    });
+    triggerListFrom(proxy, position);
   };
 
   box.remove = function <T extends List>(
@@ -121,32 +111,32 @@ export function createBox<T extends Basic>(source: T) {
     if (!target || !Array.isArray(target)) {
       throw new Error("Method only allowed on lists");
     }
-    if (isNaN(first)) {
-      throw new Error("First must be a number");
-    }
+    if (isNaN(first)) throw new Error("First must be a number");
     if (isNaN(amount) || amount < 0) {
       throw new Error("Amount must be a positive number");
     }
+
     if (first < 0) first = target.length + first;
-
     const result = target.splice(first, amount);
-    const keys = getHandlersMap(proxy).keys();
-
-    batch(() => {
-      let nextKey = keys.next();
-      while (!nextKey.done) {
-        const key = nextKey.value;
-        if (key as number >= first) {
-          addToTriggerStack(getHandlers(proxy, key as number));
-        }
-        nextKey = keys.next();
-      }
-    });
-
+    triggerListFrom(proxy, first);
     return result;
   };
 
   return box;
+}
+
+function triggerListFrom(proxy: ReadonlyList<List>, first: number) {
+  const keys = getHandlersMap(proxy).keys();
+  batch(() => {
+    let nextKey = keys.next();
+    while (!nextKey.done) {
+      const key = nextKey.value;
+      if (key as number >= first) {
+        addToTriggerStack(getHandlers(proxy, key as number));
+      }
+      nextKey = keys.next();
+    }
+  });
 }
 
 function inbox<T extends Basic>(

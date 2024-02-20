@@ -44,17 +44,8 @@ export function createBox<T extends Basic>(source: T) {
 
     const updatedKeys = updateOrigin(newTarget);
 
-    const keys = getHandlersMap(proxy).keys();
-
     batch(() => {
-      let nextKey = keys.next();
-      while (!nextKey.done) {
-        const key = nextKey.value;
-        if (updatedKeys.includes(key)) {
-          addToTriggerStack(getHandlers(proxy, nextKey.value as number));
-        }
-        nextKey = keys.next();
-      }
+      stackListeners(proxy, updatedKeys);
     });
   };
 
@@ -62,7 +53,6 @@ export function createBox<T extends Basic>(source: T) {
     const target = proxyMap.get(proxy);
     if (!target) throw new Error("Can't update non box");
     const updatedKeys: PropertyKey[] = [];
-    const keys = getHandlersMap(proxy).keys();
 
     batch(() => {
       for (const key in payload) {
@@ -80,14 +70,7 @@ export function createBox<T extends Basic>(source: T) {
         updatedKeys.push(key);
       }
 
-      let nextKey = keys.next();
-      while (!nextKey.done) {
-        const key = nextKey.value;
-        if (updatedKeys.includes(key)) {
-          addToTriggerStack(getHandlers(proxy, nextKey.value as number));
-        }
-        nextKey = keys.next();
-      }
+      stackListeners(proxy, updatedKeys);
     });
   };
 
@@ -134,6 +117,21 @@ export function createBox<T extends Basic>(source: T) {
   };
 
   return box;
+}
+
+function stackListeners(
+  proxy: ReadonlyBasic<Basic>,
+  updatedKeys: PropertyKey[],
+) {
+  const keys = getHandlersMap(proxy).keys();
+  let nextKey = keys.next();
+  while (!nextKey.done) {
+    const key = nextKey.value;
+    if (updatedKeys.includes(key)) {
+      addToTriggerStack(getHandlers(proxy, nextKey.value as number));
+    }
+    nextKey = keys.next();
+  }
 }
 
 function triggerListFrom(proxy: ReadonlyList<List>, first: number) {
@@ -222,7 +220,7 @@ function copyList<T extends List>(origin: T): T {
   return result;
 }
 
-export function isBoxed(
+function isBoxed(
   value: unknown,
 ): value is ReadonlyBasic<Basic> {
   return listenersMap.has(value as ReadonlyBasic<Basic>);

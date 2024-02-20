@@ -66,5 +66,6 @@ Deno.test({
     assertEquals(comp(), 58);
     box.patch(data, { a: 4, o: { x: 5 } });
     assertEquals(comp(), 9, "third count");
+    assertEquals(count, 3, "third count");
   },
 });

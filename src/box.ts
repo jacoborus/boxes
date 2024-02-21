@@ -23,97 +23,133 @@ const originUpdates = new Map<
   (value: Basic) => PropertyKey[]
 >();
 
+function update<T extends Basic>(
+  proxyMap: ProxyMap,
+  proxy: ReadonlyBasic<T>,
+  payload: T,
+) {
+  if (proxy === payload) return;
+  const newTarget = copyBasic(payload, proxyMap);
+  const updateOrigin = originUpdates.get(proxy)!;
+  const updatedKeys = updateOrigin(newTarget);
+
+  batch(() => {
+    stackListeners(proxy, updatedKeys);
+  });
+}
+
+function patch(
+  proxyMap: ProxyMap,
+  proxy: ReadonlyBasic<Basic>,
+  payload: Nullable<Basic>,
+) {
+  const target = proxyMap.get(proxy)!;
+  const updatedKeys: PropertyKey[] = [];
+
+  batch(() => {
+    for (const key in payload) {
+      const value = payload[key];
+      const targetValue = target[key];
+      if (value === targetValue || value === undefined) continue;
+      if (value === null) {
+        if (target[key] === undefined) continue;
+        delete target[key];
+      } else if (isObject(value) && isObject(targetValue)) {
+        patch(proxyMap, targetValue, value);
+      } else {
+        target[key] = copyItem(value, proxyMap);
+      }
+      updatedKeys.push(key);
+    }
+
+    stackListeners(proxy, updatedKeys);
+  });
+}
+
+function insert<T extends List>(
+  proxyMap: ProxyMap,
+  proxy: ReadonlyBasic<T>,
+  payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
+  position = proxy.length,
+): void {
+  const target = proxyMap.get(proxy)!;
+  if (!Array.isArray(target)) {
+    throw new Error("Method only allowed on lists");
+  }
+  if (isNaN(position)) throw new Error("Position must be a number");
+
+  if (position === proxy.length) {
+    if (Array.isArray(payload)) target.push(...payload);
+    else target.push(payload);
+  } else if (Array.isArray(payload)) {
+    target.splice(position, 0, ...payload);
+  } else {
+    target.splice(position, 0, payload);
+  }
+  triggerListFrom(proxy, position);
+}
+
+function remove<T extends List>(
+  proxyMap: ProxyMap,
+  proxy: ReadonlyBasic<T>,
+  first = proxy.length - 1,
+  amount = 1,
+) {
+  const target = proxyMap.get(proxy);
+  if (!target || !Array.isArray(target)) {
+    throw new Error("Method only allowed on lists");
+  }
+  if (isNaN(first)) throw new Error("First must be a number");
+  if (isNaN(amount) || amount < 0) {
+    throw new Error("Amount must be a positive number");
+  }
+
+  if (first < 0) first = target.length + first;
+  const result = target.splice(first, amount);
+  triggerListFrom(proxy, first);
+  return result;
+}
+
 export function createBox<T extends Basic>(source: T) {
   const proxyMap: ProxyMap = new WeakMap();
   const mirror = inbox(source, proxyMap);
 
   function box(payload?: T, isPatch = false) {
     if (payload !== undefined) {
-      if (isPatch) box.patch(mirror, payload);
-      else box.update(mirror, payload);
+      if (isPatch) patch(proxyMap, mirror, payload);
+      else update(proxyMap, mirror, payload);
     }
     return mirror;
   }
 
-  box.update = function <T extends Basic>(proxy: ReadonlyBasic<T>, payload: T) {
-    if (proxy === payload) return;
-    const target = proxyMap.get(proxy) as T;
-    if (!target) throw new Error("Can't update non box");
-    const newTarget = copyBasic(payload, proxyMap);
-    const updateOrigin = originUpdates.get(proxy)!;
-
-    const updatedKeys = updateOrigin(newTarget);
-
-    batch(() => {
-      stackListeners(proxy, updatedKeys);
-    });
+  box.update = function <T extends Basic>(
+    proxy: ReadonlyBasic<T>,
+    payload: T,
+  ) {
+    update(proxyMap, proxy, payload);
   };
 
-  box.patch = function (proxy: ReadonlyBasic<Basic>, payload: Nullable<Basic>) {
-    const target = proxyMap.get(proxy);
-    if (!target) throw new Error("Can't update non box");
-    const updatedKeys: PropertyKey[] = [];
-
-    batch(() => {
-      for (const key in payload) {
-        const value = payload[key];
-        const targetValue = target[key];
-        if (value === targetValue || value === undefined) continue;
-        if (value === null) {
-          if (target[key] === undefined) continue;
-          delete target[key];
-        } else if (isObject(value) && isObject(targetValue)) {
-          box.patch(targetValue, value);
-        } else {
-          target[key] = copyItem(value, proxyMap);
-        }
-        updatedKeys.push(key);
-      }
-
-      stackListeners(proxy, updatedKeys);
-    });
+  box.patch = function (
+    proxy: ReadonlyBasic<Basic>,
+    payload: Nullable<Basic>,
+  ) {
+    patch(proxyMap, proxy, payload);
   };
 
   box.insert = function <T extends List>(
     proxy: ReadonlyBasic<T>,
     payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
-    position = proxy.length,
+    position = mirror.length,
   ): void {
-    const target = proxyMap.get(proxy);
-    if (!target || !Array.isArray(target)) {
-      throw new Error("Method only allowed on lists");
-    }
-    if (isNaN(position)) throw new Error("Position must be a number");
-
-    if (position === proxy.length) {
-      if (Array.isArray(payload)) target.push(...payload);
-      else target.push(payload);
-    } else if (Array.isArray(payload)) {
-      target.splice(position, 0, ...payload);
-    } else {
-      target.splice(position, 0, payload);
-    }
-    triggerListFrom(proxy, position);
+    insert(proxyMap, proxy as ReadonlyList<List>, payload, position as number);
   };
 
-  box.remove = function <T extends List>(
+  box.remove = function (
     proxy: ReadonlyBasic<T>,
-    first = proxy.length - 1,
+    first = proxy.length as number - 1,
     amount = 1,
   ) {
-    const target = proxyMap.get(proxy);
-    if (!target || !Array.isArray(target)) {
-      throw new Error("Method only allowed on lists");
-    }
-    if (isNaN(first)) throw new Error("First must be a number");
-    if (isNaN(amount) || amount < 0) {
-      throw new Error("Amount must be a positive number");
-    }
-
-    if (first < 0) first = target.length + first;
-    const result = target.splice(first, amount);
-    triggerListFrom(proxy, first);
-    return result;
+    return remove(proxyMap, mirror as ReadonlyList<List>, first, amount);
   };
 
   return box;

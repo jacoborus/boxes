@@ -18,14 +18,14 @@ import {
   ping,
 } from "./reactive.ts";
 
-const proxyMap: ProxyMap = new WeakMap();
 const originUpdates = new Map<
   ReadonlyBasic<Basic>,
   (value: Basic) => PropertyKey[]
 >();
 
 export function createBox<T extends Basic>(source: T) {
-  const mirror = inbox(source);
+  const proxyMap: ProxyMap = new WeakMap();
+  const mirror = inbox(source, proxyMap);
 
   function box(payload?: T, isPatch = false) {
     if (payload !== undefined) {
@@ -39,7 +39,7 @@ export function createBox<T extends Basic>(source: T) {
     if (proxy === payload) return;
     const target = proxyMap.get(proxy) as T;
     if (!target) throw new Error("Can't update non box");
-    const newTarget = copyBasic(payload);
+    const newTarget = copyBasic(payload, proxyMap);
     const updateOrigin = originUpdates.get(proxy)!;
 
     const updatedKeys = updateOrigin(newTarget);
@@ -65,7 +65,7 @@ export function createBox<T extends Basic>(source: T) {
         } else if (isObject(value) && isObject(targetValue)) {
           box.patch(targetValue, value);
         } else {
-          target[key] = copyItem(value);
+          target[key] = copyItem(value, proxyMap);
         }
         updatedKeys.push(key);
       }
@@ -150,8 +150,9 @@ function triggerListFrom(proxy: ReadonlyList<List>, first: number) {
 
 function inbox<T extends Basic>(
   input: T,
+  proxyMap: ProxyMap,
 ): ReadonlyBasic<T> {
-  const origin = copyBasic(input);
+  const origin = copyBasic(input, proxyMap);
 
   const proxy = new Proxy(origin, {
     set: () => {
@@ -194,28 +195,30 @@ function inbox<T extends Basic>(
   return proxy;
 }
 
-function copyBasic<T extends Basic>(origin: T): T {
-  return Array.isArray(origin) ? copyList(origin) : copyDict(origin) as T;
+function copyBasic<T extends Basic>(origin: T, proxyMap: ProxyMap): T {
+  return Array.isArray(origin)
+    ? copyList(origin, proxyMap)
+    : copyDict(origin, proxyMap) as T;
 }
 
-export function copyItem<T>(item: T) {
-  return !isObject(item) || isBoxed(item) ? item : inbox(item);
+export function copyItem<T>(item: T, proxyMap: ProxyMap) {
+  return !isObject(item) || isBoxed(item) ? item : inbox(item, proxyMap);
 }
 
-function copyDict<T extends Dict>(origin: T): T {
+function copyDict<T extends Dict>(origin: T, proxyMap: ProxyMap): T {
   const result: T = {} as T;
   for (const i in origin) {
     const item = origin[i];
     if (item === undefined || item === null) continue;
-    result[i as keyof T] = copyItem(item);
+    result[i as keyof T] = copyItem(item, proxyMap);
   }
   return result;
 }
 
-function copyList<T extends List>(origin: T): T {
+function copyList<T extends List>(origin: T, proxyMap: ProxyMap): T {
   const result: T = [] as unknown as T;
   for (const item of origin) {
-    result.push(copyItem(item));
+    result.push(copyItem(item, proxyMap));
   }
   return result;
 }

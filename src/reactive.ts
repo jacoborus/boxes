@@ -107,6 +107,8 @@ function watchComp<
   return () => handlers.delete(handler);
 }
 
+const proxyMap = new WeakMap();
+
 export function computed<T>(
   getter: () => T,
 ) {
@@ -123,7 +125,7 @@ export function computed<T>(
     offStack = [];
 
     isTracking = true;
-    const preResult = copyItem(getter());
+    const preResult = copyItem(getter(), proxyMap);
     const stack = stopTracking();
 
     stack.forEach((set, target) => {

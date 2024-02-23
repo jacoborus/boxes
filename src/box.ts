@@ -1,12 +1,12 @@
 import type {
   Basic,
+  Boxed,
+  BoxedList,
   Dict,
   List,
   NonReadonlyList,
   Nullable,
   ProxyMap,
-  ReadonlyBasic,
-  ReadonlyList,
 } from "./common_types.ts";
 import { batch } from "./reactive.ts";
 
@@ -18,47 +18,42 @@ import {
   ping,
 } from "./reactive.ts";
 
-const originUpdates = new Map<
-  ReadonlyBasic<Basic>,
-  (value: Basic) => PropertyKey[]
->();
+const originUpdates = new Map<Boxed<Basic>, (value: Basic) => PropertyKey[]>();
 
-function update<T extends Basic>(
-  proxyMap: ProxyMap,
-  proxy: ReadonlyBasic<T>,
-  payload: T,
-) {
+function update<T extends Basic>(pMap: ProxyMap, proxy: Boxed<T>, payload: T) {
   if (proxy === payload) return;
-  const newTarget = copyBasic(payload, proxyMap);
-  const updateOrigin = originUpdates.get(proxy)!;
-  const updatedKeys = updateOrigin(newTarget);
-
+  const newTarget = copyBasic(payload, pMap);
+  const updatedKeys = originUpdates.get(proxy)!(newTarget);
   batch(() => {
     stackListeners(proxy, updatedKeys);
   });
 }
 
-function patch(
+function merge(
   proxyMap: ProxyMap,
-  proxy: ReadonlyBasic<Basic>,
+  proxy: Boxed<Basic>,
   payload: Nullable<Basic>,
 ) {
   const target = proxyMap.get(proxy)!;
-  const updatedKeys: PropertyKey[] = [];
 
   batch(() => {
+    const updatedKeys: PropertyKey[] = [];
+
     for (const key in payload) {
       const value = payload[key];
+      if (value === undefined) continue;
       const targetValue = target[key];
-      if (value === targetValue || value === undefined) continue;
+      if (value === targetValue) continue;
       if (value === null) {
         if (target[key] === undefined) continue;
+        // the cases from here add the key to the updatedKeys array
         delete target[key];
       } else if (isObject(value) && isObject(targetValue)) {
-        patch(proxyMap, targetValue, value);
+        merge(proxyMap, targetValue, value);
       } else {
         target[key] = copyItem(value, proxyMap);
       }
+
       updatedKeys.push(key);
     }
 
@@ -68,7 +63,7 @@ function patch(
 
 function insert<T extends List>(
   proxyMap: ProxyMap,
-  proxy: ReadonlyBasic<T>,
+  proxy: Boxed<T>,
   payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
   position = proxy.length,
 ): void {
@@ -91,7 +86,7 @@ function insert<T extends List>(
 
 function remove<T extends List>(
   proxyMap: ProxyMap,
-  proxy: ReadonlyBasic<T>,
+  proxy: Boxed<T>,
   first = proxy.length - 1,
   amount = 1,
 ) {
@@ -114,49 +109,59 @@ export function createBox<T extends Basic>(source: T) {
   const proxyMap: ProxyMap = new WeakMap();
   const mirror = inbox(source, proxyMap);
 
-  function box(payload?: T, isPatch = false) {
+  function box(payload?: T, ismerge = false) {
     if (payload !== undefined) {
-      if (isPatch) patch(proxyMap, mirror, payload);
+      if (ismerge) merge(proxyMap, mirror, payload);
       else update(proxyMap, mirror, payload);
     }
     return mirror;
   }
 
-  box.update = function <T extends Basic>(
-    proxy: ReadonlyBasic<T>,
-    payload: T,
-  ) {
-    update(proxyMap, proxy, payload);
-  };
+  function updateBox(payload: T): void;
+  function updateBox<R extends Basic>(proxy: Boxed<R>, payload: R): void;
+  function updateBox<R extends T>(proxyOrPayload: Boxed<R> | R, payload?: R) {
+    if (!proxyOrPayload) throw new Error("No payload provided");
+    if (payload === undefined) update(proxyMap, mirror, proxyOrPayload as T);
+    else update(proxyMap, proxyOrPayload as Boxed<R>, payload);
+  }
+  box.update = updateBox;
 
-  box.patch = function (
-    proxy: ReadonlyBasic<Basic>,
+  function mergeBox(payload: Nullable<Basic>): void;
+  function mergeBox<R extends Basic>(
+    proxy: Boxed<R>,
     payload: Nullable<Basic>,
+  ): void;
+  function mergeBox<R extends T>(
+    proxyOrPayload: Boxed<R> | R,
+    payload?: Nullable<Basic>,
   ) {
-    patch(proxyMap, proxy, payload);
-  };
+    if (proxyOrPayload === undefined) throw new Error("No payload provided");
+    if (payload === undefined) merge(proxyMap, mirror, proxyOrPayload as T);
+    else merge(proxyMap, proxyOrPayload as Boxed<R>, payload);
+  }
+  box.merge = mergeBox;
 
   box.insert = function <T extends List>(
-    proxy: ReadonlyBasic<T>,
+    proxy: Boxed<T>,
     payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
     position = mirror.length,
   ): void {
-    insert(proxyMap, proxy as ReadonlyList<List>, payload, position as number);
+    insert(proxyMap, proxy as BoxedList<List>, payload, position as number);
   };
 
   box.remove = function (
-    proxy: ReadonlyBasic<T>,
+    proxy: Boxed<T>,
     first = proxy.length as number - 1,
     amount = 1,
   ) {
-    return remove(proxyMap, mirror as ReadonlyList<List>, first, amount);
+    return remove(proxyMap, mirror as BoxedList<List>, first, amount);
   };
 
   return box;
 }
 
 function stackListeners(
-  proxy: ReadonlyBasic<Basic>,
+  proxy: Boxed<Basic>,
   updatedKeys: PropertyKey[],
 ) {
   const keys = getHandlersMap(proxy).keys();
@@ -170,7 +175,7 @@ function stackListeners(
   }
 }
 
-function triggerListFrom(proxy: ReadonlyList<List>, first: number) {
+function triggerListFrom(proxy: BoxedList<List>, first: number) {
   const keys = getHandlersMap(proxy).keys();
   batch(() => {
     let nextKey = keys.next();
@@ -187,7 +192,7 @@ function triggerListFrom(proxy: ReadonlyList<List>, first: number) {
 function inbox<T extends Basic>(
   input: T,
   proxyMap: ProxyMap,
-): ReadonlyBasic<T> {
+): Boxed<T> {
   const origin = copyBasic(input, proxyMap);
 
   const proxy = new Proxy(origin, {
@@ -205,7 +210,7 @@ function inbox<T extends Basic>(
       }
       return origin[property as keyof typeof origin];
     },
-  }) as ReadonlyBasic<T>;
+  }) as Boxed<T>;
 
   proxyMap.set(proxy, origin);
   listenersMap.set(proxy, new Map());
@@ -261,8 +266,8 @@ function copyList<T extends List>(origin: T, proxyMap: ProxyMap): T {
 
 function isBoxed(
   value: unknown,
-): value is ReadonlyBasic<Basic> {
-  return listenersMap.has(value as ReadonlyBasic<Basic>);
+): value is Boxed<Basic> {
+  return listenersMap.has(value as Boxed<Basic>);
 }
 
 function isObject(value: unknown): value is Basic {

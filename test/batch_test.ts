@@ -13,7 +13,7 @@ Deno.test({
     batch(() => {
       box.update(data, { a: 4 });
       box.update(data, { a: 6 });
-      box.patch(data, { a: 9 });
+      box.merge(data, { a: 9 });
     });
     assertEquals(count, 1, "batch works");
     box.update(data, { a: 88 });

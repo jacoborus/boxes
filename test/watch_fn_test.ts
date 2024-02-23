@@ -44,7 +44,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "watchFn + patch with 1 box",
+  name: "watchFn + merge with 1 box",
   fn() {
     let control = 0;
     const box = createBox({ a: 1 });
@@ -53,19 +53,19 @@ Deno.test({
       control = value;
     });
     assertEquals(control, 0);
-    box.patch(data, { a: 4 });
+    box.merge(data, { a: 4 });
     assertEquals(data.a, 4);
     assertEquals(control, 5);
-    box.patch(data, { a: 99 });
+    box.merge(data, { a: 99 });
     assertEquals(control, 100);
     off();
-    box.patch(data, { a: 1 });
+    box.merge(data, { a: 1 });
     assertEquals(control, 100);
   },
 });
 
 Deno.test({
-  name: "watchFn + patch with 1 box deep binding",
+  name: "watchFn + merge with 1 box deep binding",
   fn() {
     let control = 0;
     let count = 0;
@@ -82,14 +82,14 @@ Deno.test({
       control = value;
     });
     assertEquals(control, 0);
-    box.patch(data, { o: { x: 3 } });
+    box.merge(data, { o: { x: 3 } });
     assertEquals(count, 1, "times listener has been triggered");
     assertEquals(data.o.x, 3);
     assertEquals(control, 4);
-    box.patch(data, { o: { y: 99 } });
+    box.merge(data, { o: { y: 99 } });
     assertEquals(control, 4);
     off();
-    box.patch(data, { o: { x: 99 } });
+    box.merge(data, { o: { x: 99 } });
     assertEquals(control, 4);
   },
 });

@@ -8,20 +8,20 @@ export interface Dict {
 }
 export type Basic = List | Dict;
 
-type ReadonlyDict<T extends Dict> = {
+type BoxedDict<T extends Dict> = {
   readonly [k in keyof T]: T[k] extends Primitive ? T[k]
-    : T[k] extends Basic ? ReadonlyBasic<T[k]>
+    : T[k] extends Basic ? Boxed<T[k]>
     : never;
 };
 
-export type ReadonlyList<T extends List> = ReadonlyArray<
+export type BoxedList<T extends List> = ReadonlyArray<
   T[number] extends Primitive ? T[number]
-    : T[number] extends Basic ? ReadonlyBasic<T[number]>
+    : T[number] extends Basic ? Boxed<T[number]>
     : never
 >;
 
-export type ReadonlyBasic<T extends Basic> = T extends Dict ? ReadonlyDict<T>
-  : T extends List ? ReadonlyList<T>
+export type Boxed<T extends Basic> = T extends Dict ? BoxedDict<T>
+  : T extends List ? BoxedList<T>
   : never;
 
 export type NonReadonlyList<T> = T extends readonly (infer U)[]
@@ -35,10 +35,10 @@ export type Nullable<T extends Basic> = {
 export type GetThing<T> = () => NonObjectNull<T>;
 export type SetThing<T> = (input: NonObjectNull<T>) => T;
 
-export type ProxyMap = WeakMap<ReadonlyBasic<Basic>, Basic>;
+export type ProxyMap = WeakMap<Boxed<Basic>, Basic>;
 
 export type ListenersMap = WeakMap<
-  ReadonlyBasic<Basic> | GetThing<unknown>,
+  Boxed<Basic> | GetThing<unknown>,
   Map<PropertyKey, Set<() => void>>
 >;
 

@@ -12,7 +12,7 @@ Deno.test({
     const off = watchProp(box(), "a", (value) => {
       control = value;
     });
-    box.patch(box(), { a: 4 });
+    box.merge(box(), { a: 4 });
     assertEquals(box().a, 4, "update works");
     assertEquals(control, 4, "watch works");
     off();
@@ -46,7 +46,6 @@ Deno.test({
 
 Deno.test({
   name: "ownership",
-  only: true,
   fn() {
     const box = createBox({ a: 1, o: { x: 2 } });
     const caja = createBox({ x: 99 });

@@ -1,8 +1,8 @@
-import type { Dict, ReadonlyBasic } from "./common_types.ts";
+import type { Boxed, Dict } from "./common_types.ts";
 import { createBox } from "./box.ts";
 
 interface GettersConfig<S extends Dict, G extends GettersConfig<S, G>> {
-  [K: string]: (state: ReadonlyBasic<S>, getters: Getters<S, G>) => unknown;
+  [K: string]: (state: Boxed<S>, getters: Getters<S, G>) => unknown;
 }
 
 type Getters<S extends Dict, G extends GettersConfig<S, G>> = {

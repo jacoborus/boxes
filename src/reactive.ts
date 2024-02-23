@@ -1,9 +1,4 @@
-import type {
-  Basic,
-  GetThing,
-  ListenersMap,
-  ReadonlyBasic,
-} from "./common_types.ts";
+import type { Basic, Boxed, GetThing, ListenersMap } from "./common_types.ts";
 import { copyItem } from "./box.ts";
 
 const SELF = Symbol("self");
@@ -11,7 +6,7 @@ const SELF = Symbol("self");
 export const listenersMap: ListenersMap = new WeakMap();
 
 let watchStack: Map<
-  ReadonlyBasic<Basic> | GetThing<unknown>,
+  Boxed<Basic> | GetThing<unknown>,
   Set<PropertyKey>
 > = new Map();
 const triggerStack: Set<() => void> = new Set();
@@ -35,7 +30,7 @@ export function batch(callback: () => unknown) {
 }
 
 export function getHandlersMap<
-  T extends ReadonlyBasic<Basic> | GetThing<unknown>,
+  T extends Boxed<Basic> | GetThing<unknown>,
 >(
   target: T,
 ) {
@@ -46,7 +41,7 @@ export function getHandlersMap<
   return handlersMap;
 }
 
-export function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
+export function getHandlers<T extends Boxed<Basic> | GetThing<unknown>>(
   target: T,
   property?: keyof T,
 ) {
@@ -57,7 +52,7 @@ export function getHandlers<T extends ReadonlyBasic<Basic> | GetThing<unknown>>(
 }
 
 export function ping<T extends Basic>(
-  value: ReadonlyBasic<T> | GetThing<unknown>,
+  value: Boxed<T> | GetThing<unknown>,
   prop?: keyof T,
 ) {
   if (!isTracking) return;
@@ -83,7 +78,7 @@ export function watchThing<T>(
   return () => handlers.delete(handler);
 }
 
-export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
+export function watchProp<T extends Boxed<Basic>, K extends keyof T>(
   target: T,
   property: K,
   callback: (value: T[K]) => void,
@@ -95,7 +90,7 @@ export function watchProp<T extends ReadonlyBasic<Basic>, K extends keyof T>(
 }
 
 function watchComp<
-  T extends ReadonlyBasic<Basic> | GetThing<unknown>,
+  T extends Boxed<Basic> | GetThing<unknown>,
   K extends keyof T,
 >(
   target: T,

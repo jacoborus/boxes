@@ -53,7 +53,7 @@ Deno.test({
     box.update(data, { a: 2, o: caja() });
     assertEquals(data.o, caja());
     assertThrows(() => {
-      box.update(data.o, { x: 3 });
+      box.merge(data.o, { x: 3 });
     });
   },
 });

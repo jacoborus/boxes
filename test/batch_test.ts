@@ -11,15 +11,15 @@ Deno.test({
       count++;
     });
     batch(() => {
-      box.update(data, { a: 4 });
-      box.update(data, { a: 6 });
-      box.merge(data, { a: 9 });
+      box.update({ a: 4 });
+      box.update({ a: 6 });
+      box.merge({ a: 9 });
     });
     assertEquals(count, 1, "batch works");
-    box.update(data, { a: 88 });
+    box.update({ a: 88 });
     assertEquals(count, 2);
     off();
-    box.update(data, { a: 6 });
+    box.update({ a: 6 });
     assertEquals(count, 2);
   },
 });

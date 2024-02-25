@@ -53,13 +53,13 @@ Deno.test({
       control = value;
     });
     assertEquals(control, 0);
-    box.merge(data, { a: 4 });
+    box.merge({ a: 4 });
     assertEquals(data.a, 4);
     assertEquals(control, 5);
-    box.merge(data, { a: 99 });
+    box.merge({ a: 99 });
     assertEquals(control, 100);
     off();
-    box.merge(data, { a: 1 });
+    box.merge({ a: 1 });
     assertEquals(control, 100);
   },
 });
@@ -82,14 +82,14 @@ Deno.test({
       control = value;
     });
     assertEquals(control, 0);
-    box.merge(data, { o: { x: 3 } });
+    box.merge({ o: { x: 3 } });
     assertEquals(count, 1, "times listener has been triggered");
     assertEquals(data.o.x, 3);
     assertEquals(control, 4);
-    box.merge(data, { o: { y: 99 } });
+    box.merge({ o: { y: 99 } });
     assertEquals(control, 4);
     off();
-    box.merge(data, { o: { x: 99 } });
+    box.merge({ o: { x: 99 } });
     assertEquals(control, 4);
   },
 });

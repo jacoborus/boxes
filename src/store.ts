@@ -31,7 +31,7 @@ export function createStore<
   return {
     state,
     $reset() {
-      box.update(box(), initState());
+      box.update(initState());
     },
     getters,
   };

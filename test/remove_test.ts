@@ -10,14 +10,14 @@ Deno.test({
     const off = watchProp(data, 2, (value) => {
       control = value;
     });
-    box.remove(data, 3);
+    box.remove(3);
     assertEquals(data, [1, 2, 3, 5, 6, 7, 8], "remove item");
     assertEquals(control, 0, "does not trigger on previous items ");
-    box.remove(data, 1);
+    box.remove(1);
     assertEquals(data, [1, 3, 5, 6, 7, 8], "remove item");
     assertEquals(control, 5);
     off();
-    box.remove(data, 0);
+    box.remove(0);
     assertEquals(data[0], 3);
     assertEquals(control, 5);
   },
@@ -34,16 +34,16 @@ Deno.test({
       count++;
       control = value;
     });
-    box.remove(data);
+    box.remove();
     assertEquals(data, [1, 2, 3, 4, 5, 6, 7], "remove last item 1");
     assertEquals(control, 0, "does not trigger on previous items ");
     assertEquals(count, 0);
-    box.remove(data);
+    box.remove();
     assertEquals(data, [1, 2, 3, 4, 5, 6], "remove item");
     assertEquals(control, undefined);
     assertEquals(count, 1);
     off();
-    box.remove(data);
+    box.remove();
     assertEquals(data, [1, 2, 3, 4, 5], "remove last item");
     assertEquals(control, undefined);
     assertEquals(count, 1);
@@ -59,15 +59,15 @@ Deno.test({
     const off = watchProp(data, 2, (value) => {
       control = value;
     });
-    const result = box.remove(data, 3, 3);
+    const result = box.remove(3, 3);
     assertEquals(data, [1, 2, 3, 7, 8, 9, 10], "remove items");
     assertEquals(result, [4, 5, 6], "remove items result");
     assertEquals(control, 0, "does not trigger on previous items ");
-    box.remove(data, 1, 2);
+    box.remove(1, 2);
     assertEquals(data, [1, 7, 8, 9, 10], "remove item");
     assertEquals(control, 8);
     off();
-    box.remove(data, 0, 2);
+    box.remove(0, 2);
     assertEquals(data, [8, 9, 10], "remove item");
     assertEquals(control, 8);
   },

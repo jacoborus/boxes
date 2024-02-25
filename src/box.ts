@@ -20,7 +20,7 @@ import {
 
 const originUpdates = new Map<Boxed<Basic>, (value: Basic) => PropertyKey[]>();
 
-function update<T extends Basic>(pMap: ProxyMap, proxy: Boxed<T>, payload: T) {
+function $update<T extends Basic>(pMap: ProxyMap, proxy: Boxed<T>, payload: T) {
   if (proxy === payload) return;
   const newTarget = copyBasic(payload, pMap);
   const updatedKeys = originUpdates.get(proxy)!(newTarget);
@@ -29,7 +29,7 @@ function update<T extends Basic>(pMap: ProxyMap, proxy: Boxed<T>, payload: T) {
   });
 }
 
-function merge(
+function $merge(
   proxyMap: ProxyMap,
   proxy: Boxed<Basic>,
   payload: Nullable<Basic>,
@@ -49,7 +49,7 @@ function merge(
         // the cases from here add the key to the updatedKeys array
         delete target[key];
       } else if (isObject(value) && isObject(targetValue)) {
-        merge(proxyMap, targetValue, value);
+        $merge(proxyMap, targetValue, value);
       } else {
         target[key] = copyItem(value, proxyMap);
       }
@@ -61,7 +61,7 @@ function merge(
   });
 }
 
-function insert<T extends List>(
+function $insert<T extends List>(
   proxyMap: ProxyMap,
   proxy: Boxed<T>,
   payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
@@ -84,7 +84,7 @@ function insert<T extends List>(
   triggerListFrom(proxy, position);
 }
 
-function remove<T extends List>(
+function $remove<T extends List>(
   proxyMap: ProxyMap,
   proxy: Boxed<T>,
   first = proxy.length - 1,
@@ -111,50 +111,32 @@ export function createBox<T extends Basic>(source: T) {
 
   function box(payload?: T, ismerge = false) {
     if (payload !== undefined) {
-      if (ismerge) merge(proxyMap, mirror, payload);
-      else update(proxyMap, mirror, payload);
+      if (ismerge) $merge(proxyMap, mirror, payload);
+      else $update(proxyMap, mirror, payload);
     }
     return mirror;
   }
 
-  function updateBox(payload: T): void;
-  function updateBox<R extends Basic>(proxy: Boxed<R>, payload: R): void;
-  function updateBox<R extends T>(proxyOrPayload: Boxed<R> | R, payload?: R) {
-    if (!proxyOrPayload) throw new Error("No payload provided");
-    if (payload === undefined) update(proxyMap, mirror, proxyOrPayload as T);
-    else update(proxyMap, proxyOrPayload as Boxed<R>, payload);
-  }
-  box.update = updateBox;
+  box.update = function updateBox(payload: T): void {
+    $update(proxyMap, mirror, payload);
+  };
 
-  function mergeBox(payload: Nullable<Basic>): void;
-  function mergeBox<R extends Basic>(
-    proxy: Boxed<R>,
-    payload: Nullable<Basic>,
-  ): void;
-  function mergeBox<R extends T>(
-    proxyOrPayload: Boxed<R> | R,
-    payload?: Nullable<Basic>,
-  ) {
-    if (proxyOrPayload === undefined) throw new Error("No payload provided");
-    if (payload === undefined) merge(proxyMap, mirror, proxyOrPayload as T);
-    else merge(proxyMap, proxyOrPayload as Boxed<R>, payload);
-  }
-  box.merge = mergeBox;
+  box.merge = function mergeBox(payload: Nullable<Basic>): void {
+    $merge(proxyMap, mirror, payload);
+  };
 
   box.insert = function <T extends List>(
-    proxy: Boxed<T>,
     payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
     position = mirror.length,
   ): void {
-    insert(proxyMap, proxy as BoxedList<List>, payload, position as number);
+    $insert(proxyMap, mirror as BoxedList<List>, payload, position as number);
   };
 
   box.remove = function (
-    proxy: Boxed<T>,
-    first = proxy.length as number - 1,
-    amount = 1,
+    first?: number,
+    amount?: number,
   ) {
-    return remove(proxyMap, mirror as BoxedList<List>, first, amount);
+    return $remove(proxyMap, mirror as BoxedList<List>, first, amount);
   };
 
   return box;

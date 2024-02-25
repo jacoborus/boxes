@@ -9,7 +9,7 @@ Deno.test({
     const data = box();
     const comp = computed(() => data.a + data.o.x);
     assertEquals(comp(), 100);
-    box.merge(data, { a: 4, o: { x: 5 } });
+    box.merge({ a: 4, o: { x: 5 } });
     assertEquals(comp(), 9);
   },
 });
@@ -23,7 +23,7 @@ Deno.test({
     const [thing, setThing] = createThingy(8);
     const comp = computed(() => data.a + data.o.x - thing());
     assertEquals(comp(), 92);
-    box.merge(data, { a: 4, o: { x: 5 } });
+    box.merge({ a: 4, o: { x: 5 } });
     assertEquals(comp(), 1);
     setThing(10);
     assertEquals(comp(), -1);
@@ -61,10 +61,10 @@ Deno.test({
       return data.a + data.o.x;
     });
     assertEquals(count, 1, "first count");
-    box.merge(data, { a: 3, o: { x: 55 } });
+    box.merge({ a: 3, o: { x: 55 } });
     assertEquals(count, 2, "second count");
     assertEquals(comp(), 58);
-    box.merge(data, { a: 4, o: { x: 5 } });
+    box.merge({ a: 4, o: { x: 5 } });
     assertEquals(comp(), 9, "third count");
     assertEquals(count, 3, "third count");
   },

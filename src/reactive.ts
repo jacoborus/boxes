@@ -1,5 +1,5 @@
 import type { Basic, Boxed, GetThing, ListenersMap } from "./common_types.ts";
-import { copyItem } from "./box.ts";
+import { copyItem } from "./alter.ts";
 
 const SELF = Symbol("self");
 

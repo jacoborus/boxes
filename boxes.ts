@@ -7,3 +7,4 @@ export {
   watchProp,
   watchThing,
 } from "./src/reactive.ts";
+export { $insert, $merge, $remove, $update } from "./src/alter.ts";

@@ -20,11 +20,27 @@ import {
 
 const originUpdates = new Map<Boxed<Basic>, (value: Basic) => PropertyKey[]>();
 
-export function setOriginUpdate(
-  proxy: Boxed<Basic>,
-  fn: (value: Basic) => PropertyKey[],
+export function createOriginUpdate<T extends Basic>(
+  proxy: Boxed<T>,
+  origin: T,
 ) {
-  originUpdates.set(proxy, fn);
+  originUpdates.set(proxy, (input: Basic) => {
+    const keys = new Set(Object.keys(input).concat(Object.keys(origin)));
+    const updatedKeys: PropertyKey[] = [];
+
+    keys.forEach((key) => {
+      const newValue = input[key as unknown as number];
+      if (newValue === origin[key as unknown as number]) return;
+      updatedKeys.push(key);
+      if (newValue === undefined || newValue === null) {
+        delete origin[key as unknown as number];
+        return;
+      }
+      origin[key as unknown as number] = input[key as unknown as number];
+    });
+
+    return updatedKeys;
+  });
 }
 
 export function $update<T extends Basic>(

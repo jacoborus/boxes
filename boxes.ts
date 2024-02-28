@@ -1,5 +1,6 @@
-export { createBox } from "./src/box.ts";
 export { createThingy } from "./src/thingy.ts";
+export { createBox } from "./src/box.ts";
+export { createCollection } from "./src/collection.ts";
 export {
   batch,
   computed,

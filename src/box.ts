@@ -1,6 +1,5 @@
 import type {
   Basic,
-  Boxed,
   BoxedList,
   List,
   NonReadonlyList,
@@ -8,15 +7,8 @@ import type {
   ProxyMap,
 } from "./common_types.ts";
 
-import { listenersMap, ping } from "./reactive.ts";
-import {
-  $insert,
-  $merge,
-  $remove,
-  $update,
-  copyBasic,
-  setOriginUpdate,
-} from "./alter.ts";
+import { $insert, $merge, $remove, $update } from "./alter.ts";
+import { inbox } from "./inbox.ts";
 
 export function createBox<T extends Basic>(source: T) {
   const proxyMap: ProxyMap = new WeakMap();
@@ -53,51 +45,4 @@ export function createBox<T extends Basic>(source: T) {
   };
 
   return box;
-}
-
-function inbox<T extends Basic>(
-  input: T,
-  proxyMap: ProxyMap,
-): Boxed<T> {
-  const origin = copyBasic(input, proxyMap);
-
-  const proxy = new Proxy(origin, {
-    set: () => {
-      throw new Error("Cannot modify a readonly object");
-    },
-
-    deleteProperty: () => {
-      throw new Error("Cannot modify a readonly object");
-    },
-
-    get: (_, property, mirror) => {
-      if (Object.prototype.hasOwnProperty.call(origin, property)) {
-        ping(mirror, property as keyof T);
-      }
-      return origin[property as keyof typeof origin];
-    },
-  }) as Boxed<T>;
-
-  proxyMap.set(proxy, origin);
-  listenersMap.set(proxy, new Map());
-
-  setOriginUpdate(proxy, (input) => {
-    const keys = new Set(Object.keys(input).concat(Object.keys(origin)));
-    const updatedKeys: PropertyKey[] = [];
-    keys.forEach((key) => {
-      const newValue = input[key as unknown as number];
-      if (newValue === origin[key as unknown as number]) return;
-      updatedKeys.push(key);
-      if (newValue === undefined || newValue === null) {
-        delete origin[key as unknown as number];
-        return;
-      }
-
-      origin[key as unknown as number] = input[key as unknown as number];
-    });
-
-    return updatedKeys;
-  });
-
-  return proxy;
 }

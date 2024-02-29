@@ -1,21 +1,27 @@
 import type {
+  Boxed,
   BoxedList,
   List,
   NonReadonlyList,
+  Nullable,
   ProxyMap,
 } from "./common_types.ts";
 import { inbox } from "./inbox.ts";
-import { $insert, $merge, $remove } from "./alter.ts";
+import { $insert, $remove, $set } from "./alter.ts";
 
 export function createCollection<T extends List>(source: T) {
   const proxyMap: ProxyMap = new WeakMap();
   const mirror = inbox(source, proxyMap) as BoxedList<T>;
 
-  function col(payload?: T) {
-    if (payload !== undefined) {
-      $merge(proxyMap, mirror, payload);
+  function col(
+    proxy: BoxedList<T>,
+    key: keyof T,
+    value: Nullable<T>,
+  ) {
+    if (proxy === undefined) {
+      return mirror;
     }
-    return mirror;
+    $set(proxyMap, proxy as Boxed<T>, key!, value!);
   }
 
   col.insert = function <T extends List>(

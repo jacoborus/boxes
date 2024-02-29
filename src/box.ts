@@ -1,5 +1,6 @@
 import type {
   Basic,
+  Boxed,
   BoxedList,
   List,
   NonReadonlyList,
@@ -7,19 +8,28 @@ import type {
   ProxyMap,
 } from "./common_types.ts";
 
-import { $insert, $merge, $remove, $update } from "./alter.ts";
+import { $insert, $merge, $remove, $set, $update } from "./alter.ts";
 import { inbox } from "./inbox.ts";
 
 export function createBox<T extends Basic>(source: T) {
   const proxyMap: ProxyMap = new WeakMap();
   const mirror = inbox(source, proxyMap);
 
-  function box(payload?: T, ismerge = false) {
-    if (payload !== undefined) {
-      if (ismerge) $merge(proxyMap, mirror, payload);
-      else $update(proxyMap, mirror, payload);
+  function box(): Boxed<T>;
+  function box(
+    proxy: Boxed<T>,
+    key: keyof T,
+    value: Nullable<T>,
+  ): void;
+  function box(
+    proxy?: Boxed<T>,
+    key?: keyof T,
+    value?: Nullable<T>,
+  ) {
+    if (proxy === undefined) {
+      return mirror;
     }
-    return mirror;
+    $set(proxyMap, proxy, key!, value!);
   }
 
   box.update = function updateBox(payload: T): void {

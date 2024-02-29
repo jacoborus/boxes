@@ -56,6 +56,24 @@ export function $update<T extends Basic>(
   });
 }
 
+export function $set<T extends Basic>(
+  proxyMap: ProxyMap,
+  proxy: Boxed<T>,
+  key: keyof T,
+  value: Nullable<T>,
+) {
+  const context = proxyMap.get(proxy)!;
+  const target = context[key as number];
+  if (target === value) return;
+  if (value === null) delete context[key as number];
+  if (isBoxed(value)) {
+    context[key as number] = value;
+  } else {
+    context[key as number] = copyItem(value, proxyMap);
+  }
+  stackListeners(proxy, [key]);
+}
+
 export function $merge(
   proxyMap: ProxyMap,
   proxy: Boxed<Basic>,

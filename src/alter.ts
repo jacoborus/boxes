@@ -18,8 +18,19 @@ import {
   listenersMap,
 } from "./reactive.ts";
 
-const originUpdates = new Map<Boxed<Basic>, (value: Basic) => PropertyKey[]>();
+/**
+ * A weakmap to store the functions that update the origino associated to a box
+ */
+const originUpdates = new WeakMap<
+  Boxed<Basic>,
+  (value: Basic) => PropertyKey[]
+>();
 
+/**
+ * Creates an update function for a given proxy and its associated origin value.
+ * @param proxy The boxed proxy value.
+ * @param origin The original value associated to the proxy
+ */
 export function createOriginUpdate<T extends Basic>(
   proxy: Boxed<T>,
   origin: T,
@@ -43,6 +54,12 @@ export function createOriginUpdate<T extends Basic>(
   });
 }
 
+/**
+ * Updates the contents of a box/collection with a new set of values,
+ * @param pMap The map of proxies.
+ * @param proxy The proxy value to be updated.
+ * @param payload The new value.
+ */
 export function $update<T extends Basic>(
   pMap: ProxyMap,
   proxy: Boxed<T>,
@@ -56,6 +73,13 @@ export function $update<T extends Basic>(
   });
 }
 
+/**
+ * Sets a value in a box/collection at a given key
+ * @param proxyMap The map of proxies.
+ * @param proxy The proxy value.
+ * @param key The key where the value is to be set.
+ * @param value The value to set.
+ */
 export function $set<T extends Basic>(
   proxyMap: ProxyMap,
   proxy: Boxed<T>,
@@ -74,6 +98,12 @@ export function $set<T extends Basic>(
   stackListeners(proxy, [key]);
 }
 
+/**
+ * Merges a payload deeply into a box/collection
+ * @param proxyMap The map of proxies.
+ * @param proxy The proxy value.
+ * @param payload The value to merge.
+ */
 export function $merge(
   proxyMap: ProxyMap,
   proxy: Boxed<Basic>,
@@ -106,6 +136,13 @@ export function $merge(
   });
 }
 
+/**
+ * Inserts one or more values into a boxed list at a specified position
+ * @param proxyMap The map of proxies.
+ * @param proxy The proxy value.
+ * @param payload The value(s) to insert.
+ * @param position The position to insert at. Defaults to the end of the list.
+ */
 export function $insert<T extends List>(
   proxyMap: ProxyMap,
   proxy: Boxed<T>,
@@ -129,6 +166,14 @@ export function $insert<T extends List>(
   triggerListFrom(proxy, position);
 }
 
+/**
+ * Removes items from a boxed list
+ * @param proxyMap The map of proxies.
+ * @param proxy The proxy value.
+ * @param first The index to start removing items from. Defaults to the end of the list.
+ * @param amount The number of items to remove. Defaults to 1.
+ * @returns The removed items.
+ */
 export function $remove<T extends List>(
   proxyMap: ProxyMap,
   proxy: BoxedList<T>,
@@ -150,6 +195,11 @@ export function $remove<T extends List>(
   return result;
 }
 
+/**
+ * Iterates through the handlers for a proxy, stacking them if their corresponding keys were updated.
+ * @param proxy The proxy value.
+ * @param updatedKeys The keys that were updated.
+ */
 function stackListeners(
   proxy: Boxed<Basic>,
   updatedKeys: PropertyKey[],
@@ -165,6 +215,11 @@ function stackListeners(
   }
 }
 
+/**
+ * Triggers listeners for a boxed list from a given index onwards.
+ * @param proxy The list proxy value.
+ * @param first The index from which to trigger listeners.
+ */
 function triggerListFrom(proxy: BoxedList<List>, first: number) {
   const keys = getHandlersMap(proxy).keys();
   batch(() => {

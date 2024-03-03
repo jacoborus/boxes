@@ -1,5 +1,12 @@
-import type { Basic, Boxed, GetThing, ListenersMap } from "./common_types.ts";
-import { copyItem } from "./alter.ts";
+import type {
+  Basic,
+  Boxed,
+  BoxedList,
+  GetThing,
+  List,
+  ListenersMap,
+} from "./common_types.ts";
+import { copyItem } from "./inbox.ts";
 
 const SELF = Symbol("self");
 
@@ -13,6 +20,12 @@ const triggerStack: Set<() => void> = new Set();
 let triggerCount = 0;
 
 let isTracking = false;
+
+export function isBoxed(
+  value: unknown,
+): value is Boxed<Basic> {
+  return listenersMap.has(value as Boxed<Basic>);
+}
 
 export function addToTriggerStack(fns: Set<() => void>) {
   fns.forEach((fn) => triggerStack.add(fn));
@@ -153,4 +166,43 @@ export function watch<T>(
 ) {
   const memo = computed(getter);
   return watchThing(memo as GetThing<T>, callback);
+}
+
+/**
+ * Iterates through the handlers for a proxy, stacking them if their corresponding keys were updated.
+ * @param proxy The proxy value.
+ * @param updatedKeys The keys that were updated.
+ */
+export function stackListeners(
+  proxy: Boxed<Basic>,
+  updatedKeys: PropertyKey[],
+) {
+  const keys = getHandlersMap(proxy).keys();
+  let nextKey = keys.next();
+  while (!nextKey.done) {
+    const key = nextKey.value;
+    if (updatedKeys.includes(key)) {
+      addToTriggerStack(getHandlers(proxy, nextKey.value as number));
+    }
+    nextKey = keys.next();
+  }
+}
+
+/**
+ * Triggers listeners for a boxed list from a given index onwards.
+ * @param proxy The list proxy value.
+ * @param first The index from which to trigger listeners.
+ */
+export function triggerListFrom(proxy: BoxedList<List>, first: number) {
+  const keys = getHandlersMap(proxy).keys();
+  batch(() => {
+    let nextKey = keys.next();
+    while (!nextKey.done) {
+      const key = nextKey.value;
+      if (key as number >= first) {
+        addToTriggerStack(getHandlers(proxy, key as number));
+      }
+      nextKey = keys.next();
+    }
+  });
 }

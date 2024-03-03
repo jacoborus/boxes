@@ -2,20 +2,17 @@ import type {
   Basic,
   Boxed,
   BoxedList,
-  Dict,
   List,
   NonReadonlyList,
   Nullable,
   ProxyMap,
 } from "./common_types.ts";
-import { inbox } from "./inbox.ts";
-
+import { copyBasic, copyItem, isObject } from "./inbox.ts";
 import {
-  addToTriggerStack,
   batch,
-  getHandlers,
-  getHandlersMap,
-  listenersMap,
+  isBoxed,
+  stackListeners,
+  triggerListFrom,
 } from "./reactivity.ts";
 
 /**
@@ -193,81 +190,4 @@ export function $remove<T extends List>(
   const result = target.splice(first, amount);
   triggerListFrom(proxy, first);
   return result;
-}
-
-/**
- * Iterates through the handlers for a proxy, stacking them if their corresponding keys were updated.
- * @param proxy The proxy value.
- * @param updatedKeys The keys that were updated.
- */
-function stackListeners(
-  proxy: Boxed<Basic>,
-  updatedKeys: PropertyKey[],
-) {
-  const keys = getHandlersMap(proxy).keys();
-  let nextKey = keys.next();
-  while (!nextKey.done) {
-    const key = nextKey.value;
-    if (updatedKeys.includes(key)) {
-      addToTriggerStack(getHandlers(proxy, nextKey.value as number));
-    }
-    nextKey = keys.next();
-  }
-}
-
-/**
- * Triggers listeners for a boxed list from a given index onwards.
- * @param proxy The list proxy value.
- * @param first The index from which to trigger listeners.
- */
-function triggerListFrom(proxy: BoxedList<List>, first: number) {
-  const keys = getHandlersMap(proxy).keys();
-  batch(() => {
-    let nextKey = keys.next();
-    while (!nextKey.done) {
-      const key = nextKey.value;
-      if (key as number >= first) {
-        addToTriggerStack(getHandlers(proxy, key as number));
-      }
-      nextKey = keys.next();
-    }
-  });
-}
-
-export function copyBasic<T extends Basic>(origin: T, proxyMap: ProxyMap): T {
-  return Array.isArray(origin)
-    ? copyList(origin, proxyMap)
-    : copyDict(origin, proxyMap) as T;
-}
-
-export function copyItem<T>(item: T, proxyMap: ProxyMap) {
-  return !isObject(item) || isBoxed(item) ? item : inbox(item, proxyMap);
-}
-
-function copyDict<T extends Dict>(origin: T, proxyMap: ProxyMap): T {
-  const result: T = {} as T;
-  for (const i in origin) {
-    const item = origin[i];
-    if (item === undefined || item === null) continue;
-    result[i as keyof T] = copyItem(item, proxyMap);
-  }
-  return result;
-}
-
-function copyList<T extends List>(origin: T, proxyMap: ProxyMap): T {
-  const result: T = [] as unknown as T;
-  for (const item of origin) {
-    result.push(copyItem(item, proxyMap));
-  }
-  return result;
-}
-
-function isBoxed(
-  value: unknown,
-): value is Boxed<Basic> {
-  return listenersMap.has(value as Boxed<Basic>);
-}
-
-function isObject(value: unknown): value is Basic {
-  return typeof value === "object" && value !== null;
 }

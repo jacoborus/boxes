@@ -104,6 +104,12 @@ function watchComp<
 
 const proxyMap = new WeakMap();
 
+/**
+ * Creates a computed value derived from a getter function. Its dependencies
+ * get tracked for automatic updates.
+ * @param getter The function to compute the value
+ * @returns The computed value
+ */
 export function computed<T>(
   getter: () => T,
 ) {

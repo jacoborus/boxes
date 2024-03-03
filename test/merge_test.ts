@@ -1,6 +1,5 @@
 import { assertEquals } from "assert";
-import { createBox } from "../boxes.ts";
-import { watchProp } from "../src/reactive.ts";
+import { createBox, watchProp } from "../boxes.ts";
 
 Deno.test({
   name: "basic merge",

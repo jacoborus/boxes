@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from "assert";
 import { createBox } from "../boxes.ts";
-import { watchProp } from "../src/reactive.ts";
+import { watchProp } from "../src/reactivity.ts";
 
 Deno.test({
   name: "basic test",

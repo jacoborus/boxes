@@ -21,7 +21,7 @@ export function createCollection<T extends List>(source: T) {
     if (proxy === undefined) {
       return mirror;
     }
-    $set(proxyMap, proxy as Boxed<T>, key!, value!);
+    $set(proxy as Boxed<T>, key!, value!, proxyMap);
   }
 
   col.insert = function <T extends List>(

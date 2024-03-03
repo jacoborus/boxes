@@ -16,10 +16,10 @@ import {
   getHandlers,
   getHandlersMap,
   listenersMap,
-} from "./reactive.ts";
+} from "./reactivity.ts";
 
 /**
- * A weakmap to store the functions that update the origino associated to a box
+ * A weakmap to store the functions that update the origin associated to a box
  */
 const originUpdates = new WeakMap<
   Boxed<Basic>,
@@ -56,14 +56,14 @@ export function createOriginUpdate<T extends Basic>(
 
 /**
  * Updates the contents of a box/collection with a new set of values,
- * @param pMap The map of proxies.
  * @param proxy The proxy value to be updated.
  * @param payload The new value.
+ * @param pMap The map of proxies.
  */
 export function $update<T extends Basic>(
-  pMap: ProxyMap,
   proxy: Boxed<T>,
   payload: T,
+  pMap: ProxyMap,
 ) {
   if (proxy === payload) return;
   const newTarget = copyBasic(payload, pMap);
@@ -81,10 +81,10 @@ export function $update<T extends Basic>(
  * @param value The value to set.
  */
 export function $set<T extends Basic>(
-  proxyMap: ProxyMap,
   proxy: Boxed<T>,
   key: keyof T,
   value: Nullable<T>,
+  proxyMap: ProxyMap,
 ) {
   const context = proxyMap.get(proxy)!;
   const target = context[key as number];
@@ -105,9 +105,9 @@ export function $set<T extends Basic>(
  * @param payload The value to merge.
  */
 export function $merge(
-  proxyMap: ProxyMap,
   proxy: Boxed<Basic>,
   payload: Nullable<Basic>,
+  proxyMap: ProxyMap,
 ) {
   const target = proxyMap.get(proxy)!;
 
@@ -124,7 +124,7 @@ export function $merge(
         // the cases from here add the key to the updatedKeys array
         delete target[key];
       } else if (isObject(value) && isObject(targetValue)) {
-        $merge(proxyMap, targetValue, value);
+        $merge(targetValue, value, proxyMap);
       } else {
         target[key] = copyItem(value, proxyMap);
       }

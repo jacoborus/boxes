@@ -5,7 +5,7 @@ import {
   getHandlers,
   listenersMap,
   ping,
-} from "./reactive.ts";
+} from "./reactivity.ts";
 
 export function createThingy<T>(
   input: NonObjectNull<T>,

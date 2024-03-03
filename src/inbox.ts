@@ -1,6 +1,6 @@
 import type { Basic, Boxed, ProxyMap } from "./common_types.ts";
 
-import { listenersMap, ping } from "./reactive.ts";
+import { listenersMap, ping } from "./reactivity.ts";
 import { copyBasic, createOriginUpdate } from "./alter.ts";
 
 export function inbox<T extends Basic>(

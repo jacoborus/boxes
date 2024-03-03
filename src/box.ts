@@ -29,15 +29,15 @@ export function createBox<T extends Basic>(source: T) {
     if (proxy === undefined) {
       return mirror;
     }
-    $set(proxyMap, proxy, key!, value!);
+    $set(proxy, key!, value!, proxyMap);
   }
 
   box.update = function updateBox(payload: T): void {
-    $update(proxyMap, mirror, payload);
+    $update(mirror, payload, proxyMap);
   };
 
   box.merge = function mergeBox(payload: Nullable<Basic>): void {
-    $merge(proxyMap, mirror, payload);
+    $merge(mirror, payload, proxyMap);
   };
 
   box.insert = function <T extends List>(

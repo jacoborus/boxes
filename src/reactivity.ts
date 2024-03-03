@@ -135,12 +135,14 @@ export function computed<T>(
   let offStack: (() => void)[] = [];
 
   const updateResult = () => {
-    offStack.forEach((off) => off());
-    offStack = [];
-
     isTracking = true;
     const preResult = copyItem(getter(), proxyMap);
     const stack = stopTracking();
+
+    if (preResult === result) return;
+
+    offStack.forEach((off) => off());
+    offStack = [];
 
     stack.forEach((set, target) => {
       set.forEach((propKey) => {
@@ -150,7 +152,6 @@ export function computed<T>(
       });
     });
 
-    if (preResult === result) return;
     result = preResult;
     handlersMap.get(SELF)!.forEach((fn) => fn());
   };

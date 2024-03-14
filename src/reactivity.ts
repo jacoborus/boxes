@@ -96,7 +96,8 @@ export function watchProp<T extends Boxed<Basic>, K extends keyof T>(
   property: K,
   callback: (value: T[K]) => void,
 ) {
-  const handler = () => callback(target[property]);
+  const prop = Array.isArray(target) ? property.toString() : property;
+  const handler = () => callback(target[prop as K]);
   const handlers = getHandlers(target, property);
   handlers.add(handler);
   return () => handlers.delete(handler);

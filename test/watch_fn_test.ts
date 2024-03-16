@@ -46,19 +46,18 @@ Deno.test({
   name: "watchFn + merge with 1 box",
   fn() {
     let control = 0;
-    const box = createBox({ a: 1 });
-    const data = box();
-    const off = watch(() => data.a + 1, (value) => {
+    const [box, setBox] = createBox({ a: 1 });
+    const off = watch(() => box.a + 1, (value) => {
       control = value;
     });
     assertEquals(control, 0);
-    box.merge({ a: 4 });
-    assertEquals(data.a, 4);
+    setBox.merge({ a: 4 });
+    assertEquals(box.a, 4);
     assertEquals(control, 5);
-    box.merge({ a: 99 });
+    setBox.merge({ a: 99 });
     assertEquals(control, 100);
     off();
-    box.merge({ a: 1 });
+    setBox.merge({ a: 1 });
     assertEquals(control, 100);
   },
 });
@@ -68,27 +67,26 @@ Deno.test({
   fn() {
     let control = 0;
     let count = 0;
-    const box = createBox<{
+    const [box, setBox] = createBox<{
       a?: number;
       o: { x: number; y: number };
     }>({
       a: 1,
       o: { x: 1, y: 2 },
     });
-    const data = box();
-    const off = watch(() => data.o.x + 1, (value) => {
+    const off = watch(() => box.o.x + 1, (value) => {
       count++;
       control = value;
     });
     assertEquals(control, 0);
-    box.merge({ o: { x: 3 } });
+    setBox.merge({ o: { x: 3 } });
     assertEquals(count, 1, "times listener has been triggered");
-    assertEquals(data.o.x, 3);
+    assertEquals(box.o.x, 3);
     assertEquals(control, 4);
-    box.merge({ o: { y: 99 } });
+    setBox.merge({ o: { y: 99 } });
     assertEquals(control, 4);
     off();
-    box.merge({ o: { x: 99 } });
+    setBox.merge({ o: { x: 99 } });
     assertEquals(control, 4);
   },
 });

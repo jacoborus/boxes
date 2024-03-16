@@ -72,10 +72,11 @@ export function $update<T extends Basic>(
 
 /**
  * Sets a value in a box/collection at a given key
- * @param proxyMap The map of proxies.
- * @param proxy The proxy value.
- * @param key The key where the value is to be set.
- * @param value The value to set.
+ * @template T extends Basic -
+ * @param proxy - The proxy value
+ * @param key - The key where the value is to be set
+ * @param value - The new value to set
+ * @param proxyMap - The map of proxies.
  */
 export function $set<T extends Basic>(
   proxy: Boxed<T>,

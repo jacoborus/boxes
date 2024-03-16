@@ -6,17 +6,17 @@ Deno.test({
   name: "basic test",
   fn() {
     const obj = { a: 1 };
-    const box = createBox(obj);
+    const [box, setBox] = createBox(obj);
     let control = 0;
-    assertEquals(box().a, obj.a, "copy works");
-    const off = watchProp(box(), "a", (value) => {
+    assertEquals(box.a, obj.a, "copy works");
+    const off = watchProp(box, "a", (value) => {
       control = value;
     });
-    box.merge({ a: 4 });
-    assertEquals(box().a, 4, "update works");
+    setBox.merge({ a: 4 });
+    assertEquals(box.a, 4, "update works");
     assertEquals(control, 4, "watch works");
     off();
-    box.update({ a: 6 });
+    setBox.update({ a: 6 });
     assertEquals(control, 4);
   },
 });

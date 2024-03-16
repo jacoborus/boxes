@@ -9,39 +9,49 @@ import type {
 import { inbox } from "./inbox.ts";
 import { $insert, $remove, $set } from "./alter.ts";
 
-export function createCollection<T extends List>(source: T) {
-  const proxyMap: ProxyMap = new WeakMap();
-  const mirror = inbox(source, proxyMap) as BoxedList<T>;
+type SetCol<T extends List> = {
+  apply: (target: Boxed<T>, thisArg: unknown, argArray: unknown[]) => void;
+  insert: (
+    payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
+    position?: number,
+  ) => void;
+  remove: (filter: (i: BoxedList<T>[keyof BoxedList<T>]) => boolean) => void;
+  extract: (
+    first?: number,
+    amount?: number,
+  ) => NonReadonlyList<T[number]>[];
+};
 
-  function col(
-    proxy: BoxedList<T>,
-    key: keyof T,
-    value: Nullable<T>,
-  ) {
-    if (proxy === undefined) {
-      return mirror;
-    }
-    $set(proxy as Boxed<T>, key!, value!, proxyMap);
+export function createCollection<T extends List>(
+  source: T,
+): [Boxed<T>, SetCol<T>] {
+  const proxyMap: ProxyMap = new WeakMap();
+  const col = inbox(source, proxyMap) as Boxed<T>;
+
+  function setCol(proxy: BoxedList<T>, key: keyof T, value: Nullable<T>) {
+    $set(proxy as Boxed<T>, key, value, proxyMap);
   }
 
-  col.insert = function <T extends List>(
+  setCol.insert = function <T extends List>(
     payload: NonReadonlyList<T[number]> | NonReadonlyList<T[number]>[],
-    position = mirror.length,
+    position = col.length,
   ): void {
-    $insert(proxyMap, mirror as BoxedList<List>, payload, position as number);
+    $insert(proxyMap, col as Boxed<List>, payload, position as number);
   };
 
-  col.remove = function (
+  setCol.remove = function (
     filter: (i: BoxedList<T>[keyof BoxedList<T>]) => boolean,
   ) {
-    const index = mirror.findIndex(filter);
+    const index = col.findIndex(filter);
     if (index === -1) return;
-    $remove(proxyMap, mirror, index, 1);
+    $remove(proxyMap, col, index, 1);
   };
 
-  col.extract = function (first?: number, amount?: number) {
-    return $remove(proxyMap, mirror, first, amount);
+  setCol.extract = function (first?: number, amount?: number) {
+    return $remove(proxyMap, col, first, amount) as NonReadonlyList<
+      T[number]
+    >[];
   };
 
-  return col;
+  return [col, setCol];
 }

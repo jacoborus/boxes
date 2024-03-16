@@ -5,17 +5,16 @@ Deno.test({
   name: "Update simple object",
   fn() {
     const obj = { a: 1 };
-    const box = createBox(obj);
-    const data = box();
+    const [box, setBox] = createBox(obj);
     let control = 0;
-    const off = watchProp(data, "a", (value) => {
+    const off = watchProp(box, "a", (value) => {
       control = value;
     });
-    box.update({ a: 4 });
-    assertEquals(data.a, 4, "update works");
+    setBox.update({ a: 4 });
+    assertEquals(box.a, 4, "update works");
     assertEquals(control, 4, "watch works");
     off();
-    box.update({ a: 6 });
+    setBox.update({ a: 6 });
     assertEquals(control, 4);
   },
 });
@@ -24,23 +23,22 @@ Deno.test({
   name: "Update object",
   fn() {
     const obj = { a: 1, b: "abc", o: { x: "x", y: "y" } };
-    const box = createBox<{
+    const [box, setBox] = createBox<{
       a: number;
       b?: string;
       o: { x: string; y: string };
     }>(obj);
-    const data = box();
     let control = 0;
-    const off = watchProp(data, "a", (value) => {
+    const off = watchProp(box, "a", (value) => {
       control = value;
     });
-    box.update({ a: 4, o: { x: "z", y: "z" } });
-    assertEquals(data.a, 4, "update works");
-    assertEquals(data.b, undefined, "update works");
-    assertEquals(data.o.x, "z", "update works");
+    setBox.update({ a: 4, o: { x: "z", y: "z" } });
+    assertEquals(box.a, 4, "update works");
+    assertEquals(box.b, undefined, "update works");
+    assertEquals(box.o.x, "z", "update works");
     assertEquals(control, 4, "watch works");
     off();
-    box.update({ a: 6, o: { x: "hola", y: "z" } });
+    setBox.update({ a: 6, o: { x: "hola", y: "z" } });
     assertEquals(control, 4);
   },
 });
@@ -74,17 +72,16 @@ Deno.test({
   name: "Update just with payload",
   fn() {
     const obj = { a: 1 };
-    const box = createBox(obj);
-    const data = box();
+    const [box, setBox] = createBox(obj);
     let control = 0;
-    const off = watchProp(data, "a", (value) => {
+    const off = watchProp(box, "a", (value) => {
       control = value;
     });
-    box.update({ a: 4 });
-    assertEquals(data.a, 4, "update works");
+    setBox.update({ a: 4 });
+    assertEquals(box.a, 4, "update works");
     assertEquals(control, 4, "watch works");
     off();
-    box.update({ a: 6 });
+    setBox.update({ a: 6 });
     assertEquals(control, 4);
   },
 });

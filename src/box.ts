@@ -13,11 +13,10 @@ export function createBox<T extends Basic>(source: T): [Boxed<T>, SetBox<T>] {
   const box: Boxed<T> = inbox(source, proxyMap);
 
   function setBox(
-    proxy: Boxed<T>,
     key: keyof T,
     value: Nullable<T>,
   ) {
-    $set(proxy, key, value, proxyMap);
+    $set(box, key, value, proxyMap);
   }
 
   setBox.update = function (payload: T): void {

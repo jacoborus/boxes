@@ -28,8 +28,8 @@ export function createCollection<T extends List>(
   const proxyMap: ProxyMap = new WeakMap();
   const col = inbox(source, proxyMap) as Boxed<T>;
 
-  function setCol(proxy: BoxedList<T>, key: keyof T, value: Nullable<T>) {
-    $set(proxy as Boxed<T>, key, value, proxyMap);
+  function setCol(key: keyof T, value: Nullable<T>) {
+    $set(col, key, value, proxyMap);
   }
 
   setCol.insert = function <T extends List>(

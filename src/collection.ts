@@ -24,12 +24,12 @@ type SetCol<T extends List> = {
 
 export function createCollection<T extends List>(
   source: T,
-): [Boxed<T>, SetCol<T>] {
+): [BoxedList<T>, SetCol<T>] {
   const proxyMap: ProxyMap = new WeakMap();
-  const col = inbox(source, proxyMap) as Boxed<T>;
+  const col = inbox(source, proxyMap) as BoxedList<T>;
 
   function setCol(key: keyof T, value: Nullable<T>) {
-    $set(col, key, value, proxyMap);
+    $set(col as Boxed<T>, key, value, proxyMap);
   }
 
   setCol.insert = function <T extends List>(
@@ -40,7 +40,7 @@ export function createCollection<T extends List>(
   };
 
   setCol.remove = function (
-    filter: (i: BoxedList<T>[keyof BoxedList<T>]) => boolean,
+    filter: <B extends BoxedList<T>>(i: B[keyof B]) => boolean,
   ) {
     const index = col.findIndex(filter);
     if (index === -1) return;

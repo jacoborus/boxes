@@ -10,14 +10,14 @@ export type Basic = List | Dict;
 
 type BoxedDict<T extends Dict> = {
   readonly [k in keyof T]: T[k] extends Primitive ? T[k]
-    : T[k] extends Basic ? Boxed<T[k]>
-    : never;
+  : T[k] extends Basic ? Boxed<T[k]>
+  : never;
 };
 
 export type BoxedList<T extends List> = ReadonlyArray<
   T[number] extends Primitive ? T[number]
-    : T[number] extends Basic ? Boxed<T[number]>
-    : never
+  : T[number] extends Basic ? Boxed<T[number]>
+  : never
 >;
 
 export type Boxed<T extends Basic> = T extends Dict ? BoxedDict<T>

@@ -15,8 +15,9 @@ Deno.test({
     assertEquals(box.a, 4, "update works");
     assertEquals(control, 4, "watch works");
     off();
-    setBox.update({ a: 6 });
+    setBox({ a: 6 });
     assertEquals(control, 4);
+    setBox("a", 3);
   },
 });
 

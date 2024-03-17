@@ -1,5 +1,5 @@
 {
   "imports": {
-    "assert": "https://deno.land/std@0.215.0/assert/mod.ts"
+    "assert": "https://deno.land/std@0.220.1/assert/mod.ts"
   }
 }

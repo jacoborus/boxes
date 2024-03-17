@@ -10,16 +10,21 @@ import {
 export function createThingy<T>(
   input: NonObjectNull<T>,
 ): [GetThing<T>, SetThing<T>] {
-  if (!isPrimitive(input)) throw new Error("Can't box non-primitive");
+  if (!isPrimitive(input)) {
+    throw new Error("Can't box non-primitive");
+  }
   let origin = input;
-  const getThing = () => {
+
+  const getThing: GetThing<T> = () => {
     ping(getThing);
     return origin;
   };
+
   listenersMap.set(getThing, new Map());
 
   return [
     getThing,
+
     ((value) => {
       if (origin === value) return;
       if (!isPrimitive(value)) throw new Error("Can't box non-primitive");

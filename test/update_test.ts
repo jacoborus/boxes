@@ -10,11 +10,11 @@ Deno.test({
     const off = watchProp(box, "a", (value) => {
       control = value;
     });
-    setBox.update({ a: 4 });
+    setBox({ a: 4 });
     assertEquals(box.a, 4, "update works");
     assertEquals(control, 4, "watch works");
     off();
-    setBox.update({ a: 6 });
+    setBox({ a: 6 });
     assertEquals(control, 4);
   },
 });
@@ -32,13 +32,13 @@ Deno.test({
     const off = watchProp(box, "a", (value) => {
       control = value;
     });
-    setBox.update({ a: 4, o: { x: "z", y: "z" } });
+    setBox({ a: 4, o: { x: "z", y: "z" } });
     assertEquals(box.a, 4, "update works");
     assertEquals(box.b, undefined, "update works");
     assertEquals(box.o.x, "z", "update works");
     assertEquals(control, 4, "watch works");
     off();
-    setBox.update({ a: 6, o: { x: "hola", y: "z" } });
+    setBox({ a: 6, o: { x: "hola", y: "z" } });
     assertEquals(control, 4);
   },
 });
@@ -77,11 +77,11 @@ Deno.test({
     const off = watchProp(box, "a", (value) => {
       control = value;
     });
-    setBox.update({ a: 4 });
+    setBox({ a: 4 });
     assertEquals(box.a, 4, "update works");
     assertEquals(control, 4, "watch works");
     off();
-    setBox.update({ a: 6 });
+    setBox({ a: 6 });
     assertEquals(control, 4);
   },
 });
